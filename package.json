@@ -1,0 +1,11 @@
+{
+  "name": "pickup-rating",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "^4.13.4",
+    "mongodb": "^2.1.21",
+    "q": "^1.4.1",
+    "q-foreach": "0.0.3"
+  }
+}

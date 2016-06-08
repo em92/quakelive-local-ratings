@@ -2,7 +2,7 @@
 
 ### Requirements
 
-* Node.js 6.0
+* Node.js 4.3.1
 * MongoDB 3.2
 
 Maybe it can run in older versions, but I don't know. 
@@ -16,15 +16,7 @@ npm update
 ```
 
 That's it. Now run
+
 ```
 node main.js
 ```
-
-### ToDo
-
-* ratings table/collection for #qlpickup.ru and "Attack & Defend"
-* handler for Predath0r's feeder (/stats/submit)
-* Predath0r's feeder installation instructions
-
-### License
- [WTFPL](http://www.wtfpl.net/)

@@ -46,11 +46,12 @@ def get_steam_id(qlstats_id):
 	return s2s[qlstats_id]
 	
 
-def generate_scoreboard(block, win):
+def generate_scoreboard(gametype, block, win):
 	result = []
+	
 	for row in block.select("tbody tr"):
 		tds = row.select("td")
-		result.append({
+		item = {
 			'steam-id': get_steam_id(tds[0].find("a")['href'].replace("/player/", "")),
 			'score': int(tds[6].text),
 			'kills': int(tds[2].text),
@@ -59,7 +60,15 @@ def generate_scoreboard(block, win):
 			'damage-taken': int(tds[5].text),
 			'time': get_sec(tds[1].text),
 			"win": win
-		})
+		}
+		
+		if gametype == "ctf":
+			del item['deaths']
+			item['damage-dealt'] = int(tds[6].text)
+			item['damage-taken'] = int(tds[7].text)
+			item['score'] = int(tds[8].text)
+		
+		result.append(item)
 	return result
 
 
@@ -74,7 +83,7 @@ def get_game_results(game_id):
 		result['map'] = blocks[0].select("p a")[1].text.strip().lower()
 		result['gametype'] = blocks[0].find("img")['alt']
 		result['factory'] = re.search('\((.*?)\)', blocks[0].select("p")[0].text).group(1)
-		result['scoreboard'] = generate_scoreboard(blocks[1], True) + generate_scoreboard(blocks[2], False)
+		result['scoreboard'] = generate_scoreboard(gametype, blocks[1], True) + generate_scoreboard(gametype, blocks[2], False)
 	except IndexError:
 		time.sleep(1)
 		return get_game_results(game_id)

@@ -1,0 +1,102 @@
+body {
+	background-color: thistle;
+}
+
+noscript {
+	background-color: red;
+	border: 1px solid black;
+	width: 100%;
+	top: 0px;
+	text-align: center;
+	display: block;
+	position: fixed;
+	color: yellow;
+}
+
+#top-right-fixed {
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	background-color: white;
+	color: black;
+	padding: 10px;
+}
+
+
+#bottom-right-fixed {
+	background-color: white;
+	position: fixed;
+	bottom: 0px;
+	right: 0px;
+	color: black;
+}
+
+#bottom-left-fixed {
+	background-color: red;
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	color: yellow;
+}
+
+#bottom-right-fixed img{
+	width: 320px;
+	height: auto;
+}
+
+table {
+	color: #d0d0d0;
+}
+
+th {
+	background-color: #003060;
+}
+
+td {
+   background-color: black;
+}
+
+.table-borderless tbody tr td, .table-borderless tbody tr th, .table-borderless thead tr th {
+    border-top: none;
+}
+
+.qc1 {
+	color: rgb(255, 0, 0);
+}
+
+.qc2 {
+	color: rgb(0, 255, 0);
+}
+
+.qc3 {
+	color: rgb(255, 255, 0);
+}
+
+.qc4 {
+	color: rgb(51, 102, 255);
+}
+
+.qc5 {
+	color: rgb(51, 255, 255);
+}
+
+.qc6 {
+	color: rgb(197, 0, 255);
+}
+
+.qc7 {
+	color: rgb(204, 204, 204);
+}
+
+#summary-table-wrapper {
+	margin-left: 20px;
+	width: 500px;
+}
+
+li {
+	width: 400px;
+	padding: 3px;
+	border-radius: 10px;
+	cursor: pointer;
+	margin-bottom: 3px;
+}

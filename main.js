@@ -1,7 +1,7 @@
 var express = require('express');
 var rating = require('./rating.js');
 
-var LISTEN_PORT = requie("./cfg.json").httpd_port;
+var LISTEN_PORT = require("./cfg.json").httpd_port;
 var app = express();
 
 

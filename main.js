@@ -1,9 +1,7 @@
 var express = require('express');
 var rating = require('./rating.js');
 
-// ToDo: read from cfg file
-var LISTEN_PORT = 7082;
-
+var LISTEN_PORT = requie("./cfg.json").httpd_port;
 var app = express();
 
 
@@ -13,7 +11,7 @@ var get_int_from_string = function(s, default_value) {
     return default_value;
 
   var result = parseInt(s);
-  if (isNan(result))
+  if (typeof(result) != "number")
     return default_value;
 
   return result;
@@ -24,7 +22,7 @@ app.get(["/elo/:ids", "/elo_b/:ids"], function(req, res) {
 
   var ids = req.params.ids.split("+");
 
-  rating.getForSteamIds(ids, function(result) {
+  rating.getForBalancePlugin(ids, function(result) {
     res.setHeader("Content-Type", "application/json");
     res.send(result);
   });
@@ -52,8 +50,18 @@ app.post("/stats/submit", function(req, res) {
   res.send({ok: false});
 });
 
+
 app.use(express.static("public"));
+
 
 app.listen(LISTEN_PORT, function () {
   console.log("Listening on port " + LISTEN_PORT.toString());
+  console.log("Updating ratings...");
+  rating.update(function(result) {
+    if (result.ok == true) {
+      console.log("Updated successfully");
+    } else {
+      console.error(result.message);
+    }
+  });
 });

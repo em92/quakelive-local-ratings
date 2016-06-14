@@ -1,4 +1,5 @@
 {
   "db-url": "mongodb://localhost:27017/pickup-rating",
-  "player-count-per-page": 10
+  "player-count-per-page": 10,
+  "httpd_port": 7081
 }

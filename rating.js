@@ -4,11 +4,8 @@ var cfg = require("./cfg.json");
 var Q = require('q');
 var extend = require('util')._extend;
 
-// ToDo: 
-// - перенести все ответы в формат { ok: true/false }
-// - создать коллекцию, для хранения имен, steamid и для каждого режима n, rating, rank
-// - с этой-же коллекции читать /elo и elo_b
-// - проверить че там с цтф
+// Note:
+// using promises/Q for the first time in my life
 
 var GAMETYPES_AVAILABLE = ["ctf", "tdm"];
 var MATCH_RATING_CALC_METHODS = {
@@ -72,7 +69,6 @@ var get_aggregate_options = function(gametype, after_unwind, after_project) {
       l: { $sum: { $cond: ["$scoreboard.win", 0, 1] } },
       "rating": {$avg: "$match_rating"}
     }},
-    { $match: { "n": { $gte: 10 } } },
     { $project: {
       _id: 1,
       n: 1,
@@ -82,129 +78,152 @@ var get_aggregate_options = function(gametype, after_unwind, after_project) {
 };
 
 
-var getRatingList = function(gametype, page, done) {
+var getList = function(gametype, page, done) {
 
   connect(function(db) {
 
-    db.collection('matches').aggregate( get_aggregate_options(
-      gametype, 
-      [], [
-        { $sort: { "rating": -1 } },
-        { $skip: page * cfg['player-count-per-page'] },
-        { $limit: cfg['player-count-per-page'] }
-      ]
-    )).toArray(function(err, docs) {
+    var matching = {}; matching[gametype + ".rank"] = { $ne: null };
+    var sorting  = {};  sorting[gametype + ".rank"] = 1;
 
-      if (err) {
-        done(err);
-        return;
+    var project  = {
+      _id: "$_id",
+      name: "$name",
+    };
+    project.n      = "$" + gametype + ".n";
+    project.rank   = "$" + gametype + ".rank";
+    project.rating = "$" + gametype + ".rating";
 
-      } else {
+    var docs = [];
 
-        result = docs.map(function(doc, i) {
-          return {
-            rank: i+1+page*cfg['player-count-per-page'],
-            // ToDo: name
-            steamid: doc._id,
+    Q(db.collection('players').aggregate([
+      { $match: matching },
+      { $sort: sorting },
+      { $skip: page * cfg['player-count-per-page'] },
+      { $limit: cfg['player-count-per-page'] },
+      { $project: project }
+    ]).toArray())
+    .then(function(result) {
+
+      docs = result;
+      return db.collection('players').find(matching).count();
+
+    })
+    .then(function(count) {
+
+       done({ok: true, response: docs, page_count: parseInt(count / cfg['player-count-per-page'])});
+
+    })
+    .catch(function(err) {
+
+      done({ok: false, message: err.toString()});
+
+    })
+    .finally(function() {
+
+      db.close();
+
+    });
+
+  }, function(err) {
+    done({ok: false, message: err.toString()});
+  });
+
+};
+
+
+var getForBalancePlugin = function(steamIds, done) {
+
+  var project = {};
+  project._id = 0;
+  project.steamid = "$_id";
+  GAMETYPES_AVAILABLE.forEach(function(gametype) {
+    project[gametype] = {
+      games: "$" + gametype + ".n",
+      elo: "$" + gametype + ".rating"
+    }
+  });
+
+  connect(function(db) {
+
+    Q.all(db.collection('players').aggregate([
+        { $match: {"_id": { $in: steamIds } } },
+        { $project: project }
+    ]).toArray())
+    .then(function(docs) {
+
+      done({ok: true, players: docs, deactivated: []});
+
+    }).catch(function(err) {
+
+      done({ok: false, message: err.toString()});
+
+    }).finally(function() {
+
+      db.close();
+
+    });
+
+  }, function(err) {
+
+    done({ok: false, message: err.toString()});
+
+  });
+};
+
+
+var update = function(done) {
+
+  connect(function(db) {
+
+    Q.all(GAMETYPES_AVAILABLE.map(function(gametype) {
+
+      return db.collection('matches').aggregate( get_aggregate_options(
+        gametype, [], [ { $sort: { "rating": -1 } } ]
+      )).toArray();
+
+    }))
+    .then(function(docs_docs) {
+
+      GAMETYPES_AVAILABLE.forEach(function(gametype, i) {
+        var docs = docs_docs[i];
+        var rank_cnt = 1;
+        docs.forEach(function(doc, i) {
+          result = {};
+          var rank = (doc.n < 10) ? null : rank_cnt++;
+          result[gametype] = {
             n: doc.n,
+            rank: rank,
             rating: parseFloat(doc.rating.toFixed(2))
           };
+          db.collection('players').update(
+            {_id: doc._id},
+            { $set: result }
+          );
         });
+      });
 
-        done(result);
+    })
+    .then(function() {
 
-      }
+      done({ok: true});
+
+    }).catch(function(err) {
+
+      done({ok: false, message: err.toString()});
+
+    }).finally(function() {
+
+      db.close();
+
     });
 
   }, function(err) {
-    done(err);
-  });
 
-};
+    done({ok: false, message: err.toString()});
 
-
-var getRatingsForSteamIds = function(steamIds, done) {
-
-  // default result
-  result = { "players": steamIds.map(function(steamId) {
-    temp = { "steamid": steamId };
-    GAMETYPES_AVAILABLE.forEach(function(gametype) {
-      temp[gametype] = { "games": 0, "elo": 0 };
-    });
-    return temp;
-  })};
-
-  connect(function(db) {
-
-    GAMETYPES_AVAILABLE.forEach(function(gametype) {
-      db.collection('players').find({"steam-id": { $in: steamIds }}).toArray(function(err, docs) {
-
-        if (err) {
-          done(err);
-          return;
-
-        } else {
-
-          Q.all(docs.map(function(doc) {
-
-            result["players"].forEach(function(player, i) {
-              if (player["steamid"] == doc."steam-id") {
-                result["players"][i][gametype] = {
-                  games: doc.n,
-                  elo: parseFloat(doc.rating.toFixed(2))
-                }
-              }
-            });
-
-          })).then(function() {
-
-            done(result);
-
-          });
-        }
-      });
-    });
-
-  }, function(err) {
-    done(err);
   });
 };
 
-
-var updateRatings = function() {
-
-  connect(function(db) {
-
-    GAMETYPES_AVAILABLE.forEach(function(gametype) {
-
-      db.collection('matches').aggregate( get_aggregate_options(
-        gametype, [], [ { $sort: { "rating": -1 } ]
-      )).toArray(function(err, docs) {
-
-        if (err) {
-          done(err);
-          return;
-
-        } else {
-
-          result = docs.map(function(doc, i) {
-            return {
-              rank: i+1+page*cfg['player-count-per-page'],
-              // ToDo: name
-              steamid: doc._id,
-              n: doc.n,
-              rating: parseFloat(doc.rating.toFixed(2))
-            };
-          });
-
-          done(result);
-
-        }
-      });
-    });
-
-  }, console.error);
-};
-
-module.exports.getForSteamIds = getRatingsForSteamIds;
-module.exports.getList = getRatingList;
+module.exports.update = update;
+module.exports.getList = getList;
+module.exports.getForBalancePlugin = getForBalancePlugin;

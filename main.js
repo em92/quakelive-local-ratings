@@ -1,8 +1,12 @@
 var express = require('express');
+var bodyParser = require('body-parser');
 var rating = require('./rating.js');
 
 var LISTEN_PORT = require("./cfg.json").httpd_port;
 var app = express();
+
+app.use(bodyParser.text());
+app.use(express.static("public"));
 
 
 var get_int_from_string = function(s, default_value) {
@@ -40,18 +44,14 @@ app.get(["/rating/:gametype", "/rating/:gametype/:page"], function(req, res) {
 });
 
 
-app.post("/stats/submit", function(req, res) {
+app.post('/stats/submit', function (req, res) {
+  rating.submitMatch(req.body, function(result) {
+    res.setHeader("Content-Type", "application/json");
+    res.send(result);
+  });
   // ToDo: добавить проверку заголовка (посмотри у фидера)
-  // ToDo: добавить результаты матча
-  // ToDo: выдернуть имена и засунуть в коллекцию players
-  // ToDo: пересчитать 
   // ToDo: в это время считают рейтинг, то добавить в очередь для считывания
-  res.setHeader("Content-Type", "application/json");
-  res.send({ok: false});
 });
-
-
-app.use(express.static("public"));
 
 
 app.listen(LISTEN_PORT, function () {

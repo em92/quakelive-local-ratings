@@ -161,6 +161,23 @@ var parse_stats_submission = function(body) {
 };
 
 
+var updateRanks = function(db, docs, gametype) {
+  return Q.all(docs.map(function(doc) {
+    result = {};
+    var rank = (doc.n < 10) ? null : rank_cnt++;
+    result[gametype] = {
+      n: doc.n,
+      rank: rank,
+      rating: parseFloat(doc.rating.toFixed(2))
+    };
+    return db.collection('players').update(
+      {_id: doc._id},
+      { $set: result }
+    );
+  }))
+};
+
+
 var submitMatch = function(data, done) {
 
   data = parse_stats_submission(data);
@@ -199,7 +216,18 @@ var submitMatch = function(data, done) {
     })
     .then(function() {
 
-      // ToDo: rating.update();
+      var steamIds = data.players.map(function(item) {
+        return item["P"];
+      });
+      
+      return db.collection('matches').aggregate( get_aggregate_options(
+        gametype, [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ { $sort: { "rating": -1 } } ]
+      )).toArray()
+
+    })
+    .then(function(docs) {
+
+      return updateRanks(db, docs, data["G"]);
 
     })
     .then(function() {
@@ -341,19 +369,7 @@ var update = function(done) {
       GAMETYPES_AVAILABLE.forEach(function(gametype, i) {
         var docs = docs_docs[i];
         var rank_cnt = 1;
-        docs.forEach(function(doc, i) {
-          result = {};
-          var rank = (doc.n < 10) ? null : rank_cnt++;
-          result[gametype] = {
-            n: doc.n,
-            rank: rank,
-            rating: parseFloat(doc.rating.toFixed(2))
-          };
-          db.collection('players').update(
-            {_id: doc._id},
-            { $set: result }
-          );
-        });
+        updateRanks(db, docs, gametype);
       });
 
     })
@@ -377,6 +393,7 @@ var update = function(done) {
 
   });
 };
+
 
 module.exports.update = update;
 module.exports.getList = getList;

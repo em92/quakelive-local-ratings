@@ -45,12 +45,17 @@ app.get(["/rating/:gametype", "/rating/:gametype/:page"], function(req, res) {
 
 
 app.post('/stats/submit', function (req, res) {
+  // https://github.com/PredatH0r/XonStat/blob/cfeae1b0c35c48a9f14afa98717c39aa100cde59/feeder/feeder.node.js#L989
+  if (req.header("X-D0-Blind-Id-Detached-Signature") != "dummy") {
+    res.setHeader("Content-Type", "application/json");
+    res.send( {ok: false} );
+    return;
+  }
+  
   rating.submitMatch(req.body, function(result) {
     res.setHeader("Content-Type", "application/json");
     res.send(result);
   });
-  // ToDo: добавить проверку заголовка (посмотри у фидера)
-  // ToDo: в это время считают рейтинг, то добавить в очередь для считывания
 });
 
 

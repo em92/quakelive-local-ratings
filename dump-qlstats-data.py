@@ -72,20 +72,20 @@ def generate_scoreboard(gametype, block, win):
     tds = row.select("td")
     item = {
       'steam-id': get_steam_id(tds[0].find("a")['href'].replace("/player/", "")),
-      'score': int(tds[6].text),
-      'kills': int(tds[2].text),
-      'deaths': int(tds[3].text),
-      'damage-dealt': int(tds[4].text),
-      'damage-taken': int(tds[5].text),
-      'time': get_sec(tds[1].text),
+      'score': int(tds[6].text if tds[6].text != "" else "0"),
+      'kills': int(tds[2].text if tds[2].text != "" else "0"),
+      'deaths': int(tds[3].text if tds[3].text != "" else "0"),
+      'damage-dealt': int(tds[4].text if tds[4].text != "" else "0"),
+      'damage-taken': int(tds[5].text if tds[5].text != "" else "0"),
+      'time': get_sec(tds[1].text if tds[1].text != "" else "0:00:00"),
       "win": win
     }
   
     if gametype == "ctf":
       del item['deaths']
-      item['damage-dealt'] = int(tds[6].text)
-      item['damage-taken'] = int(tds[7].text)
-      item['score'] = int(tds[8].text)
+      item['damage-dealt'] = int(tds[6].text if tds[6].text != "" else "0")
+      item['damage-taken'] = int(tds[7].text if tds[7].text != "" else "0")
+      item['score'] = int(tds[8].text if tds[8].text != "" else "0")
   
     result.append(item)
   return result

@@ -34,7 +34,7 @@ def download(link):
   return requests.get(link).text
 
 
-def get_steam_id(qlstats_id):
+def get_steam_id(qlstats_id, ignore_dictionary = False):
 
   def convert_nickname(nickname):
     for i in ["0", "1", "2", "3", "4", "5", "6", "7"]:
@@ -44,7 +44,7 @@ def get_steam_id(qlstats_id):
   global s2s
   global db
 
-  if qlstats_id not in s2s:
+  if qlstats_id not in s2s or ignore_dictionary == True:
     html = download("http://qlstats.net/player/" + qlstats_id)
     soup = BeautifulSoup(html, "html.parser")
     try:
@@ -136,6 +136,21 @@ def connect_to_database():
   return pymongo.MongoClient(temp.hostname, temp.port)[temp.path[1:]]
 
 
+def fix_missing_names():
+  global db
+  global s2s
+
+  cnt = 0
+  l = len(s2s.keys())
+  for player_id in s2s.keys():
+    cnt += 1
+    print( str(cnt) + " / " + str(l) )
+    if db.players.find_one({"_id": s2s[player_id]}) == None:
+      get_steam_id(player_id, True)
+
+  return 0
+
+
 def main(args):
   global db
 
@@ -150,6 +165,9 @@ def main(args):
     print("error: " + str(e))
     return 1
 
+  if args[1] == "fix-missing-names":
+    return fix_missing_names()
+    
   server_id = args[1]
   server_results_link_template = "http://qlstats.net/games?type=overall&server_id=" + server_id
 

@@ -70,11 +70,17 @@ var connect = function(callback, fuck) {
 };
 
 
+var in_array = function(what, array) {
+  return array.some(function(param) {return param==what});
+};
+
+
 var get_aggregate_options = function(gametype, after_unwind, after_project) {
   return [].concat([
     { $match: { "gametype": gametype } },
     { $unwind: "$scoreboard" },
-    { $match: { "scoreboard.time": { $gt: 300 } } }
+    { $match: { "scoreboard.time": { $gt: 300 } } },
+    { $match: { "scoreboard.damage-taken": { $gt: 100 } } }
   ], after_unwind, [
     { $project: extend({"scoreboard.steam-id": 1, "scoreboard.win": 1}, MATCH_RATING_CALC_METHODS[gametype]) },
     { $group: {
@@ -97,11 +103,7 @@ var parse_stats_submission = function(body) {
   var len = function(obj) {
     return Object.keys(obj).length;
   };
-  
-  var in_array = function(what, array) {
-    return array.some(function(param) {return param==what});
-  };
-  
+
   // storage vars for the request body
   var game_meta = {};
   var events = {};
@@ -177,6 +179,7 @@ var parse_stats_submission = function(body) {
 
 
 var updateRanks = function(db, docs, gametype) {
+  var rank_cnt = 1;
   return Q.all(docs.map(function(doc) {
     result = {};
     var rank = (doc.n < 10) ? null : rank_cnt++;
@@ -189,13 +192,17 @@ var updateRanks = function(db, docs, gametype) {
       {_id: doc._id},
       { $set: result }
     );
-  }))
+  }));
 };
 
 
 var submitMatch = function(data, done) {
 
   data = parse_stats_submission(data);
+  if (in_array(data.game_meta["G"], GAMETYPES_AVAILABLE) == false ) {
+    done({ok: false, message: "gametype is not accepted: " + data.game_meta["G"]});
+    return;
+  }
 
   connect(function(db) {
 
@@ -213,10 +220,10 @@ var submitMatch = function(data, done) {
     });
 
     Q(db.collection('matches').insertOne({
-      _id: data["I"],
-      map: data["M"],
-      gametype: data["G"],
-      factory: data["O"],
+      _id: data.game_meta["I"],
+      map: data.game_meta["M"],
+      gametype: data.game_meta["G"],
+      factory: data.game_meta["O"],
       scoreboard: scoreboard
     }))
     .then(function() {
@@ -224,7 +231,8 @@ var submitMatch = function(data, done) {
       return Q.all(data.players.map(function(player) {
         return db.collection('players').update(
           {_id: player["P"]},
-          { $set: {"name": player["n"]} }
+          { $set: {"name": player["n"]} },
+          {upsert: true}
         );
       }));
 
@@ -236,13 +244,13 @@ var submitMatch = function(data, done) {
       });
       
       return db.collection('matches').aggregate( get_aggregate_options(
-        gametype, [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ { $sort: { "rating": -1 } } ]
-      )).toArray()
+        data.game_meta["G"], [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ { $sort: { "rating": -1 } } ]
+      )).toArray();
 
     })
     .then(function(docs) {
 
-      return updateRanks(db, docs, data["G"]);
+      return updateRanks(db, docs, data.game_meta["G"]);
 
     })
     .then(function() {
@@ -381,11 +389,10 @@ var update = function(done) {
     }))
     .then(function(docs_docs) {
 
-      GAMETYPES_AVAILABLE.forEach(function(gametype, i) {
+      return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
         var docs = docs_docs[i];
-        var rank_cnt = 1;
-        updateRanks(db, docs, gametype);
-      });
+        return updateRanks(db, docs, gametype);
+      }));
 
     })
     .then(function() {

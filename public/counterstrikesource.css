@@ -2,6 +2,10 @@ body {
 	background-color: thistle;
 }
 
+a {
+  cursor: pointer;
+}
+
 noscript {
 	background-color: red;
 	border: 1px solid black;

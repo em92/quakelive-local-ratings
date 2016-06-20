@@ -8,17 +8,16 @@
 <title>Орангутанг Хлебалович</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
+<script src="react-mini-router.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 </head>
 <body>
 <noscript>Яваскрипт вырублен. Охуел?</noscript>
-<div id="content-tdm"></div>
-<div id="content-ctf"></div>
+<div id="content"></div>
 <script type="text/javascript" src="bebebe.js"></script> <!-- -->
 <script type="text/javascript">
 $(document).ready(function() {
-  ReactDOM.render(React.createElement(RatingList, {gametype: "tdm"}), document.getElementById('content-tdm'));
-  ReactDOM.render(React.createElement(RatingList, {gametype: "ctf"}), document.getElementById('content-ctf'));
+  ReactDOM.render(React.createElement(App), document.getElementById('content'));
 });
 </script>
 </body>

@@ -1,19 +1,26 @@
+// hack to fix
+var goto = function(url) {
+  return function() {
+    window.location.hash = "!" + url;
+  };
+};
+
 var RatingList = React.createClass({
   
   getInitialState: function() {
-    return { list: [], page: 0, loading: false, error: false };
+    return { list: [], gametype: "", page: 0, page_count: 0, loading: false, error: false };
   },
   
-  downloadPage: function(page) {
+  downloadList: function(gametype, page) {
     var self = this;
     
-    $.get( "rating/" + this.props.gametype + "/" + page.toString(), function( data ) {
+    $.get( "rating/" + gametype + "/" + page.toString(), function( data ) {
       if (data.ok == false) {
         self.setState({error: data.message});
         return;
       };
       
-      self.setState({list: data.response, page: page, loading: false, error: false});
+      self.setState({list: data.response, gametype: gametype, page: page, page_count: data.page_count, loading: false, error: false});
     });
   },
   
@@ -24,25 +31,34 @@ var RatingList = React.createClass({
     return '<span class="qc7">' + nickname + '</span>';
   },
   
-  componentDidMount: function() {
-    this.downloadPage(0);
+  componentWillMount: function() {
+    this.downloadList(this.props.gametype, this.props.page);
+  },
+  
+  componentWillReceiveProps: function(nextProps) {
+    this.downloadList(nextProps.gametype, nextProps.page);
   },
   
   render: function() {
     var self = this;
     
-    console.log(this.state);
-    
     if (this.state.loading == true) {
       return React.createElement("p", null, "Loading...");
-      console.log("hhhh");
     }
     
     if (this.state.error) {
       return React.createElement("p", null, "Error: " + this.state.error);
     }
     
-    console.log(this.state);
+    var pageLinks = [];
+    for(var i=0; i<this.state.page_count; i++) {
+      if (i == this.state.page) {
+        pageLinks.push(React.createElement("span", {key: i}, "[" + (i+1) + "]"));
+      } else {
+        pageLinks.push(React.createElement("a", {onClick: goto("/ratings/" + this.state.gametype + "/" + i), key: i}, "[" + (i+1) + "]"));
+      }
+    }
+    
     var result = this.state.list.map(function(item, i) {
       return React.createElement('tr', {key: i}, 
         React.createElement('td', {className: 'col-md-1'}, item.rank),
@@ -61,7 +77,42 @@ var RatingList = React.createClass({
           React.createElement('th', null, "Match Count")
         )),
         React.createElement('tbody', null, result)
-      )
+      ),
+      React.createElement("span", null, pageLinks)
     );
   }
 });
+
+var App = React.createClass({
+
+  mixins: [ReactMiniRouter.RouterMixin],
+
+  routes: {
+    '/': 'home',
+    '/ratings/:gametype': 'ratings',
+    '/ratings/:gametype/:page': 'ratings'
+  },
+
+  render: function() {
+    return this.renderCurrentRoute();
+  },
+
+  home: function() {
+    return React.createElement("div", null, 
+      React.createElement("a", {onClick: goto("/ratings/ctf")}, "ctf"),
+      React.createElement("br"),
+      React.createElement("a", {onClick: goto("/ratings/tdm")}, "tdm")
+    );
+  },
+
+  ratings: function(gametype, page) {
+    page = (typeof(page) != 'string') ? 0 : parseInt(page);
+    return React.createElement(RatingList, {gametype: gametype, page: page});
+  },
+
+  notFound: function(path) {
+    return React.createElement("div", null, path);
+  }
+
+});
+

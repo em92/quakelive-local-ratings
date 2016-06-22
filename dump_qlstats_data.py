@@ -91,19 +91,24 @@ def generate_scoreboard(gametype, block, win):
   return result
 
 
-def get_game_results(game_id):
+def get_game_results(game_id, add_scoreboard = True):
   result = {}
   html = download("http://qlstats.net/game/" + game_id)
   soup = BeautifulSoup(html, "html.parser")
   blocks = soup.select("#xonborder div.row")
 
   try:
-    result['game-id'] = int(game_id)
+    try:
+      result['game-id'] = int(game_id)
+    except ValueError:
+      pass
     result['_id'] = blocks[0].select("h2 span.note")[0].text.strip()
     result['map'] = blocks[0].select("p a")[1].text.strip().lower()
     result['gametype'] = blocks[0].find("img")['alt']
     result['factory'] = re.search('\((.*?)\)', blocks[0].select("p")[0].text).group(1)
-    result['scoreboard'] = generate_scoreboard(result['gametype'], blocks[1], True) + generate_scoreboard(result['gametype'], blocks[2], False)
+    result['timestamp'] = int(blocks[0].select("span.abstime")[0]['data-epoch'])
+    if add_scoreboard == True:
+      result['scoreboard'] = generate_scoreboard(result['gametype'], blocks[1], True) + generate_scoreboard(result['gametype'], blocks[2], False)
   except IndexError:
     time.sleep(1)
     return get_game_results(game_id)

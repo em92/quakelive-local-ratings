@@ -62,7 +62,9 @@ var RatingList = React.createClass({
     var result = this.state.list.map(function(item, i) {
       return React.createElement('tr', {key: i}, 
         React.createElement('td', {className: 'col-md-1'}, item.rank),
-        React.createElement('td', {className: 'col-md-3', dangerouslySetInnerHTML: {__html: self.renderQLNickname(item.name)}}),
+        React.createElement('td', {className: 'col-md-3'}, 
+          React.createElement('a', {href: 'http://steamcommunity.com/profiles/' + item._id + '/', dangerouslySetInnerHTML: {__html: self.renderQLNickname(item.name)} })
+        ),
         React.createElement('td', {className: 'col-md-1'}, item.rating),
         React.createElement('td', {className: 'col-md-1'}, item.n)
       )

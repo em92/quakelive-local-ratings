@@ -1,6 +1,15 @@
 {
   "name": "pickup-rating",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "license" : "MIT",
+  "author": {
+    "name": "Eugene Molotov",
+    "email": "eugene.m92@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/em92/pickup-rating.git"
+  },
   "private": true,
   "dependencies": {
     "body-parser": "^1.15.1",

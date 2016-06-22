@@ -7,6 +7,7 @@ var extend = require('util')._extend;
 // Note:
 // using promises/Q for the first time in my life
 
+var MOVING_AVERAGE_COUNT = 20;
 var GAMETYPES_AVAILABLE = ["ad", "ctf", "tdm"];
 var MATCH_RATING_CALC_METHODS = {
   'ad': { 'match_rating':
@@ -89,12 +90,16 @@ var get_aggregate_options = function(gametype, after_unwind, after_project) {
       n: { $sum: 1 },
       w: { $sum: { $cond: ["$scoreboard.win", 1, 0] } },
       l: { $sum: { $cond: ["$scoreboard.win", 0, 1] } },
-      "rating": {$avg: "$match_rating"}
+      match_ratings: { $addToSet: "$match_rating" }
     }},
     { $project: {
-      _id: 1,
+      _id: 1, 
       n: 1,
-      rating: { $multiply: ["$rating", RATING_FACTORS[gametype]] }
+      rating: { $multiply: [ { $avg: { $slice: [
+        "$match_ratings",
+        { $max: [ { $subtract: ["$n", MOVING_AVERAGE_COUNT] }, 0] }, // max(n-20,0)
+        { $min: [ "$n", MOVING_AVERAGE_COUNT ] } // min(n,20)
+      ] } }, RATING_FACTORS[gametype] ] }
     }}
   ], after_project);
 };

@@ -7,7 +7,7 @@ var extend = require('util')._extend;
 // Note:
 // using promises/Q for the first time in my life
 
-var MOVING_AVERAGE_COUNT = 20;
+var MOVING_AVERAGE_COUNT = 50;
 var GAMETYPES_AVAILABLE = ["ad", "ctf", "tdm"];
 var MATCH_RATING_CALC_METHODS = {
   'ad': { 'match_rating':
@@ -24,7 +24,7 @@ var MATCH_RATING_CALC_METHODS = {
       { $multiply: [
         1/2.35,
         { $divide: [ "$scoreboard.damage-dealt", "$scoreboard.damage-taken" ] },
-        { $add: [ "$scoreboard.score", { $divide: [ "$scoreboard.damage-dealt", 1000 ] } ] },
+        { $add: [ "$scoreboard.score", { $divide: [ "$scoreboard.damage-dealt", 20 ] } ] },
         { $divide: [ 1200, "$scoreboard.time" ] }
       ]},
       { $multiply: [

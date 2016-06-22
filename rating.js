@@ -10,17 +10,12 @@ var extend = require('util')._extend;
 var GAMETYPES_AVAILABLE = ["ad", "ctf", "tdm"];
 var MATCH_RATING_CALC_METHODS = {
   'ad': { 'match_rating':
-    { $add: [
-      { $multiply: [
-        1/2.35,
-        { $divide: [ "$scoreboard.damage-dealt", "$scoreboard.damage-taken" ] },
-        { $add: [ "$scoreboard.score", { $divide: [ "$scoreboard.damage-dealt", 1000 ] } ] },
-        { $divide: [ 1200, "$scoreboard.time" ] }
+    { $multiply: [
+      { $add: [
+        { $divide: [ "$scoreboard.damage-dealt", 100 ] },
+        "$scoreboard.kills",
       ]},
-      { $multiply: [
-        300,
-        { $cond: ["$scoreboard.win", 1, 0] }
-      ]}
+      { $divide: [ 1200, "$scoreboard.time" ] }
     ]}
   },
   'ctf': { 'match_rating':

@@ -28,6 +28,7 @@ var MATCH_RATING_CALC_METHODS = {
         { $divide: [ 1200, "$scoreboard.time" ] }
       ]},
       { $multiply: [
+        1/2.35,
         300,
         { $cond: ["$scoreboard.win", 1, 0] }
       ]}

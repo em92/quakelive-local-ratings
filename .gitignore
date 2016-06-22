@@ -1,3 +1,4 @@
 node_modules/*
 1.txt
 s2s.json
+__pycache__/*

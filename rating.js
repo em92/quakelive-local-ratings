@@ -78,6 +78,7 @@ var in_array = function(what, array) {
 var get_aggregate_options = function(gametype, after_unwind, after_project) {
   return [].concat([
     { $match: { "gametype": gametype } },
+    { $sort: { "timestamp": -1 } },
     { $unwind: "$scoreboard" },
     { $match: { "scoreboard.time": { $gt: 300 } } },
     { $match: { "scoreboard.damage-taken": { $gt: 100 } } }

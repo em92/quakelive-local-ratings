@@ -104,6 +104,7 @@ def get_game_results(game_id):
     result['gametype'] = blocks[0].find("img")['alt']
     result['factory'] = re.search('\((.*?)\)', blocks[0].select("p")[0].text).group(1)
     result['scoreboard'] = generate_scoreboard(result['gametype'], blocks[1], True) + generate_scoreboard(result['gametype'], blocks[2], False)
+    result['timestamp'] = int(blocks[0].select("span.abstime")[0]['data-epoch'])
   except IndexError:
     time.sleep(1)
     return get_game_results(game_id)

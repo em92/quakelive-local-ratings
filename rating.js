@@ -6,6 +6,7 @@ var extend = require('util')._extend;
 // Note:
 // using promises/Q for the first time in my life
 
+var MAX_RATING_HISTORY_COUNT = 50;
 var MOVING_AVERAGE_COUNT = 50;
 var GAMETYPES_AVAILABLE = ["ad", "ctf", "tdm"];
 var MATCH_RATING_CALC_METHODS = {
@@ -74,7 +75,7 @@ var in_array = function(what, array) {
 var get_aggregate_options = function(gametype, after_unwind, after_project) {
   return [].concat([
     { $match: { "gametype": gametype } },
-    { $sort: { "timestamp": -1 } },
+    { $sort: { "timestamp": 1 } },
     { $unwind: "$scoreboard" },
     { $match: { "scoreboard.time": { $gt: 300 } } },
     { $match: { "scoreboard.damage-taken": { $gt: 100 } } }
@@ -85,11 +86,13 @@ var get_aggregate_options = function(gametype, after_unwind, after_project) {
       n: { $sum: 1 },
       w: { $sum: { $cond: ["$scoreboard.win", 1, 0] } },
       l: { $sum: { $cond: ["$scoreboard.win", 0, 1] } },
+      last_match_timestamp: { $max: "$timestamp" },
       match_ratings: { $addToSet: "$match_rating" }
     }},
     { $project: {
       _id: 1, 
       n: 1,
+      last_match_timestamp: 1,
       rating: { $multiply: [ { $avg: { $slice: [
         "$match_ratings",
         { $max: [ { $subtract: ["$n", MOVING_AVERAGE_COUNT] }, 0] }, // max(n-20,0)
@@ -179,17 +182,30 @@ var parse_stats_submission = function(body) {
 };
 
 
-var updateRatings = function(db, docs, gametype) {
+var updateRatings = function(db, docs, gametype, update_history) {
   return Q.all(docs.map(function(doc) {
     var result = {};
-    result[gametype] = {
-      n: doc.n,
-      rating: parseFloat(doc.rating.toFixed(2))
-    };
-    return db.collection('players').update(
-      {_id: doc._id},
-      { $set: result }
-    );
+    result[gametype + ".n"] = doc.n;
+    result[gametype + ".rating"] = parseFloat(doc.rating.toFixed(2));
+    if (update_history) {
+      var history = {};
+      history[gametype + ".history"] = {
+        "timestamp": doc.last_match_timestamp,
+        "rating": parseFloat(doc.rating.toFixed(2))
+      }
+      return db.collection('players').update(
+        {_id: doc._id},
+        { $set: result },
+        { $push:
+          { $each: [history], $slice: -MAX_RATING_HISTORY_COUNT }
+        }
+      );
+    } else {
+      return db.collection('players').update(
+        {_id: doc._id },
+        { $set: result }
+      );
+    }
   }));
 };
 
@@ -222,6 +238,7 @@ var submitMatch = function(data, done) {
       map: data.game_meta["M"],
       gametype: data.game_meta["G"],
       factory: data.game_meta["O"],
+      timestamp: parseInt(data.game_meta["1"]),
       scoreboard: scoreboard
     }))
     .then(function() {
@@ -242,7 +259,7 @@ var submitMatch = function(data, done) {
       });
       
       return db.collection('matches').aggregate( get_aggregate_options(
-        data.game_meta["G"], [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ { $sort: { "rating": -1 } } ]
+        data.game_meta["G"], [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ ]
       )).toArray();
 
     })

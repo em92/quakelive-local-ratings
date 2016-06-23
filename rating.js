@@ -1,5 +1,4 @@
 var MongoClient = require('mongodb').MongoClient;
-var ObjectID = require('mongodb').ObjectID;
 var cfg = require("./cfg.json");
 var Q = require('q');
 var extend = require('util')._extend;
@@ -180,14 +179,11 @@ var parse_stats_submission = function(body) {
 };
 
 
-var updateRanks = function(db, docs, gametype) {
-  var rank_cnt = 1;
+var updateRatings = function(db, docs, gametype) {
   return Q.all(docs.map(function(doc) {
-    result = {};
-    var rank = (doc.n < 10) ? null : rank_cnt++;
+    var result = {};
     result[gametype] = {
       n: doc.n,
-      rank: rank,
       rating: parseFloat(doc.rating.toFixed(2))
     };
     return db.collection('players').update(
@@ -252,7 +248,7 @@ var submitMatch = function(data, done) {
     })
     .then(function(docs) {
 
-      return updateRanks(db, docs, data.game_meta["G"]);
+      return updateRatings(db, docs, data.game_meta["G"]);
 
     })
     .then(function() {
@@ -283,15 +279,14 @@ var getList = function(gametype, page, done) {
 
   connect(function(db) {
 
-    var matching = {}; matching[gametype + ".rank"] = { $ne: null };
-    var sorting  = {};  sorting[gametype + ".rank"] = 1;
+    var matching = {}; matching[gametype + ".n"] = { $gte: 10 };
+    var sorting  = {};  sorting[gametype + ".rating"] = -1;
 
     var project  = {
       _id: "$_id",
       name: "$name",
     };
     project.n      = "$" + gametype + ".n";
-    project.rank   = "$" + gametype + ".rank";
     project.rating = "$" + gametype + ".rating";
 
     var docs = [];
@@ -305,13 +300,16 @@ var getList = function(gametype, page, done) {
     ]).toArray())
     .then(function(result) {
 
-      docs = result;
+      docs = result.map(function(item, i) {
+        item.rank = page * cfg['player-count-per-page'] + 1 + i;
+        return item;
+      });
       return db.collection('players').find(matching).count();
 
     })
     .then(function(count) {
 
-       done({ok: true, response: docs, page_count: parseInt(count / cfg['player-count-per-page'])});
+       done({ok: true, response: docs, page_count: Math.ceil(count / cfg['player-count-per-page'])});
 
     })
     .catch(function(err) {
@@ -393,7 +391,7 @@ var update = function(done) {
 
       return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
         var docs = docs_docs[i];
-        return updateRanks(db, docs, gametype);
+        return updateRatings(db, docs, gametype);
       }));
 
     })

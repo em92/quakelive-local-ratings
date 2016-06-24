@@ -80,7 +80,7 @@ var get_aggregate_options = function(gametype, after_unwind, after_project) {
     { $match: { "scoreboard.time": { $gt: 300 } } },
     { $match: { "scoreboard.damage-taken": { $gt: 100 } } }
   ], after_unwind, [
-    { $project: extend({"scoreboard.steam-id": 1, "scoreboard.win": 1}, MATCH_RATING_CALC_METHODS[gametype]) },
+    { $project: extend({"scoreboard.steam-id": 1, "scoreboard.win": 1, "timestamp": 1}, MATCH_RATING_CALC_METHODS[gametype]) },
     { $group: {
       _id: "$scoreboard.steam-id", 
       n: { $sum: 1 },
@@ -188,17 +188,14 @@ var updateRatings = function(db, docs, gametype, update_history) {
     result[gametype + ".n"] = doc.n;
     result[gametype + ".rating"] = parseFloat(doc.rating.toFixed(2));
     if (update_history) {
-      var history = {};
-      history[gametype + ".history"] = {
+      var push_value = {};
+      push_value[gametype + ".history"] = { $each: [{
         "timestamp": doc.last_match_timestamp,
         "rating": parseFloat(doc.rating.toFixed(2))
-      }
+      }], $slice: -MAX_RATING_HISTORY_COUNT };
       return db.collection('players').update(
         {_id: doc._id},
-        { $set: result },
-        { $push:
-          { $each: [history], $slice: -MAX_RATING_HISTORY_COUNT }
-        }
+        { $set: result, $push: push_value }
       );
     } else {
       return db.collection('players').update(
@@ -212,7 +209,10 @@ var updateRatings = function(db, docs, gametype, update_history) {
 
 var submitMatch = function(data, done) {
 
-  data = parse_stats_submission(data);
+  if (typeof(data) == 'string') {
+    data = parse_stats_submission(data);
+  }
+
   if (in_array(data.game_meta["G"], GAMETYPES_AVAILABLE) == false ) {
     done({ok: false, message: "gametype is not accepted: " + data.game_meta["G"]});
     return;
@@ -265,7 +265,7 @@ var submitMatch = function(data, done) {
     })
     .then(function(docs) {
 
-      return updateRatings(db, docs, data.game_meta["G"]);
+      return updateRatings(db, docs, data.game_meta["G"], true);
 
     })
     .then(function() {

@@ -371,6 +371,16 @@ var getForBalancePlugin = function(steamIds, done) {
     ]).toArray())
     .then(function(docs) {
 
+      // removing $slice result on undefined variable from db
+      doc = docs.map( player => {
+        GAMETYPES_AVAILABLE.forEach( gametype => {
+          if (typeof(player[gametype].games) == 'undefined') {
+            delete player[gametype];
+          }
+        });
+        return player;
+      });
+
       done({ok: true, players: docs, deactivated: []});
 
     }).catch(function(err) {

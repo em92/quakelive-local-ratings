@@ -183,6 +183,11 @@ var parse_stats_submission = function(body) {
 
 
 var updateRatings = function(db, docs, gametype, update_history) {
+  // ignoring not supported gametypes
+  if (typeof(GAMETYPES_AVAILABLE[gametype]) == 'undefined') {
+    throw new Error('gametype is not supported: ' + gametype);
+  }
+
   return Q.all(docs.map(function(doc) {
     var result = {};
     result[gametype + ".n"] = doc.n;

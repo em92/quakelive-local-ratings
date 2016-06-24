@@ -352,13 +352,15 @@ var getList = function(gametype, page, done) {
 var getForBalancePlugin = function(steamIds, done) {
 
   var project = {};
+  var history_value = {};
   project._id = 0;
   project.steamid = "$_id";
   GAMETYPES_AVAILABLE.forEach(function(gametype) {
     project[gametype] = {
       games: "$" + gametype + ".n",
-      elo: "$" + gametype + ".rating"
-    }
+      elo: "$" + gametype + ".rating",
+      history: {$slice: ["$" + gametype + ".history", -3]}
+    };
   });
 
   connect(function(db) {

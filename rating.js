@@ -86,12 +86,14 @@ var get_aggregate_options = function(gametype, after_unwind, after_project) {
       n: { $sum: 1 },
       w: { $sum: { $cond: ["$scoreboard.win", 1, 0] } },
       l: { $sum: { $cond: ["$scoreboard.win", 0, 1] } },
-      last_match_timestamp: { $max: "$timestamp" },
+      last_match_id: { $last: "$_id" },
+      last_match_timestamp: { $last: "$timestamp" },
       match_ratings: { $addToSet: "$match_rating" }
     }},
     { $project: {
       _id: 1, 
       n: 1,
+      last_match_id: 1,
       last_match_timestamp: 1,
       rating: { $multiply: [ { $avg: { $slice: [
         "$match_ratings",
@@ -190,6 +192,7 @@ var updateRatings = function(db, docs, gametype, update_history) {
     if (update_history) {
       var push_value = {};
       push_value[gametype + ".history"] = { $each: [{
+        "match_id": doc.last_match_id,
         "timestamp": doc.last_match_timestamp,
         "rating": parseFloat(doc.rating.toFixed(2))
       }], $slice: -MAX_RATING_HISTORY_COUNT };

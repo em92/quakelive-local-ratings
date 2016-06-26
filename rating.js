@@ -6,7 +6,7 @@ var extend = require('util')._extend;
 // Note:
 // using promises/Q for the first time in my life
 
-var MOVING_AVERAGE_COUNT = 50;
+var MOVING_AVERAGE_COUNT = cfg.moving_average_count;
 var GAMETYPES_AVAILABLE = ["ad", "ctf", "tdm"];
 var MATCH_RATING_CALC_METHODS = {
   'ad': { 'match_rating':

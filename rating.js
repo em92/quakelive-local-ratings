@@ -75,12 +75,12 @@ var in_array = function(what, array) {
 var get_aggregate_options = function(gametype, after_unwind, after_project) {
   return [].concat([
     { $match: { "gametype": gametype } },
-    { $sort: { "timestamp": 1 } },
     { $unwind: "$scoreboard" },
     { $match: { "scoreboard.time": { $gt: 300 } } },
     { $match: { "scoreboard.damage-taken": { $gt: 100 } } }
   ], after_unwind, [
     { $project: extend({"scoreboard.steam-id": 1, "scoreboard.win": 1, "timestamp": 1}, MATCH_RATING_CALC_METHODS[gametype]) },
+    { $sort: { "timestamp": 1 } },
     { $group: {
       _id: "$scoreboard.steam-id", 
       n: { $sum: 1 },
@@ -88,7 +88,7 @@ var get_aggregate_options = function(gametype, after_unwind, after_project) {
       l: { $sum: { $cond: ["$scoreboard.win", 0, 1] } },
       last_match_id: { $last: "$_id" },
       last_match_timestamp: { $last: "$timestamp" },
-      match_ratings: { $addToSet: "$match_rating" }
+      match_ratings: { $push: "$match_rating" },
     }},
     { $project: {
       _id: 1, 

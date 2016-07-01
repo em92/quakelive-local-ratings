@@ -5,7 +5,7 @@
 from datetime import datetime
 from dump_qlstats_data import connect_to_database
 
-GAMETYPES_AVAILABLE = ["ad", "ctf", "tdm"]
+GAMETYPES_AVAILABLE = ["ad", "ctf", "ictf", "tdm"]
 
 def main(args):
 

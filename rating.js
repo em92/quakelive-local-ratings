@@ -8,7 +8,7 @@ var extend = require('util')._extend;
 
 var MOVING_AVERAGE_COUNT = cfg.moving_average_count;
 var MAX_RATING_HISTORY_COUNT = 50;
-var GAMETYPES_AVAILABLE = ["ad", "ctf", "tdm"];
+var GAMETYPES_AVAILABLE = ["ad", "ctf", "ictf", "tdm"];
 var MATCH_RATING_CALC_METHODS = {
   'ad': { 'match_rating':
     { $multiply: [
@@ -20,6 +20,21 @@ var MATCH_RATING_CALC_METHODS = {
     ]}
   },
   'ctf': { 'match_rating':
+    { $add: [
+      { $multiply: [
+        1/2.35,
+        { $divide: [ "$scoreboard.damage-dealt", "$scoreboard.damage-taken" ] },
+        { $add: [ "$scoreboard.score", { $divide: [ "$scoreboard.damage-dealt", 20 ] } ] },
+        { $divide: [ 1200, "$scoreboard.time" ] }
+      ]},
+      { $multiply: [
+        1/2.35,
+        300,
+        { $cond: ["$scoreboard.win", 1, 0] }
+      ]}
+    ]}
+  },
+  'ictf': { 'match_rating':
     { $add: [
       { $multiply: [
         1/2.35,
@@ -46,6 +61,7 @@ var MATCH_RATING_CALC_METHODS = {
 var RATING_FACTORS = {
   'ad': 1,
   'ctf': 1,
+  'ictf': 1,
   'tdm': {
     $add: [
       1,
@@ -184,6 +200,20 @@ var parse_stats_submission = function(body) {
 };
 
 
+var is_instagib = function(data) {
+  return data.players.some( player => {
+    return ['mg', 'sg', 'gl', 'rl', 'lg', 'pg', 'hmg', 'bfg', 'cg', 'ng', 'pm', 'gh'].every( weapon => {
+      if (typeof( player['acc-' + weapon + '-cnt-fired'] ) == 'undefined') {
+        return true;
+      } else if ( player['acc-' + weapon + '-cnt-fired'] == '0' ) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+  });
+};
+
 var updateRatings = function(db, docs, gametype, update_history) {
   return Q.all(docs.map(function(doc) {
     var result = {};
@@ -214,6 +244,10 @@ var submitMatch = function(data, done) {
 
   if (typeof(data) == 'string') {
     data = parse_stats_submission(data);
+  }
+
+  if (is_instagib(data)) {
+    data.game_meta["G"] = "i" + data.game_meta["G"];
   }
 
   if (in_array(data.game_meta["G"], GAMETYPES_AVAILABLE) == false ) {

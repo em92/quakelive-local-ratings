@@ -9,9 +9,7 @@ from bs4 import BeautifulSoup
 import pymongo
 import time
 
-# 798
-# 805
-# 738
+GAMETYPES_AVAILABLE = ["ad", "ctf", "ictf", "tdm"]
 
 db = None
 
@@ -199,8 +197,12 @@ def main(args):
   while True:
     soup = BeautifulSoup(download(server_results_link), 'html.parser')
     game_id = None
-    for btn in soup.select(".btn"):
+    for tr in soup.select("table tbody tr"):
+      btn = tr.find("a", class_="btn")
       game_id = btn['href'].replace("/game/", "")
+      gametype = tr.find_all("td")[2].text.strip()
+      if gametype not in GAMETYPES_AVAILABLE or ("i"+gametype) not in GAMETYPES_AVAILABLE:
+        continue
       game_results = get_game_results(game_id)
       try:
         db.matches.insert_one(game_results)

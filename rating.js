@@ -7,6 +7,7 @@ var extend = require('util')._extend;
 // using promises/Q for the first time in my life
 
 var MOVING_AVERAGE_COUNT = cfg.moving_average_count;
+var MAX_RATING_HISTORY_COUNT = 50;
 var GAMETYPES_AVAILABLE = ["ad", "ctf", "tdm"];
 var MATCH_RATING_CALC_METHODS = {
   'ad': { 'match_rating':
@@ -74,22 +75,26 @@ var in_array = function(what, array) {
 var get_aggregate_options = function(gametype, after_unwind, after_project) {
   return [].concat([
     { $match: { "gametype": gametype } },
-    { $sort: { "timestamp": -1 } },
     { $unwind: "$scoreboard" },
     { $match: { "scoreboard.time": { $gt: 300 } } },
     { $match: { "scoreboard.damage-taken": { $gt: 100 } } }
   ], after_unwind, [
-    { $project: extend({"scoreboard.steam-id": 1, "scoreboard.win": 1}, MATCH_RATING_CALC_METHODS[gametype]) },
+    { $project: extend({"scoreboard.steam-id": 1, "scoreboard.win": 1, "timestamp": 1}, MATCH_RATING_CALC_METHODS[gametype]) },
+    { $sort: { "timestamp": 1 } },
     { $group: {
       _id: "$scoreboard.steam-id", 
       n: { $sum: 1 },
       w: { $sum: { $cond: ["$scoreboard.win", 1, 0] } },
       l: { $sum: { $cond: ["$scoreboard.win", 0, 1] } },
-      match_ratings: { $addToSet: "$match_rating" }
+      last_match_id: { $last: "$_id" },
+      last_match_timestamp: { $last: "$timestamp" },
+      match_ratings: { $push: "$match_rating" },
     }},
     { $project: {
       _id: 1, 
       n: 1,
+      last_match_id: 1,
+      last_match_timestamp: 1,
       rating: { $multiply: [ { $avg: { $slice: [
         "$match_ratings",
         { $max: [ { $subtract: ["$n", MOVING_AVERAGE_COUNT] }, 0] }, // max(n-20,0)
@@ -179,24 +184,38 @@ var parse_stats_submission = function(body) {
 };
 
 
-var updateRatings = function(db, docs, gametype) {
+var updateRatings = function(db, docs, gametype, update_history) {
   return Q.all(docs.map(function(doc) {
     var result = {};
-    result[gametype] = {
-      n: doc.n,
-      rating: parseFloat(doc.rating.toFixed(2))
-    };
-    return db.collection('players').update(
-      {_id: doc._id},
-      { $set: result }
-    );
+    result[gametype + ".n"] = doc.n;
+    result[gametype + ".rating"] = parseFloat(doc.rating.toFixed(2));
+    if (update_history) {
+      var push_value = {};
+      push_value[gametype + ".history"] = { $each: [{
+        "match_id": doc.last_match_id,
+        "timestamp": doc.last_match_timestamp,
+        "rating": parseFloat(doc.rating.toFixed(2))
+      }], $slice: -MAX_RATING_HISTORY_COUNT };
+      return db.collection('players').update(
+        {_id: doc._id},
+        { $set: result, $push: push_value }
+      );
+    } else {
+      return db.collection('players').update(
+        {_id: doc._id },
+        { $set: result }
+      );
+    }
   }));
 };
 
 
 var submitMatch = function(data, done) {
 
-  data = parse_stats_submission(data);
+  if (typeof(data) == 'string') {
+    data = parse_stats_submission(data);
+  }
+
   if (in_array(data.game_meta["G"], GAMETYPES_AVAILABLE) == false ) {
     done({ok: false, message: "gametype is not accepted: " + data.game_meta["G"]});
     return;
@@ -222,6 +241,7 @@ var submitMatch = function(data, done) {
       map: data.game_meta["M"],
       gametype: data.game_meta["G"],
       factory: data.game_meta["O"],
+      timestamp: parseInt(data.game_meta["1"]),
       scoreboard: scoreboard
     }))
     .then(function() {
@@ -242,13 +262,13 @@ var submitMatch = function(data, done) {
       });
       
       return db.collection('matches').aggregate( get_aggregate_options(
-        data.game_meta["G"], [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ { $sort: { "rating": -1 } } ]
+        data.game_meta["G"], [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ ]
       )).toArray();
 
     })
     .then(function(docs) {
 
-      return updateRatings(db, docs, data.game_meta["G"]);
+      return updateRatings(db, docs, data.game_meta["G"], true);
 
     })
     .then(function() {
@@ -335,13 +355,15 @@ var getList = function(gametype, page, done) {
 var getForBalancePlugin = function(steamIds, done) {
 
   var project = {};
+  var history_value = {};
   project._id = 0;
   project.steamid = "$_id";
   GAMETYPES_AVAILABLE.forEach(function(gametype) {
     project[gametype] = {
       games: "$" + gametype + ".n",
-      elo: "$" + gametype + ".rating"
-    }
+      elo: "$" + gametype + ".rating",
+      history: {$slice: ["$" + gametype + ".history", -3]}
+    };
   });
 
   connect(function(db) {
@@ -351,6 +373,16 @@ var getForBalancePlugin = function(steamIds, done) {
         { $project: project }
     ]).toArray())
     .then(function(docs) {
+
+      // removing $slice result on undefined variable from db
+      doc = docs.map( player => {
+        GAMETYPES_AVAILABLE.forEach( gametype => {
+          if (typeof(player[gametype].games) == 'undefined') {
+            delete player[gametype];
+          }
+        });
+        return player;
+      });
 
       done({ok: true, players: docs, deactivated: []});
 

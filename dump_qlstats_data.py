@@ -91,6 +91,19 @@ def generate_scoreboard(gametype, block, win):
   return result
 
 
+def is_instagib(soup):
+  block = soup.select("#chartRow script")[0].decode_contents(formatter="html")
+  weapon_stats_row_count = block.count("var p = weaponStats[i++] = {}")
+  assert weapon_stats_row_count != 0
+  
+  for weapon in ['mg', 'sg', 'gl', 'rl', 'lg', 'pg', 'hmg']:
+    weapon_count = block.count("p['" + weapon + "'] = { kills: 0, acc: 0, hits: 0, fired: 0 };")
+    if weapon_count != weapon_stats_row_count:
+      return False
+  
+  return True
+
+
 def get_game_results(game_id, add_scoreboard = True):
   result = {}
   html = download("http://qlstats.net/game/" + game_id)
@@ -109,6 +122,8 @@ def get_game_results(game_id, add_scoreboard = True):
     result['timestamp'] = int(blocks[0].select("span.abstime")[0]['data-epoch'])
     if add_scoreboard == True:
       result['scoreboard'] = generate_scoreboard(result['gametype'], blocks[1], True) + generate_scoreboard(result['gametype'], blocks[2], False)
+    if is_instagib(soup):
+      result['gametype'] = "i" + result['gametype']
   except IndexError:
     time.sleep(1)
     return get_game_results(game_id)

@@ -9,9 +9,7 @@ from bs4 import BeautifulSoup
 import pymongo
 import time
 
-# 798
-# 805
-# 738
+GAMETYPES_AVAILABLE = ["ad", "ctf", "ictf", "tdm"]
 
 db = None
 
@@ -91,6 +89,19 @@ def generate_scoreboard(gametype, block, win):
   return result
 
 
+def is_instagib(soup):
+  block = soup.select("#chartRow script")[0].decode_contents(formatter="html")
+  weapon_stats_row_count = block.count("var p = weaponStats[i++] = {}")
+  assert weapon_stats_row_count != 0
+  
+  for weapon in ['mg', 'sg', 'gl', 'rl', 'lg', 'pg', 'hmg']:
+    weapon_count = block.count("p['" + weapon + "'] = { kills: 0, acc: 0, hits: 0, fired: 0 };")
+    if weapon_count != weapon_stats_row_count:
+      return False
+  
+  return True
+
+
 def get_game_results(game_id, add_scoreboard = True):
   result = {}
   html = download("http://qlstats.net/game/" + game_id)
@@ -109,6 +120,8 @@ def get_game_results(game_id, add_scoreboard = True):
     result['timestamp'] = int(blocks[0].select("span.abstime")[0]['data-epoch'])
     if add_scoreboard == True:
       result['scoreboard'] = generate_scoreboard(result['gametype'], blocks[1], True) + generate_scoreboard(result['gametype'], blocks[2], False)
+    if is_instagib(soup):
+      result['gametype'] = "i" + result['gametype']
   except IndexError:
     time.sleep(1)
     return get_game_results(game_id)
@@ -184,8 +197,12 @@ def main(args):
   while True:
     soup = BeautifulSoup(download(server_results_link), 'html.parser')
     game_id = None
-    for btn in soup.select(".btn"):
+    for tr in soup.select("table tbody tr"):
+      btn = tr.find("a", class_="btn")
       game_id = btn['href'].replace("/game/", "")
+      gametype = tr.find_all("td")[2].text.strip()
+      if gametype not in GAMETYPES_AVAILABLE or ("i"+gametype) not in GAMETYPES_AVAILABLE:
+        continue
       game_results = get_game_results(game_id)
       try:
         db.matches.insert_one(game_results)

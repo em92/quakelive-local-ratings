@@ -477,6 +477,35 @@ var update = function(done) {
       }));
 
     })
+    .then(function(docs_docs) {
+
+      return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
+        var query = {};
+        query[gametype + ".rating"] = {$ne: null};
+        query[gametype + ".n"] = {$gte: 10};
+        query[gametype + ".history"] = null;
+        return db.collection('players').find(query, {"_id": 1}).toArray();
+      }));
+
+    })
+    .then(function(docs_docs) {
+
+      return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
+        var steamIds = docs_docs[i].map( doc => { return doc._id } );
+        return db.collection('matches').aggregate( get_aggregate_options(
+          gametype, [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ ]
+        )).toArray();
+      }));
+
+    })
+    .then(function(docs_docs) {
+
+      return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
+        var docs = docs_docs[i];
+        return updateRatings(db, docs, gametype, true);
+      }));
+
+    })
     .then(function() {
 
       done({ok: true});

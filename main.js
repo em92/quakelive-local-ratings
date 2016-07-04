@@ -33,6 +33,15 @@ app.get(["/elo/:ids", "/elo_b/:ids"], function(req, res) {
 });
 
 
+app.get("/player/:id", function(req, res) {
+
+  rating.getPlayerInfo(req.params.id, function(result) {
+    res.setHeader("Content-Type", "application/json");
+    res.send(result);
+  });
+});
+
+
 app.get(["/rating/:gametype", "/rating/:gametype/:page"], function(req, res) {
 
   var page = get_int_from_string(req.params.page, 0);

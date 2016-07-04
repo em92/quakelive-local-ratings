@@ -389,14 +389,12 @@ var getList = function(gametype, page, done) {
 var getForBalancePlugin = function(steamIds, done) {
 
   var project = {};
-  var history_value = {};
   project._id = 0;
   project.steamid = "$_id";
   GAMETYPES_AVAILABLE.forEach(function(gametype) {
     project[gametype] = {
       games: "$" + gametype + ".n",
       elo: "$" + gametype + ".rating",
-      history: {$slice: ["$" + gametype + ".history", -3]}
     };
   });
 
@@ -407,16 +405,6 @@ var getForBalancePlugin = function(steamIds, done) {
         { $project: project }
     ]).toArray())
     .then(function(docs) {
-
-      // removing $slice result on undefined variable from db
-      doc = docs.map( player => {
-        GAMETYPES_AVAILABLE.forEach( gametype => {
-          if (typeof(player[gametype].games) == 'undefined') {
-            delete player[gametype];
-          }
-        });
-        return player;
-      });
 
       done({ok: true, players: docs, deactivated: []});
 
@@ -435,6 +423,34 @@ var getForBalancePlugin = function(steamIds, done) {
     done({ok: false, message: err.toString()});
 
   });
+};
+
+
+var getPlayerInfo = function(steamId, done) {
+
+  connect(function(db) {
+
+    Q(db.collection('players').findOne({"_id": steamId}))
+    .then(function(doc) {
+
+      done({ok: true, player: doc});
+
+    }).catch(function(err) {
+
+      done({ok: false, message: err.toString()});
+
+    }).finally(function() {
+
+      db.close();
+
+    });
+
+  }, function(err) {
+
+    done({ok: false, message: err.toString()});
+
+  });
+
 };
 
 
@@ -485,5 +501,6 @@ var update = function(done) {
 
 module.exports.update = update;
 module.exports.getList = getList;
+module.exports.getPlayerInfo = getPlayerInfo;
 module.exports.getForBalancePlugin = getForBalancePlugin;
 module.exports.submitMatch = submitMatch;

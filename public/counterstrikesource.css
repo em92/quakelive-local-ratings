@@ -93,8 +93,9 @@ td {
 }
 
 #summary-table-wrapper {
-	margin-left: 20px;
-	width: 500px;
+	margin-left: auto;
+	margin-right: auto;
+	width: 800px;
 }
 
 li {
@@ -103,4 +104,8 @@ li {
 	border-radius: 10px;
 	cursor: pointer;
 	margin-bottom: 3px;
+}
+
+#content {
+	margin-left: 20px;
 }

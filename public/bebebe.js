@@ -1,10 +1,3 @@
-// hack to fix
-var goto = function(url) {
-  return function() {
-    window.location.hash = "!" + url;
-  };
-};
-
 var RatingList = React.createClass({
   
   getInitialState: function() {
@@ -55,7 +48,7 @@ var RatingList = React.createClass({
       if (i == this.state.page) {
         pageLinks.push(React.createElement("span", {key: i}, "[" + (i+1) + "]"));
       } else {
-        pageLinks.push(React.createElement("a", {onClick: goto("/ratings/" + this.state.gametype + "/" + i), key: i}, "[" + (i+1) + "]"));
+        pageLinks.push(React.createElement("a", {href: "#!/ratings/" + this.state.gametype + "/" + i, key: i}, "[" + (i+1) + "]"));
       }
     }
     
@@ -101,9 +94,11 @@ var App = React.createClass({
 
   home: function() {
     return React.createElement("div", null, 
-      React.createElement("a", {onClick: goto("/ratings/ctf")}, "ctf"),
+      React.createElement("a", {href: "#!/ratings/ctf"}, "ctf"),
       React.createElement("br"),
-      React.createElement("a", {onClick: goto("/ratings/tdm")}, "tdm")
+      React.createElement("a", {href: "#!/ratings/tdm"}, "tdm"),
+      React.createElement("br"),
+      React.createElement("a", {href: "#!/ratings/ad"}, "ad")
     );
   },
 
@@ -113,7 +108,7 @@ var App = React.createClass({
   },
 
   notFound: function(path) {
-    return React.createElement("div", null, path);
+    return React.createElement("div", null, "Invalid path: " + path);
   }
 
 });

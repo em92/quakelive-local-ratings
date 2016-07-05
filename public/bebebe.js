@@ -78,14 +78,75 @@ var RatingList = React.createClass({
   }
 });
 
+var PlayerInfo = React.createClass({
+
+  getInitialState: function() {
+    return { loading: true, error: false };
+  },
+  
+  downloadData: function(player_id, gametype) {
+    var self = this;
+    
+    if ( (typeof(gametype) == 'undefined') || (gametype == "")  ){
+      self.setState({error: "gametype is NOT set"});
+      return;
+    }
+    self.setState({loading: true});
+      
+    $.get( "player/" + player_id.toString(), function( data ) {
+      if (data.ok == false) {
+        self.setState({loading: false, error: data.message});
+      } else {
+        self.drawChart(data.player[gametype].history);
+        self.setState({loading: false, error: false});
+        
+      }
+    });
+  },
+
+  drawChart: function(history) {
+    var chart = new google.visualization.AnnotationChart(this.refs.chart);
+    var options = {
+      displayAnnotations: false
+    };
+    var data = new google.visualization.DataTable();
+    data.addColumn('date', 'Date-Time');
+    data.addColumn('number', 'Rating');
+    data.addRows(history.map( function (item) {
+      return [new Date(item.timestamp*1000), item.rating];
+    }));
+    chart.draw(data, options);
+  },  
+
+  componentWillMount: function() {
+    this.downloadData(this.props.id, this.props.gametype);
+  },
+  
+  componentWillReceiveProps: function(nextProps) {
+    this.downloadData(nextProps.id, nextProps.gametype);
+  },
+  
+  render: function() {
+    var self = this;
+    
+    return (<div>
+      {this.state.loading ? <p>Loading</p> : null}
+      {this.state.error ? <p>{this.state.error}</p> : null}
+      <div ref="chart" style={{width: "900px", height: "500px"}}></div>
+    </div>);
+  }
+});
+
 var App = React.createClass({
 
   mixins: [ReactMiniRouter.RouterMixin],
 
   routes: {
-    '/': 'home',
     '/ratings/:gametype': 'ratings',
-    '/ratings/:gametype/:page': 'ratings'
+    '/ratings/:gametype/:page': 'ratings',
+    '/player/:id': 'player',
+    '/player/:id/:gametype': 'player',
+    '/': 'home'
   },
 
   render: function() {
@@ -107,9 +168,18 @@ var App = React.createClass({
     return React.createElement(RatingList, {gametype: gametype, page: page});
   },
 
+  player: function(id, gametype) {
+    return React.createElement(PlayerInfo, {id: id, gametype: gametype});
+  },
+
   notFound: function(path) {
     return React.createElement("div", null, "Invalid path: " + path);
   }
 
+});
+
+google.charts.load('current', {'packages':['annotationchart']});
+google.charts.setOnLoadCallback( function() {
+  ReactDOM.render(<App />, document.getElementById('content'));
 });
 

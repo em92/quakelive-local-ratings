@@ -482,7 +482,6 @@ var update = function(done) {
       return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
         var query = {};
         query[gametype + ".rating"] = {$ne: null};
-        query[gametype + ".n"] = {$gte: 10};
         query[gametype + ".history"] = null;
         return db.collection('players').find(query, {"_id": 1}).toArray();
       }));

@@ -105,9 +105,10 @@ var PlayerInfo = React.createClass({
   },
 
   drawChart: function(history) {
-    var chart = new google.visualization.AnnotationChart(this.refs.chart);
+    var chart = new google.visualization.ColumnChart(this.refs.chart);
     var options = {
-      displayAnnotations: false
+      bar: {groupWidth: "1%"},
+      explorer: { keepInBounds: true }
     };
     var data = new google.visualization.DataTable();
     data.addColumn('date', 'Date-Time');
@@ -178,7 +179,7 @@ var App = React.createClass({
 
 });
 
-google.charts.load('current', {'packages':['annotationchart']});
+google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback( function() {
   ReactDOM.render(<App />, document.getElementById('content'));
 });

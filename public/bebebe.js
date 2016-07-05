@@ -107,14 +107,14 @@ var PlayerInfo = React.createClass({
   drawChart: function(history) {
     var chart = new google.visualization.ColumnChart(this.refs.chart);
     var options = {
-      bar: {groupWidth: "1%"},
+      bar: {groupWidth: "50%"},
       explorer: { keepInBounds: true }
     };
     var data = new google.visualization.DataTable();
-    data.addColumn('date', 'Date-Time');
+    data.addColumn('string', 'Date');
     data.addColumn('number', 'Rating');
-    data.addRows(history.map( function (item) {
-      return [new Date(item.timestamp*1000), item.rating];
+    data.addRows(history.map( function (item, i) {
+      return [new Date(item.timestamp*1000).toLocaleFormat('%d-%b-%Y %H:%M:%S'), item.rating];
     }));
     chart.draw(data, options);
   },  

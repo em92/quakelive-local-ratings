@@ -240,6 +240,21 @@ var updateRatings = function(db, docs, gametype, update_history) {
 };
 
 
+var countPlayerRank = function(db, gametype, steamId) {
+  return Q(db.collection('players').findOne({"_id": steamId}))
+  .then( player => {
+    if (typeof(player[gametype]) == "undefined") return -1;
+    var matching = {};
+    matching[gametype + ".n"] = { $gte: 10 };
+    matching[gametype + ".rating"] = { $gt: player[gametype].rating };
+    return db.collection('players').find(matching).count();
+  })
+  .then( result => {
+    return result + 1;
+  });
+};
+
+
 var submitMatch = function(data, done) {
 
   if (typeof(data) == 'string') {
@@ -526,6 +541,10 @@ var update = function(done) {
   });
 };
 
+connect( db => {
+  Q(countPlayerRank(db, "ad", "76561198256649166"))
+  .then( result => {console.log(result)});
+});
 
 module.exports.update = update;
 module.exports.getList = getList;

@@ -214,17 +214,18 @@ var is_instagib = function(data) {
   });
 };
 
-var updateRatings = function(db, docs, gametype, update_history) {
+var updateRatings = function(db, docs, gametype, playerRanks) {
   return Q.all(docs.map(function(doc) {
     var result = {};
     result[gametype + ".n"] = doc.n;
     result[gametype + ".rating"] = parseFloat(doc.rating.toFixed(2));
-    if (update_history) {
+    if (playerRanks) {
       var push_value = {};
       push_value[gametype + ".history"] = { $each: [{
         "match_id": doc.last_match_id,
         "timestamp": doc.last_match_timestamp,
-        "rating": parseFloat(doc.rating.toFixed(2))
+        "rating": parseFloat(doc.rating.toFixed(2)),
+        "rank": playerRanks[doc._id]
       }], $slice: -MAX_RATING_HISTORY_COUNT };
       return db.collection('players').update(
         {_id: doc._id},
@@ -250,6 +251,7 @@ var countPlayerRank = function(db, gametype, steamId) {
     return db.collection('players').find(matching).count();
   })
   .then( result => {
+    console.log(steamId + " " + result);
     return result + 1;
   });
 };
@@ -269,6 +271,8 @@ var submitMatch = function(data, done) {
     done({ok: false, message: "gametype is not accepted: " + data.game_meta["G"]});
     return;
   }
+  
+  var playerRanks = {};
 
   connect(function(db) {
 
@@ -304,9 +308,18 @@ var submitMatch = function(data, done) {
       }));
 
     })
-    .then(function() {
+    .then( () => {
 
-      var steamIds = data.players.map(function(item) {
+      // calculating ranks
+      return Q.all(data.players.map( player => {
+        return countPlayerRank(db, data.game_meta["G"], player["P"]);
+      }));
+
+    })
+    .then( result => {
+
+      var steamIds = data.players.map( (item, i) => {
+        playerRanks[ item["P"] ] = result[i];
         return item["P"];
       });
       
@@ -317,7 +330,7 @@ var submitMatch = function(data, done) {
     })
     .then(function(docs) {
 
-      return updateRatings(db, docs, data.game_meta["G"], true);
+      return updateRatings(db, docs, data.game_meta["G"], playerRanks);
 
     })
     .then(function() {
@@ -491,7 +504,7 @@ var update = function(done) {
         return updateRatings(db, docs, gametype);
       }));
 
-    })
+    })/*
     .then(function(docs_docs) {
 
       return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
@@ -519,7 +532,7 @@ var update = function(done) {
         return updateRatings(db, docs, gametype, true);
       }));
 
-    })
+    })*/
     .then(function() {
 
       done({ok: true});
@@ -540,11 +553,6 @@ var update = function(done) {
 
   });
 };
-
-connect( db => {
-  Q(countPlayerRank(db, "ad", "76561198256649166"))
-  .then( result => {console.log(result)});
-});
 
 module.exports.update = update;
 module.exports.getList = getList;

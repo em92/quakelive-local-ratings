@@ -15,6 +15,7 @@ var MATCH_RATING_CALC_METHODS = {
       { $add: [
         { $divide: [ "$scoreboard.damage-dealt", 100 ] },
         "$scoreboard.kills",
+        "$scoreboard.captures"
       ]},
       { $divide: [ 1200, "$scoreboard.time" ] }
     ]}
@@ -277,6 +278,28 @@ var submitMatch = function(data, done) {
   connect(function(db) {
 
     var scoreboard = data.players.map(function(item) {
+      var medalList = [
+        "accuracy",
+        "assists",
+        "captures",
+        "combokill",
+        "defends",
+        "excellent",
+        "firstfrag",
+        "headshot",
+        "humiliation",
+        "impressive",
+        "midair",
+        "perfect",
+        "perforated",
+        "quadgod",
+        "rampage",
+        "revenge"
+      ];
+      var medals = {};
+      medalList.forEach( medal_name => {
+        medals[medal_name] = parseInt(item["medal-" + medal_name]);
+      });
       return {
         "steam-id": item["P"],
         "score": parseInt(item["scoreboard-score"]),
@@ -284,7 +307,9 @@ var submitMatch = function(data, done) {
         "deaths": parseInt(item["scoreboard-deaths"]),
         'damage-dealt': parseInt(item["scoreboard-pushes"]),
         'damage-taken': parseInt(item["scoreboard-destroyed"]),
+        'captures': parseInt(item["scoreboard-captured"]),
         "time": parseInt(item["alivetime"]),
+        "medals": medals,
         "win": item["win"] ? true : false
       };
     });
@@ -302,7 +327,7 @@ var submitMatch = function(data, done) {
       return Q.all(data.players.map(function(player) {
         return db.collection('players').update(
           {_id: player["P"]},
-          { $set: {"name": player["n"]} },
+          { $set: { name: player["n"], model: player["playermodel"] } },
           {upsert: true}
         );
       }));

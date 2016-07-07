@@ -75,6 +75,7 @@ def generate_scoreboard(gametype, block, win):
       'deaths': int(tds[3].text if tds[3].text != "" else "0"),
       'damage-dealt': int(tds[4].text if tds[4].text != "" else "0"),
       'damage-taken': int(tds[5].text if tds[5].text != "" else "0"),
+      'captures': 0,
       'time': get_sec(tds[1].text if tds[1].text != "" else "0:00:00"),
       "win": win
     }
@@ -83,6 +84,7 @@ def generate_scoreboard(gametype, block, win):
       del item['deaths']
       item['damage-dealt'] = int(tds[6].text if tds[6].text != "" else "0")
       item['damage-taken'] = int(tds[7].text if tds[7].text != "" else "0")
+      item['captures'] = int(tds[3].text if tds[3].text != "" else "0")
       item['score'] = int(tds[8].text if tds[8].text != "" else "0")
   
     result.append(item)

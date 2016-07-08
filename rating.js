@@ -91,6 +91,7 @@ var in_array = function(what, array) {
 
 var get_aggregate_options = function(gametype, after_unwind, after_project) {
   return [].concat([
+    { $match: { "is_post_processed": true } },
     { $match: { "gametype": gametype } },
     { $unwind: "$scoreboard" },
     { $match: { "scoreboard.time": { $gt: 300 } } },
@@ -258,7 +259,7 @@ var countPlayerRank = function(db, gametype, steamId) {
 };
 
 
-var submitMatch = function(data, done) {
+var submitMatch = function(data, run_post_process, done) {
 
   if (typeof(data) == 'string') {
     data = parse_stats_submission(data);
@@ -320,9 +321,13 @@ var submitMatch = function(data, done) {
       gametype: data.game_meta["G"],
       factory: data.game_meta["O"],
       timestamp: parseInt(data.game_meta["1"]),
+      is_post_processed: run_post_process,
       scoreboard: scoreboard
     }))
     .then(function() {
+
+      if (run_post_process == false)
+        throw new Error("skipped post processing");
 
       return Q.all(data.players.map(function(player) {
         return db.collection('players').update(

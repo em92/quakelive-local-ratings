@@ -240,17 +240,92 @@ var updateRatings = function(db, docs, gametype, playerRanks) {
 };
 
 
-var countPlayerRank = function(db, gametype, steamId) {
-  return Q(db.collection('players').findOne({"_id": steamId}))
-  .then( player => {
-    if (typeof(player[gametype]) == "undefined") return -1;
-    var matching = {};
-    matching[gametype + ".n"] = { $gte: 10 };
-    matching[gametype + ".rating"] = { $gt: player[gametype].rating };
-    return db.collection('players').find(matching).count();
-  })
+var countPlayerRanks = function(db, gametype, steamIds) {
+  var result = {};
+  var tasks = new Set();
+  steamIds.forEach( steamId => {
+    tasks.add( steamId );
+    result[ steamId ] = 0;
+  });
+
+  var matching = {};
+  matching[gametype + ".n"] = { $gte: 10 };
+
+  var sorting = {};
+  sorting[gametype + ".rating"] = -1;
+
+  return new Promise( (resolve, reject) => {
+    var cursor = db.collection('players').aggregate([
+      {$match: matching}, {$sort: sorting}
+    ]);
+    
+    console.log("hey");
+    var rank = 1;
+    var handler = function(err, doc) {
+      if (err) {
+        cursor.close();
+        reject(err);
+        return;
+      }
+      
+      console.log(doc[gametype].rating);
+      
+      if (tasks.has(doc._id)) {
+        tasks.delete(doc._id);
+        result[ doc._id ] = rank;
+      };
+      
+      if ( (tasks.size == 0) || (doc == null) ) {
+        cursor.close();
+        resolve( result );
+        return;
+      }
+      
+      rank++;
+      cursor.nextObject(handler);
+    };
+    
+    console.log(cursor);
+    cursor.nextObject(handler);
+  });
+};
+
+
+var postProcess = function(db, matchId, gametype, steamIds) {
+  var playerRanks = {};
+  
+  console.log(matchId);
+  // calculating ranks
+  return Q.all(steamIds.map( steamId => {
+    return countPlayerRank(db, gametype, steamId);
+  }))
   .then( result => {
-    return result + 1;
+    
+    console.log("next1");
+
+    steamIds.forEach( (steamId, i) => {
+      playerRanks[ steamId ] = result[i];
+    });
+    
+    return db.collection('matches').aggregate( get_aggregate_options(
+      gametype, [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ ]
+    )).toArray();
+
+  })
+  .then(function(docs) {
+
+    return updateRatings(db, docs, gametype, playerRanks);
+
+  })
+  .then( () => {
+    
+    console.log("dddone");
+
+    return db.collection('matches').update(
+      {_id: matchId},
+      {$set: { is_post_processed: true } }
+    );
+
   });
 };
 
@@ -270,8 +345,6 @@ var submitMatch = function(data, run_post_process, done) {
     return;
   }
   
-  var playerRanks = {};
-
   connect(function(db) {
 
     var scoreboard = data.players.map(function(item) {
@@ -327,48 +400,24 @@ var submitMatch = function(data, run_post_process, done) {
       gametype: data.game_meta["G"],
       factory: data.game_meta["O"],
       timestamp: parseInt(data.game_meta["1"]),
-      is_post_processed: run_post_process,
+      is_post_processed: false,
       scoreboard: scoreboard
     }))
+    .then(Q.all(data.players.map( player => {
+      return db.collection('players').update(
+        {_id: player["P"]},
+        { $set: { name: player["n"], model: player["playermodel"] } },
+        {upsert: true}
+      );
+    })))
     .then(function() {
 
       if (run_post_process == false)
         throw new Error("skipped post processing");
 
-      return Q.all(data.players.map(function(player) {
-        return db.collection('players').update(
-          {_id: player["P"]},
-          { $set: { name: player["n"], model: player["playermodel"] } },
-          {upsert: true}
-        );
-      }));
-
+      return postProcess( db, data.game_meta["I"], data.game_meta["G"], data.players.map( player => { return player["P"] }) );
     })
-    .then( () => {
 
-      // calculating ranks
-      return Q.all(data.players.map( player => {
-        return countPlayerRank(db, data.game_meta["G"], player["P"]);
-      }));
-
-    })
-    .then( result => {
-
-      var steamIds = data.players.map( (item, i) => {
-        playerRanks[ item["P"] ] = result[i];
-        return item["P"];
-      });
-      
-      return db.collection('matches').aggregate( get_aggregate_options(
-        data.game_meta["G"], [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ ]
-      )).toArray();
-
-    })
-    .then(function(docs) {
-
-      return updateRatings(db, docs, data.game_meta["G"], playerRanks);
-
-    })
     .then(function() {
 
        done({ok: true, match_id: data.game_meta["I"]});
@@ -540,17 +589,28 @@ var update = function(done) {
         return updateRatings(db, docs, gametype);
       }));
 
-    })/*
+    })
     .then(function(docs_docs) {
 
       return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
-        var query = {};
-        query[gametype + ".rating"] = {$ne: null};
-        query[gametype + ".history"] = null;
-        return db.collection('players').find(query, {"_id": 1}).toArray();
+        var cursor = db.collection('matches').find({is_post_processed: false, gametype: gametype});
+        return new Promise( (resolve, reject) => {
+          var handler = function(err, match) {
+            if (err) reject(err);
+            if (match == null) {console.log(gametype + "finished"); return resolve() };
+            console.log(match._id);
+            console.log(match.gametype);
+            postProcess( db, match._id, match.gametype, match.scoreboard.map( item => item["steam-id"] ) )
+            .then( () => {
+              console.log("!");
+              cursor.next(handler);
+            });
+          };
+          cursor.next(handler);
+        });
       }));
 
-    })
+    })/*
     .then(function(docs_docs) {
 
       return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
@@ -590,6 +650,10 @@ var update = function(done) {
   });
 };
 
+connect(function(db) {
+  Q(countPlayerRanks(db, "ctf", ["76561198157637927", "76561198054023802", "76561198250125416"]))
+  .then( results => {console.log(results)} ); 
+});
 module.exports.update = update;
 module.exports.getList = getList;
 module.exports.getPlayerInfo = getPlayerInfo;

@@ -228,7 +228,7 @@ var updateRatings = function(db, docs, gametype, playerRanks) {
     .then( () => {
       if (playerRanks) {
         return db.collection('history').insertOne({
-          _id: { match_id: doc.last_match_id, player_id: doc._id }
+          _id: { match_id: doc.last_match_id, player_id: doc._id },
           timestamp: doc.last_match_timestamp,
           rating: parseFloat(doc.rating.toFixed(2)),
           rank: playerRanks[doc._id]
@@ -297,6 +297,15 @@ var submitMatch = function(data, run_post_process, done) {
       medalList.forEach( medal_name => {
         medals[medal_name] = parseInt(item["medal-" + medal_name]);
       });
+      var weaponList = ['gt', 'mg', 'sg', 'gl', 'rl', 'lg', 'rg', 'pg', 'hmg'];
+      var weapons = {};
+      weaponList.forEach( w => {
+        weapons[w] = {
+          hits: parseInt(item["acc-" + w + "-cnt-hit"]),
+          shots: parseInt(item["acc-" + w + "-cnt-fired"]),
+          frags: parseInt(item["acc-" + w + "-frags"])
+        };
+      });
       return {
         "steam-id": item["P"],
         "score": parseInt(item["scoreboard-score"]),
@@ -307,6 +316,7 @@ var submitMatch = function(data, run_post_process, done) {
         'captures': parseInt(item["scoreboard-captured"]),
         "time": parseInt(item["alivetime"]),
         "medals": medals,
+        "weapons": weapons,
         "win": item["win"] ? true : false
       };
     });

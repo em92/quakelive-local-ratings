@@ -113,6 +113,7 @@ def get_game_results(game_id, add_scoreboard = True):
   try:
     try:
       result['game-id'] = int(game_id)
+      result['dumped'] = True
     except ValueError:
       pass
     result['_id'] = blocks[0].select("h2 span.note")[0].text.strip()
@@ -138,18 +139,18 @@ def connect_to_database():
   cfg = json.loads(f.read())
   f.close()
 
-  if "db-url" not in cfg:
-    raise ValueError("db-url not found in cfg.json")
-  temp = urlparse(cfg['db-url'])
+  if "db_url" not in cfg:
+    raise ValueError("db_url not found in cfg.json")
+  temp = urlparse(cfg['db_url'])
 
   if temp.scheme != 'mongodb':
-    raise ValueError("invalid scheme in db-url (" + temp.scheme + ")")
+    raise ValueError("invalid scheme in db_url (" + temp.scheme + ")")
 
   if temp.port == None:
     temp.port = 27017
 
   if any((c in '/\. "$*<>:|?') for c in temp.path[1:]):
-    raise ValueError("invalid database name in db-url (" + temp.path[1:] + ")")
+    raise ValueError("invalid database name in db_url (" + temp.path[1:] + ")")
 
   print("server: " + temp.hostname + ":" + str(temp.port))
   print("database: " +temp.path[1:])
@@ -175,7 +176,7 @@ def main(args):
   global db
 
   if len(args) < 2 or len(args) > 3:
-    print("usage: dump-qlstats-data <server_id> [start_game_id]")
+    print("usage: dump_qlstats_data <server_id> [start_game_id]")
     sys.exit(1)
 
   try:

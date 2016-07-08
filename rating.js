@@ -1,5 +1,5 @@
 var MongoClient = require('mongodb').MongoClient;
-var cfg = require("./cfg.json");
+var cfg = require("./cfg.js");
 var Q = require('q');
 var extend = require('util')._extend;
 
@@ -75,7 +75,7 @@ var RATING_FACTORS = {
 
 
 var connect = function(callback, fuck) {
-  MongoClient.connect(cfg['db-url'], function(err, db) {
+  MongoClient.connect(cfg['db_url'], function(err, db) {
     if (err)
       fuck(err);
     else
@@ -401,14 +401,14 @@ var getList = function(gametype, page, done) {
     Q(db.collection('players').aggregate([
       { $match: matching },
       { $sort: sorting },
-      { $skip: page * cfg['player-count-per-page'] },
-      { $limit: cfg['player-count-per-page'] },
+      { $skip: page * cfg['player_count_per_page'] },
+      { $limit: cfg['player_count_per_page'] },
       { $project: project }
     ]).toArray())
     .then(function(result) {
 
       docs = result.map(function(item, i) {
-        item.rank = page * cfg['player-count-per-page'] + 1 + i;
+        item.rank = page * cfg['player_count_per_page'] + 1 + i;
         return item;
       });
       return db.collection('players').find(matching).count();
@@ -416,7 +416,7 @@ var getList = function(gametype, page, done) {
     })
     .then(function(count) {
 
-       done({ok: true, response: docs, page_count: Math.ceil(count / cfg['player-count-per-page'])});
+       done({ok: true, response: docs, page_count: Math.ceil(count / cfg['player_count_per_page'])});
 
     })
     .catch(function(err) {

@@ -1,5 +1,5 @@
 {
-  "db-url": "mongodb://localhost:27017/pickup-rating",
+  "db-url": "mongodb://localhost:27017/quakelive-local-ratings",
   "player-count-per-page": 10,
   "httpd_port": 7081,
   "moving_average_count": 50

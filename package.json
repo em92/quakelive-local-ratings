@@ -1,5 +1,5 @@
 {
-  "name": "pickup-rating",
+  "name": "quakelive-local-ratings",
   "version": "0.1.0",
   "license" : "MIT",
   "author": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/em92/pickup-rating.git"
+    "url": "https://github.com/em92/quakelive-local-ratings.git"
   },
   "private": true,
   "dependencies": {

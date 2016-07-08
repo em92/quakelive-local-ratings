@@ -221,24 +221,20 @@ var updateRatings = function(db, docs, gametype, playerRanks) {
     var result = {};
     result[gametype + ".n"] = doc.n;
     result[gametype + ".rating"] = parseFloat(doc.rating.toFixed(2));
-    if (playerRanks) {
-      var push_value = {};
-      push_value[gametype + ".history"] = { $each: [{
-        "match_id": doc.last_match_id,
-        "timestamp": doc.last_match_timestamp,
-        "rating": parseFloat(doc.rating.toFixed(2)),
-        "rank": playerRanks[doc._id]
-      }], $slice: -MAX_RATING_HISTORY_COUNT };
-      return db.collection('players').update(
-        {_id: doc._id},
-        { $set: result, $push: push_value }
-      );
-    } else {
-      return db.collection('players').update(
-        {_id: doc._id },
-        { $set: result }
-      );
-    }
+    return Q(db.collection('players').update(
+      {_id: doc._id },
+      { $set: result }
+    ))
+    .then( () => {
+      if (playerRanks) {
+        return db.collection('history').insertOne({
+          _id: { match_id: doc.last_match_id, player_id: doc._id }
+          timestamp: doc.last_match_timestamp,
+          rating: parseFloat(doc.rating.toFixed(2)),
+          rank: playerRanks[doc._id]
+        });
+      }
+    });
   }));
 };
 

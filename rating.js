@@ -270,7 +270,7 @@ var submitMatch = function(data, run_post_process, done) {
   }
 
   if (in_array(data.game_meta["G"], GAMETYPES_AVAILABLE) == false ) {
-    done({ok: false, message: "gametype is not accepted: " + data.game_meta["G"]});
+    done({ok: false, message: "gametype is not accepted: " + data.game_meta["G"], match_id: data.game_meta["I"]});
     return;
   }
   
@@ -365,12 +365,12 @@ var submitMatch = function(data, run_post_process, done) {
     })
     .then(function() {
 
-       done({ok: true});
+       done({ok: true, match_id: data.game_meta["I"]});
 
     })
     .catch(function(err) {
 
-      done({ok: false, message: err.toString()});
+      done({ok: false, message: err.toString(), match_id: data.game_meta["I"]});
 
     })
     .finally(function() {
@@ -381,7 +381,7 @@ var submitMatch = function(data, run_post_process, done) {
 
   }, function(err) {
 
-    done({ok: false, message: err.toString()});
+    done({ok: false, message: err.toString(), match_id: data.game_meta["I"]});
 
   });
 

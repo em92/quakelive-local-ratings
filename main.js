@@ -58,11 +58,24 @@ app.get(["/rating/:gametype", "/rating/:gametype/:page"], function(req, res) {
 app.post('/stats/submit', function (req, res) {
   // https://github.com/PredatH0r/XonStat/blob/cfeae1b0c35c48a9f14afa98717c39aa100cde59/feeder/feeder.node.js#L989
   if (req.header("X-D0-Blind-Id-Detached-Signature") != "dummy") {
-    res.status(403).json( {ok: false} );
+    console.error(req.connection.remoteAddress + ": signature header not found");
+    res.status(403).json( {ok: false, message: "signature header not found"} );
+    return;
+  }
+  
+  if ( (req.connection.remoteAddress != '::ffff:127.0.0.1') && (req.connection.remoteAddress != '::1') ) {
+    console.error(req.connection.remoteAddress + ": non-loopbacks requests are denied");
+    res.status(403).json( {ok: false, message: "non-loopbacks requests are denied"} );
     return;
   }
   
   rating.submitMatch(req.body, RUN_POST_PROCESS, function(result) {
+    if (result.ok == false) {
+      console.error(result.match_id + ": " + result.message);
+    } else {
+      console.log(result.match_id + ": ok");
+    }
+    
     if (RUN_POST_PROCESS) {
       res.status(403).json( result );
     } else {

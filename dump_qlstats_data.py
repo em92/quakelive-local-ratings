@@ -263,7 +263,7 @@ def main(args):
       btn = tr.find("a", class_="btn")
       game_id = btn['href'].replace("/game/", "")
       gametype = tr.find_all("td")[2].text.strip()
-      if gametype not in GAMETYPES_AVAILABLE or ("i"+gametype) not in GAMETYPES_AVAILABLE:
+      if gametype not in GAMETYPES_AVAILABLE and ("i"+gametype) not in GAMETYPES_AVAILABLE:
         continue
       game_results = get_game_results(game_id)
       try:

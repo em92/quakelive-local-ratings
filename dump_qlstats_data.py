@@ -113,7 +113,6 @@ def get_game_results(game_id, add_scoreboard = True):
   try:
     try:
       result['game-id'] = int(game_id)
-      result['dumped'] = True
     except ValueError:
       pass
     result['_id'] = blocks[0].select("h2 span.note")[0].text.strip()
@@ -125,6 +124,7 @@ def get_game_results(game_id, add_scoreboard = True):
       result['scoreboard'] = generate_scoreboard(result['gametype'], blocks[1], True) + generate_scoreboard(result['gametype'], blocks[2], False)
     if is_instagib(soup):
       result['gametype'] = "i" + result['gametype']
+    result['is_post_processed'] = False
   except IndexError:
     time.sleep(1)
     return get_game_results(game_id)

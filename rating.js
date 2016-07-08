@@ -203,7 +203,7 @@ var parse_stats_submission = function(body) {
 
 
 var is_instagib = function(data) {
-  return data.players.some( player => {
+  return data.players.every( player => {
     return ['mg', 'sg', 'gl', 'rl', 'lg', 'pg', 'hmg', 'bfg', 'cg', 'ng', 'pm', 'gh'].every( weapon => {
       if (typeof( player['acc-' + weapon + '-cnt-fired'] ) == 'undefined') {
         return true;

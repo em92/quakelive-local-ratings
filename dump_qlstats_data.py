@@ -63,7 +63,7 @@ def get_steam_id(qlstats_id, ignore_dictionary = False):
   return s2s[qlstats_id]
 
 
-def generate_scoreboard(gametype, block, win):
+def generate_scoreboard(gametype, weapon_stats, block, win):
   result = []
 
   for row in block.select("tbody tr"):
@@ -86,7 +86,32 @@ def generate_scoreboard(gametype, block, win):
       item['damage-taken'] = int(tds[7].text if tds[7].text != "" else "0")
       item['captures'] = int(tds[3].text if tds[3].text != "" else "0")
       item['score'] = int(tds[8].text if tds[8].text != "" else "0")
-  
+    
+    medals = [
+      "accuracy",
+      "assists",
+      "captures",
+      "combokill",
+      "defends",
+      "excellent",
+      "firstfrag",
+      "headshot",
+      "humiliation",
+      "impressive",
+      "midair",
+      "perfect",
+      "perforated",
+      "quadgod",
+      "rampage",
+      "revenge"
+    ]
+    item["medals"] = {}
+    for medal in medals:
+      item["medals"][medal] = 0
+    item["medals"]["captures"] = item['captures']
+    
+    item["weapons"] = weapon_stats[ item["steam-id"] ]
+    
     result.append(item)
   return result
 
@@ -104,11 +129,45 @@ def is_instagib(soup):
   return True
 
 
+def get_weapon_stats(soup):
+  block = soup.select("#chartRow script")[0].decode_contents(formatter="html")
+  steam_ids = map( lambda x: get_steam_id( x['href'].replace("/player/", "") ), soup.select("#accuracyTable a") )
+  result = {}
+  
+  beg = 0
+  for steam_id in steam_ids:
+    beg = block.index("var p = weaponStats[i++] = {};", beg)
+    try:
+      end = block.index("var p = weaponStats[i++] = {};", beg+1)
+    except:
+      end = len(block)-1;
+    weapon_block = block[beg:end];
+    result[ steam_id ] = {}
+    
+    for weapon in ['gt', 'mg', 'sg', 'gl', 'rl', 'lg', 'rg', 'pg', 'hmg']:
+      beg_str = "p['" + weapon + "'] = "
+      end_str = ";"
+      beg_index = weapon_block.index(beg_str) + len(beg_str)
+      end_index = weapon_block.index(end_str, beg_index)
+      weapon_data = weapon_block[beg_index:end_index].replace('kills', '"kills"').replace('hits', '"hits"').replace('fired', '"fired"').replace('acc', '"acc"')
+      print(weapon_data)
+      weapon_data = json.loads( weapon_data )
+      result[ steam_id ][ weapon ] = {
+        "hits": weapon_data["hits"],
+        "shots": weapon_data["fired"],
+        "frags": weapon_data["kills"]
+      }
+    beg += 1
+  
+  return result
+
+
 def get_game_results(game_id, add_scoreboard = True):
   result = {}
   html = download("http://qlstats.net/game/" + game_id)
   soup = BeautifulSoup(html, "html.parser")
   blocks = soup.select("#xonborder div.row")
+  weapon_stats = get_weapon_stats(soup)
 
   try:
     try:
@@ -121,7 +180,7 @@ def get_game_results(game_id, add_scoreboard = True):
     result['factory'] = re.search('\((.*?)\)', blocks[0].select("p")[0].text).group(1)
     result['timestamp'] = int(blocks[0].select("span.abstime")[0]['data-epoch'])
     if add_scoreboard == True:
-      result['scoreboard'] = generate_scoreboard(result['gametype'], blocks[1], True) + generate_scoreboard(result['gametype'], blocks[2], False)
+      result['scoreboard'] = generate_scoreboard(result['gametype'], weapon_stats, blocks[1], True) + generate_scoreboard(result['gametype'], weapon_stats, blocks[2], False)
     if is_instagib(soup):
       result['gametype'] = "i" + result['gametype']
     result['is_post_processed'] = False

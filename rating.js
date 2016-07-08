@@ -229,6 +229,7 @@ var updateRatings = function(db, docs, gametype, playerRanks) {
       if (playerRanks) {
         return db.collection('history').insertOne({
           _id: { match_id: doc.last_match_id, player_id: doc._id },
+          gametype: gametype,
           timestamp: doc.last_match_timestamp,
           rating: parseFloat(doc.rating.toFixed(2)),
           rank: playerRanks[doc._id]
@@ -249,7 +250,6 @@ var countPlayerRank = function(db, gametype, steamId) {
     return db.collection('players').find(matching).count();
   })
   .then( result => {
-    console.log(steamId + " " + result);
     return result + 1;
   });
 };

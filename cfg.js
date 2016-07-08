@@ -32,7 +32,7 @@ var load = function() {
   
   // reading and parsing from file
   try {
-    var filedata = fs.readFileSync(path.resolve(__dirname, 'cfg.json'), 'UTF-8') + "fff";
+    var filedata = fs.readFileSync(path.resolve(__dirname, 'cfg.json'), 'UTF-8');
     cfg = JSON.parse( filedata );
   } catch(e) {
     console.log("Coudn't load cfg.json. Reason: " + e.message);

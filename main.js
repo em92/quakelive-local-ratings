@@ -77,9 +77,9 @@ app.post('/stats/submit', function (req, res) {
     }
     
     if (RUN_POST_PROCESS) {
-      res.status(403).json( result );
-    } else {
       res.status(200).json( result );
+    } else {
+      res.status(403).json( result );
     }
   });
 });

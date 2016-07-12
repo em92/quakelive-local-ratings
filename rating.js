@@ -15,7 +15,7 @@ var MATCH_RATING_CALC_METHODS = {
       { $add: [
         { $divide: [ "$scoreboard.damage-dealt", 100 ] },
         "$scoreboard.kills",
-        "$scoreboard.captures"
+        "$scoreboard.medals.captures"
       ]},
       { $divide: [ 1200, "$scoreboard.time" ] }
     ]}
@@ -89,18 +89,25 @@ var in_array = function(what, array) {
 };
 
 
-var get_aggregate_options = function(gametype, after_unwind, after_project) {
+var get_aggregate_options = function(gametype, after_unwind, after_project, is_post_processed) {
+  if (typeof(is_post_processed) == 'undefined') is_post_processed = true;
   return [].concat([
-    { $match: { "is_post_processed": true } },
+    { $match: { "is_post_processed": is_post_processed } },
     { $match: { "gametype": gametype } },
+    { $lookup: {
+      from: "scoreboards",
+      localField: "_id",
+      foreignField: "_id.match_id",
+      as: "scoreboard"
+    } },
     { $unwind: "$scoreboard" },
     { $match: { "scoreboard.time": { $gt: 300 } } },
     { $match: { "scoreboard.damage-taken": { $gt: 100 } } }
   ], after_unwind, [
-    { $project: extend({"scoreboard.steam-id": 1, "scoreboard.win": 1, "timestamp": 1}, MATCH_RATING_CALC_METHODS[gametype]) },
+    { $project: extend({"timestamp": 1, "scoreboard": 1}, MATCH_RATING_CALC_METHODS[gametype]) },
     { $sort: { "timestamp": 1 } },
     { $group: {
-      _id: "$scoreboard.steam-id", 
+      _id: "$scoreboard._id.steam_id",
       n: { $sum: 1 },
       w: { $sum: { $cond: ["$scoreboard.win", 1, 0] } },
       l: { $sum: { $cond: ["$scoreboard.win", 0, 1] } },
@@ -109,7 +116,7 @@ var get_aggregate_options = function(gametype, after_unwind, after_project) {
       match_ratings: { $push: "$match_rating" },
     }},
     { $project: {
-      _id: 1, 
+      _id: 1,
       n: 1,
       last_match_id: 1,
       last_match_timestamp: 1,
@@ -227,14 +234,17 @@ var updateRatings = function(db, docs, gametype, playerRanks) {
     ))
     .then( () => {
       if (playerRanks) {
-        return db.collection('history').insertOne({
-          _id: { match_id: doc.last_match_id, player_id: doc._id },
-          gametype: gametype,
-          timestamp: doc.last_match_timestamp,
-          rating: parseFloat(doc.rating.toFixed(2)),
-          rank: playerRanks[doc._id]
-        });
+        return db.collection('scoreboards').update(
+          { "_id.match_id": doc.last_match_id, "_id.steam_id": doc._id },
+          { $set: { history_rating: parseFloat(doc.rating.toFixed(2)), history_rank: playerRanks[doc._id]} }
+        );
+      } else {
+        return true;
       }
+    })
+    .catch( error => {
+      console.error(error);
+console.error(error.trace);
     });
   }));
 };
@@ -258,34 +268,36 @@ var countPlayerRanks = function(db, gametype, steamIds) {
     var cursor = db.collection('players').aggregate([
       {$match: matching}, {$sort: sorting}
     ]);
-    
-    console.log("hey");
     var rank = 1;
     var handler = function(err, doc) {
       if (err) {
+        console.error(err);
         cursor.close();
         reject(err);
         return;
       }
-      
-      console.log(doc[gametype].rating);
-      
-      if (tasks.has(doc._id)) {
-        tasks.delete(doc._id);
-        result[ doc._id ] = rank;
-      };
-      
-      if ( (tasks.size == 0) || (doc == null) ) {
+
+      if (doc == null) {
         cursor.close();
         resolve( result );
         return;
       }
-      
+
+      if (tasks.has(doc._id)) {
+        tasks.delete(doc._id);
+        result[ doc._id ] = rank;
+      };
+
+      if (tasks.size == 0) {
+        cursor.close();
+        resolve( result );
+        return;
+      }
+
       rank++;
       cursor.nextObject(handler);
     };
-    
-    console.log(cursor);
+
     cursor.nextObject(handler);
   });
 };
@@ -293,39 +305,30 @@ var countPlayerRanks = function(db, gametype, steamIds) {
 
 var postProcess = function(db, matchId, gametype, steamIds) {
   var playerRanks = {};
-  
-  console.log(matchId);
-  // calculating ranks
-  return Q.all(steamIds.map( steamId => {
-    return countPlayerRank(db, gametype, steamId);
-  }))
-  .then( result => {
-    
-    console.log("next1");
 
-    steamIds.forEach( (steamId, i) => {
-      playerRanks[ steamId ] = result[i];
-    });
-    
+  return Q(countPlayerRanks(db, gametype, steamIds))
+  .then( result => {
+
+    playerRanks = result;
+
     return db.collection('matches').aggregate( get_aggregate_options(
-      gametype, [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ ]
+      gametype, [ { $match: { "_id": matchId } } ], [ ], false
     )).toArray();
 
   })
   .then(function(docs) {
 
-    return updateRatings(db, docs, gametype, playerRanks);
+    return updateRatings(db, docs, gametype, playerRanks)
+    .then( () => {
 
-  })
-  .then( () => {
-    
-    console.log("dddone");
-
-    return db.collection('matches').update(
-      {_id: matchId},
-      {$set: { is_post_processed: true } }
-    );
-
+      return db.collection('matches').update(
+        {_id: matchId},
+        {$set: { is_post_processed: true } }
+      );
+    })
+    .catch( error => {
+      console.error(e);
+    });
   });
 };
 
@@ -347,7 +350,7 @@ var submitMatch = function(data, run_post_process, done) {
   
   connect(function(db) {
 
-    var scoreboard = data.players.map(function(item) {
+    var scoreboards = data.players.map(function(item) {
       var medalList = [
         "accuracy",
         "assists",
@@ -379,14 +382,14 @@ var submitMatch = function(data, run_post_process, done) {
           frags: parseInt(item["acc-" + w + "-frags"])
         };
       });
+      var team = item["t"] ? parseInt(item["t"]) : 0;
       return {
-        "steam-id": item["P"],
+        "_id": {"steam_id": item["P"], "match_id": data.game_meta["I"], "team": team},
         "score": parseInt(item["scoreboard-score"]),
         "kills": parseInt(item["scoreboard-kills"]),
         "deaths": parseInt(item["scoreboard-deaths"]),
         'damage-dealt': parseInt(item["scoreboard-pushes"]),
         'damage-taken': parseInt(item["scoreboard-destroyed"]),
-        'captures': parseInt(item["scoreboard-captured"]),
         "time": parseInt(item["alivetime"]),
         "medals": medals,
         "weapons": weapons,
@@ -401,8 +404,10 @@ var submitMatch = function(data, run_post_process, done) {
       factory: data.game_meta["O"],
       timestamp: parseInt(data.game_meta["1"]),
       is_post_processed: false,
-      scoreboard: scoreboard
     }))
+    .then( () => {
+      return db.collection('scoreboards').insertMany(scoreboards);
+    })
     .then(Q.all(data.players.map( player => {
       return db.collection('players').update(
         {_id: player["P"]},
@@ -425,7 +430,11 @@ var submitMatch = function(data, run_post_process, done) {
     })
     .catch(function(err) {
 
-      done({ok: false, message: err.toString(), match_id: data.game_meta["I"]});
+      if ( (err.name == "MongoError") && (err.code == 11000) ) {
+        done({ok: false, message: err.message, match_id: data.game_meta["I"], match_already_exists: true});
+      } else {
+        done({ok: false, message: err.message, match_id: data.game_meta["I"]});
+      }
 
     })
     .finally(function() {
@@ -436,7 +445,7 @@ var submitMatch = function(data, run_post_process, done) {
 
   }, function(err) {
 
-    done({ok: false, message: err.toString(), match_id: data.game_meta["I"]});
+      done({ok: false, message: err.toString(), match_id: data.game_meta["I"]});
 
   });
 
@@ -593,42 +602,44 @@ var update = function(done) {
     .then(function(docs_docs) {
 
       return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
-        var cursor = db.collection('matches').find({is_post_processed: false, gametype: gametype});
+        var cursor = db.collection('matches').aggregate([
+          { $match: { "is_post_processed": false } },
+          { $match: { "gametype": gametype } },
+          { $lookup: {
+            from: "scoreboards",
+            localField: "_id",
+            foreignField: "_id.match_id",
+            as: "scoreboard"
+          } },
+          { $unwind: "$scoreboard" },
+          { $match: { "scoreboard.time": { $gt: 300 } } },
+          { $match: { "scoreboard.damage-taken": { $gt: 100 } } },
+          { $group: { "_id": "$_id", "timestamp": { $avg: "$timestamp" }, "steam_ids": { $push: "$scoreboard._id.steam_id" } } },
+          { $sort: { "timestamp": 1 } }
+        ]);
         return new Promise( (resolve, reject) => {
           var handler = function(err, match) {
-            if (err) reject(err);
-            if (match == null) {console.log(gametype + "finished"); return resolve() };
-            console.log(match._id);
-            console.log(match.gametype);
-            postProcess( db, match._id, match.gametype, match.scoreboard.map( item => item["steam-id"] ) )
+            if (err) {
+              cursor.close();
+              reject(err);
+              return;
+            }
+
+            if (match == null) {
+              cursor.close();
+              return resolve();
+            };
+            var datestring = (new Date(match.timestamp*1000)).toISOString().replace("T", " ").replace(".000Z", "");
+            console.log( match._id + " " + datestring + " " + gametype);
+            postProcess( db, match._id, gametype, match.steam_ids )
             .then( () => {
-              console.log("!");
-              cursor.next(handler);
+              cursor.nextObject(handler);
             });
           };
-          cursor.next(handler);
+          cursor.nextObject(handler);
         });
       }));
-
-    })/*
-    .then(function(docs_docs) {
-
-      return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
-        var steamIds = docs_docs[i].map( doc => { return doc._id } );
-        return db.collection('matches').aggregate( get_aggregate_options(
-          gametype, [ { $match: { "scoreboard.steam-id": { $in: steamIds } } } ], [ ]
-        )).toArray();
-      }));
-
     })
-    .then(function(docs_docs) {
-
-      return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
-        var docs = docs_docs[i];
-        return updateRatings(db, docs, gametype, true);
-      }));
-
-    })*/
     .then(function() {
 
       done({ok: true});
@@ -650,10 +661,6 @@ var update = function(done) {
   });
 };
 
-connect(function(db) {
-  Q(countPlayerRanks(db, "ctf", ["76561198157637927", "76561198054023802", "76561198250125416"]))
-  .then( results => {console.log(results)} ); 
-});
 module.exports.update = update;
 module.exports.getList = getList;
 module.exports.getPlayerInfo = getPlayerInfo;

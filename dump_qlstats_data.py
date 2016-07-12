@@ -63,28 +63,31 @@ def get_steam_id(qlstats_id, ignore_dictionary = False):
   return s2s[qlstats_id]
 
 
-def generate_scoreboard(gametype, weapon_stats, block, win):
+def generate_scoreboard(match_id, gametype, weapon_stats, block, win):
   result = []
+  class_to_team = {"grey": 0, "red": 1, "blue": 2}
 
   for row in block.select("tbody tr"):
     tds = row.select("td")
     item = {
-      'steam-id': get_steam_id(tds[0].find("a")['href'].replace("/player/", "")),
+      '_id': {
+        'steam_id': get_steam_id(tds[0].find("a")['href'].replace("/player/", "")),
+        'match_id': match_id,
+        "team": class_to_team[ row['class'] ]
+      },
       'score': int(tds[6].text if tds[6].text != "" else "0"),
       'kills': int(tds[2].text if tds[2].text != "" else "0"),
       'deaths': int(tds[3].text if tds[3].text != "" else "0"),
       'damage-dealt': int(tds[4].text if tds[4].text != "" else "0"),
       'damage-taken': int(tds[5].text if tds[5].text != "" else "0"),
-      'captures': 0,
       'time': get_sec(tds[1].text if tds[1].text != "" else "0:00:00"),
       "win": win
     }
   
     if gametype == "ctf":
-      del item['deaths']
+      item['deaths'] = 0
       item['damage-dealt'] = int(tds[6].text if tds[6].text != "" else "0")
       item['damage-taken'] = int(tds[7].text if tds[7].text != "" else "0")
-      item['captures'] = int(tds[3].text if tds[3].text != "" else "0")
       item['score'] = int(tds[8].text if tds[8].text != "" else "0")
     
     medals = [
@@ -108,9 +111,11 @@ def generate_scoreboard(gametype, weapon_stats, block, win):
     item["medals"] = {}
     for medal in medals:
       item["medals"][medal] = 0
-    item["medals"]["captures"] = item['captures']
+
+    if gametype == "ctf":
+      item["medals"]["captures"] = int(tds[3].text if tds[3].text != "" else "0")
     
-    item["weapons"] = weapon_stats[ item["steam-id"] ]
+    item["weapons"] = weapon_stats[ item["_id"]["steam_id"] ]
     
     result.append(item)
   return result
@@ -150,7 +155,6 @@ def get_weapon_stats(soup):
       beg_index = weapon_block.index(beg_str) + len(beg_str)
       end_index = weapon_block.index(end_str, beg_index)
       weapon_data = weapon_block[beg_index:end_index].replace('kills', '"kills"').replace('hits', '"hits"').replace('fired', '"fired"').replace('acc', '"acc"')
-      print(weapon_data)
       weapon_data = json.loads( weapon_data )
       result[ steam_id ][ weapon ] = {
         "hits": weapon_data["hits"],
@@ -162,7 +166,7 @@ def get_weapon_stats(soup):
   return result
 
 
-def get_game_results(game_id, add_scoreboard = True):
+def get_game_results(game_id):
   result = {}
   html = download("http://qlstats.net/game/" + game_id)
   soup = BeautifulSoup(html, "html.parser")
@@ -179,8 +183,7 @@ def get_game_results(game_id, add_scoreboard = True):
     result['gametype'] = blocks[0].find("img")['alt']
     result['factory'] = re.search('\((.*?)\)', blocks[0].select("p")[0].text).group(1)
     result['timestamp'] = int(blocks[0].select("span.abstime")[0]['data-epoch'])
-    if add_scoreboard == True:
-      result['scoreboard'] = generate_scoreboard(result['gametype'], weapon_stats, blocks[1], True) + generate_scoreboard(result['gametype'], weapon_stats, blocks[2], False)
+    scoreboard = generate_scoreboard(result['_id'], result['gametype'], weapon_stats, blocks[1], True) + generate_scoreboard(result['_id'], result['gametype'], weapon_stats, blocks[2], False)
     if is_instagib(soup):
       result['gametype'] = "i" + result['gametype']
     result['is_post_processed'] = False
@@ -188,7 +191,7 @@ def get_game_results(game_id, add_scoreboard = True):
     time.sleep(1)
     return get_game_results(game_id)
 
-  return result
+  return [result, scoreboard]
 
 
 def connect_to_database():
@@ -265,9 +268,10 @@ def main(args):
       gametype = tr.find_all("td")[2].text.strip()
       if gametype not in GAMETYPES_AVAILABLE and ("i"+gametype) not in GAMETYPES_AVAILABLE:
         continue
-      game_results = get_game_results(game_id)
+      game_results, scoreboard = get_game_results(game_id)
       try:
         db.matches.insert_one(game_results)
+        db.scoreboards.insert_many(scoreboard)
       except pymongo.errors.DuplicateKeyError:
         print("DuplicateKeyError")
 

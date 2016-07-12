@@ -72,15 +72,18 @@ app.post('/stats/submit', function (req, res) {
   rating.submitMatch(req.body, RUN_POST_PROCESS, function(result) {
     if (result.ok == false) {
       console.error(result.match_id + ": " + result.message);
+      if (result.match_already_exists) {
+        return res.status(409).json( result );
+      } else if (RUN_POST_PROCESS == false) {
+        return res.status(202).json( result );
+      } else {
+        return res.status(422).json( result );
+      }
     } else {
       console.log(result.match_id + ": ok");
     }
-    
-    if (RUN_POST_PROCESS) {
-      res.status(200).json( result );
-    } else {
-      res.status(202).json( result );
-    }
+
+    res.status(200).json( result );
   });
 });
 

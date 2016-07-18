@@ -90,9 +90,7 @@ var in_array = function(what, array) {
 
 
 var get_aggregate_options = function(gametype, after_unwind, after_project, is_post_processed) {
-  if (typeof(is_post_processed) == 'undefined') is_post_processed = true;
   return [].concat([
-    { $match: { "is_post_processed": is_post_processed } },
     { $match: { "gametype": gametype } },
     { $lookup: {
       from: "scoreboards",
@@ -303,7 +301,7 @@ var countPlayerRanks = function(db, gametype, steamIds) {
 };
 
 
-var postProcess = function(db, matchId, gametype, steamIds) {
+var postProcess = function(db, matchId, gametype, steamIds, timestamp) {
   var playerRanks = {};
 
   return Q(countPlayerRanks(db, gametype, steamIds))
@@ -312,7 +310,7 @@ var postProcess = function(db, matchId, gametype, steamIds) {
     playerRanks = result;
 
     return db.collection('matches').aggregate( get_aggregate_options(
-      gametype, [ { $match: { "_id": matchId } } ], [ ], false
+      gametype, [ { $match: { "scoreboard._id.steam_id": { $in: steamIds }, "timestamp": { $lte: timestamp } } } ], [ ]
     )).toArray();
 
   })
@@ -420,7 +418,7 @@ var submitMatch = function(data, run_post_process, done) {
       if (run_post_process == false)
         throw new Error("skipped post processing");
 
-      return postProcess( db, data.game_meta["I"], data.game_meta["G"], data.players.map( player => { return player["P"] }) );
+      return postProcess( db, data.game_meta["I"], data.game_meta["G"], data.players.map( player => { return player["P"] }), parseInt(data.game_meta["1"]) );
     })
 
     .then(function() {
@@ -599,46 +597,43 @@ var update = function(done) {
       }));
 
     })
-    .then(function(docs_docs) {
+    .then( () => {
 
-      return Q.all(GAMETYPES_AVAILABLE.map(function(gametype, i) {
-        var cursor = db.collection('matches').aggregate([
-          { $match: { "is_post_processed": false } },
-          { $match: { "gametype": gametype } },
-          { $lookup: {
-            from: "scoreboards",
-            localField: "_id",
-            foreignField: "_id.match_id",
-            as: "scoreboard"
-          } },
-          { $unwind: "$scoreboard" },
-          { $match: { "scoreboard.time": { $gt: 300 } } },
-          { $match: { "scoreboard.damage-taken": { $gt: 100 } } },
-          { $group: { "_id": "$_id", "timestamp": { $avg: "$timestamp" }, "steam_ids": { $push: "$scoreboard._id.steam_id" } } },
-          { $sort: { "timestamp": 1 } }
-        ]);
-        return new Promise( (resolve, reject) => {
-          var handler = function(err, match) {
-            if (err) {
-              cursor.close();
-              reject(err);
-              return;
-            }
+      var cursor = db.collection('matches').aggregate([
+        { $match: { "is_post_processed": false } },
+        { $lookup: {
+          from: "scoreboards",
+          localField: "_id",
+          foreignField: "_id.match_id",
+          as: "scoreboard"
+        } },
+        { $unwind: "$scoreboard" },
+        { $match: { "scoreboard.time": { $gt: 300 } } },
+        { $match: { "scoreboard.damage-taken": { $gt: 100 } } },
+        { $group: { _id: "$_id", gametype: { $first: "$gametype" }, timestamp: { $first: "$timestamp" }, steam_ids: { $push: "$scoreboard._id.steam_id" } } },
+        { $sort: { timestamp: 1 } }
+      ]);
+      return new Promise( (resolve, reject) => {
+        var handler = function(err, match) {
+          if (err) {
+            cursor.close();
+            reject(err);
+            return;
+          }
 
-            if (match == null) {
-              cursor.close();
-              return resolve();
-            };
-            var datestring = (new Date(match.timestamp*1000)).toISOString().replace("T", " ").replace(".000Z", "");
-            console.log( match._id + " " + datestring + " " + gametype);
-            postProcess( db, match._id, gametype, match.steam_ids )
-            .then( () => {
-              cursor.nextObject(handler);
-            });
+          if (match == null) {
+            cursor.close();
+            return resolve();
           };
-          cursor.nextObject(handler);
-        });
-      }));
+          var datestring = (new Date(match.timestamp*1000)).toISOString().replace("T", " ").replace(".000Z", "");
+          console.log( match._id + " " + datestring + " " + match.gametype);
+          postProcess( db, match._id, match.gametype, match.steam_ids, match.timestamp )
+          .then( () => {
+            cursor.nextObject(handler);
+          });
+        };
+        cursor.nextObject(handler);
+      });
     })
     .then(function() {
 

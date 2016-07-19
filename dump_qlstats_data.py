@@ -73,7 +73,7 @@ def generate_scoreboard(match_id, gametype, weapon_stats, block, win):
       '_id': {
         'steam_id': get_steam_id(tds[0].find("a")['href'].replace("/player/", "")),
         'match_id': match_id,
-        "team": class_to_team[ row['class'] ]
+        "team": class_to_team[ row['class'][0] ]
       },
       'score': int(tds[6].text if tds[6].text != "" else "0"),
       'kills': int(tds[2].text if tds[2].text != "" else "0"),

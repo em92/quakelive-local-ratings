@@ -1,0 +1,23 @@
+<div id="summary-table-wrapper">
+  <table id="summary-table" table="table table-borderless">
+    <thead><tr>
+      <th>Rank</th>
+      <th>Nickname</th>
+      <th>Rating</th>
+      <th>Match Count</th>
+    </tr></thead>
+    <tbody><% list.forEach( function( item ) { %><tr>
+      <td class="col-md-1"><%= item.rank %></td>
+      <td class="col-md-3"><a href="http://steamcommunity.com/profiles/<%= item._id %>/"><%! renderQLNickname(item.name) %></a></td>
+      <td class="col-md-1"><%= item.rating %></td>
+      <td class="col-md-1"><%= item.n %></td>
+    </tr><% }); %></tbody>
+  </table>
+  <span><% for (var i=0; i<page_count; i++) {
+    if (i == current_page ) {
+      %>[<%= i+1 %>] &nbsp;<%
+    } else {
+      %><a href="/#/ratings/<%= gametype %>/<%= i %>">[<%= i+1 %>]</a> &nbsp;<%
+    }
+  } %></span>
+</div>

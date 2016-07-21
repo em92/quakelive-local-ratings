@@ -53,11 +53,13 @@ table {
 }
 
 th {
-	background-color: #003060;
+  padding: 8px;
+  background-color: #003060;
 }
 
 td {
-   background-color: black;
+  padding: 8px;
+  background-color: black;
 }
 
 .table-borderless tbody tr td, .table-borderless tbody tr th, .table-borderless thead tr th {

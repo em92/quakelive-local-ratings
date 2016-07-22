@@ -4,7 +4,7 @@ function drawRatings(self) {
   var gametype = this.params['gametype'] ? this.params['gametype'].toLowerCase() : "undefined";
   var page     = this.params['page']     ? parseInt(this.params['page'])         : 0;
 
-  if ( $.inArray( gametype, GAMETYPES_AVAILABLE ) ) {
+  if ( $.inArray( gametype, GAMETYPES_AVAILABLE ) == -1 ) {
     this.$element().html( "invalid gametype: " + gametype );
     return;
   }
@@ -37,7 +37,7 @@ var app = $.sammy("#content", function() {
   });
   
   this.get('#/ratings/:gametype', drawRatings);
-  
+  this.get('#/ratings/:gametype/', drawRatings);
   this.get('#/ratings/:gametype/:page', drawRatings);
 
   

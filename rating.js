@@ -459,6 +459,7 @@ var getList = function(gametype, page, done) {
     var project  = {
       _id: "$_id",
       name: "$name",
+      model: "$model"
     };
     project.n      = "$" + gametype + ".n";
     project.rating = "$" + gametype + ".rating";
@@ -476,6 +477,7 @@ var getList = function(gametype, page, done) {
 
       docs = result.map(function(item, i) {
         item.rank = page * cfg['player_count_per_page'] + 1 + i;
+        item.model = item.model + (item.model.indexOf('/') == -1 ? "/default" : "");
         return item;
       });
       return db.collection('players').find(matching).count();

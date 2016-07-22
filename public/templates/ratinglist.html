@@ -8,7 +8,12 @@
     </tr></thead>
     <tbody><% list.forEach( function( item ) { %><tr>
       <td class="col-md-1"><%= item.rank %></td>
-      <td class="col-md-3"><a href="http://steamcommunity.com/profiles/<%= item._id %>/"><%! renderQLNickname(item.name) %></a></td>
+      <td class="col-md-3">
+        <a href="http://steamcommunity.com/profiles/<%= item._id %>/">
+          <img src="/images/icons_small/<%= item.model %>.png" />&nbsp;
+          <%! renderQLNickname(item.name) %>
+        </a>
+      </td>
       <td class="col-md-1"><%= item.rating %></td>
       <td class="col-md-1"><%= item.n %></td>
     </tr><% }); %></tbody>

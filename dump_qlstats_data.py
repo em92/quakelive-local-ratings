@@ -6,8 +6,9 @@ import requests
 import json
 from bs4 import BeautifulSoup
 import time
-from datetime import date
+from datetime import datetime, timedelta
 import gzip
+from pytz import timezone
 
 
 def get_sec(s):
@@ -26,9 +27,8 @@ def get_game_results(game_id):
   html = download("http://qlstats.net/game/" + game_id)
   soup = BeautifulSoup(html, "html.parser")
   match_id = soup.select("#xonborder .game-detail .note")[0].text.strip()
-  d = date.fromtimestamp( int(soup.select("#xonborder .game-detail .abstime")[0]['data-epoch']) )
+  d = datetime.fromtimestamp( int(soup.select("#xonborder .game-detail .abstime")[0]['data-epoch']) ) + timedelta(hours=1)
   link = "https://api.qlstats.net/api/jsons/" + str(d.year) + "-" + str(d.month).zfill(2) + "-" + str(d.day).zfill(2) + "/" + match_id + ".json"
-  print(download(link))
   data = download(link)
   f = gzip.open(match_id + ".json.gz", 'wb')
   f.write( data.encode('utf-8') )

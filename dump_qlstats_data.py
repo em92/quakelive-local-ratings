@@ -22,12 +22,11 @@ def download(link):
   return r.text
 
 
-def get_game_results(game_id):
-  result = {}
-  html = download("http://qlstats.net/game/" + game_id)
-  soup = BeautifulSoup(html, "html.parser")
-  match_id = soup.select("#xonborder .game-detail .note")[0].text.strip()
-  d = datetime.fromtimestamp( int(soup.select("#xonborder .game-detail .abstime")[0]['data-epoch']) ) + timedelta(hours=1)
+def download_stats(match_id, timestamp):
+  uttz = timezone('UTC')
+  vitz = timezone('Europe/Vienna')
+  d = uttz.localize( datetime.fromtimestamp( timestamp ) )
+  d = d.astimezone( vitz )
   link = "https://api.qlstats.net/api/jsons/" + str(d.year) + "-" + str(d.month).zfill(2) + "-" + str(d.day).zfill(2) + "/" + match_id + ".json"
   data = download(link)
   f = gzip.open(match_id + ".json.gz", 'wb')
@@ -39,6 +38,13 @@ def get_game_results(game_id):
       raise Exception("something is wrong")
   except KeyError:
     pass
+
+
+def get_game_results(game_id):
+  result = {}
+  html = download("http://qlstats.net/game/" + game_id)
+  soup = BeautifulSoup(html, "html.parser")
+  download_stats( soup.select("#xonborder .game-detail .note")[0].text.strip(), int(soup.select("#xonborder .game-detail .abstime")[0]['data-epoch']) )
 
 
 def main(args):

@@ -25,8 +25,7 @@ def download(link):
 def download_stats(match_id, timestamp):
   uttz = timezone('UTC')
   vitz = timezone('Europe/Vienna')
-  d = uttz.localize( datetime.fromtimestamp( timestamp ) )
-  d = d.astimezone( vitz )
+  d = datetime.fromtimestamp( timestamp, tz = uttz ).replace(tzinfo = uttz).astimezone( vitz )
   link = "https://api.qlstats.net/api/jsons/" + str(d.year) + "-" + str(d.month).zfill(2) + "-" + str(d.day).zfill(2) + "/" + match_id + ".json"
   data = download(link)
   f = gzip.open(match_id + ".json.gz", 'wb')

@@ -91,6 +91,7 @@ CREATE TABLE matches (
   factory_id SMALLINT,
   map_id SMALLINT,
   timestamp BIGINT,
+  post_processed BOOL,
   FOREIGN KEY (gametype_id) REFERENCES gametypes(gametype_id),
   FOREIGN KEY (factory_id)  REFERENCES factories(factory_id),
   FOREIGN KEY (map_id)      REFERENCES maps(map_id),
@@ -100,7 +101,9 @@ CREATE TABLE matches (
 CREATE TABLE scoreboards (
   match_id UUID,
   steam_id BIGINT,
-  rating REAL,
+  match_rating REAL,
+  history_rating REAL,
+  history_rank INTEGER,
   FOREIGN KEY (match_id) REFERENCES matches(match_id),
   FOREIGN KEY (steam_id) REFERENCES players(steam_id),
   PRIMARY KEY (match_id, steam_id)
@@ -122,6 +125,7 @@ CREATE TABLE scoreboards_medals (
   match_id UUID,
   steam_id BIGINT,
   medal_id SMALLINT,
+  count SMALLINT,
   FOREIGN KEY (match_id, steam_id) REFERENCES scoreboards(match_id, steam_id),
   FOREIGN KEY (medal_id) REFERENCES medals(medal_id),
   PRIMARY KEY (match_id, steam_id, medal_id) 

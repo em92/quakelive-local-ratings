@@ -175,23 +175,6 @@ def submit_match(body):
 
   return result
 
-'''
-app.listen(LISTEN_PORT, function () {
-  console.log("Listening on port " + LISTEN_PORT.toString());
-  
-  if (RUN_POST_PROCESS == false) return;
-  
-  console.log("Updating ratings...");
-  rating.update(function(result) {
-  if (result.ok == true) {
-    console.log("Updated successfully");
-  } else {
-    console.error(result.message);
-  }
-  });
-});
-'''
-
 
 db = db_connect()
 cu = db.cursor()

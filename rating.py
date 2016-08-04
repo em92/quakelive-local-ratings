@@ -7,7 +7,7 @@ import traceback
 import psycopg2
 from urllib.parse import urlparse
 from config import cfg
-#from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError
 
 GAMETYPE_IDS = {}
 MEDAL_IDS    = {}
@@ -121,6 +121,42 @@ def get_for_balance_plugin(ids):
   return {"ok": False, "message": "not implemented"}
 
 
+def get_factory_id( cu, factory ):
+  cu.execute( "SELECT factory_id FROM factories WHERE factory_short = %s", [factory] )
+  try:
+    return cu.fetchone()[0]
+  except TypeError:
+    cu.execute("INSERT INTO factories (factory_id, factory_short) VALUES (nextval('factory_seq'), %s) RETURNING factory_id", [factory])
+    return cu.fetchone()[0]
+
+
+def get_map_id( cu, map_name ):
+  map_name = map_name.lower()
+  cu.execute( "SELECT map_id FROM maps WHERE map_name = %s", [map_name] )
+  try:
+    return cu.fetchone()[0]
+  except TypeError:
+    cu.execute("INSERT INTO maps (map_id, map_name) VALUES (nextval('map_seq'), %s) RETURNING map_id", [map_name])
+    return cu.fetchone()[0]
+
+
+def count_player_match_rating( gametype, player_data ):
+  alive_time    = int( player_data["alivetime"] )
+  score         = int( player_data["scoreboard-score"] )
+  damage_dealt  = int( player_data["scoreboard-pushes"] )
+  damage_taken  = int( player_data["scoreboard-destroyed"] )
+  frags_count   = int( player_data["scoreboard-kills"] )
+  deaths_count  = int( player_data["scoreboard-deaths"] )
+  capture_count = int( player_data["medal-captures"] )
+  win           = 1 if "win" in player_data else 0
+  time_factor   = 1200./alive_time
+  return {
+    "ad": ( damage_dealt/100 + frags_count + capture_count ) * time_factor,
+    "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor + win*300 ) / 2.35,
+    "tdm": ( 0.5 * (frags_count - deaths_count) + 0.004 * (damage_dealt - damage_taken) + 0.003 * damage_dealt ) * time_factor
+  }[gametype]
+
+
 def submit_match(body):
   """
   Match report handler
@@ -141,11 +177,13 @@ def submit_match(body):
     if is_instagib(data):
       data["game_meta"]["G"] = "i" + data["game_meta"]["G"]
 
-    if data["game_meta"]["G"] not in GAMETYPES_AVAILABLE:
+    match_id = data["game_meta"]["I"]
+
+    if data["game_meta"]["G"] not in GAMETYPE_IDS:
       return {
         "ok": False,
         "message": "gametype is not accepted: " + data["game_meta"]["G"],
-        "match_id": data["game_meta"]["I"]
+        "match_id": match_id
       }
 
     db = db_connect()
@@ -159,16 +197,40 @@ def submit_match(body):
     }
 
   try:
+    cu = db.cursor()
+    cfg["run_post_process"]
     # ToDo: medals
     # ToDo: weapons
     # 
-    pass
+
+    cu.execute("INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, post_processed) VALUES (%s, %s, %s, %s, %s, %s)", [
+      match_id,
+      GAMETYPE_IDS[ data["game_meta"]["G"] ],
+      get_factory_id( cu, data["game_meta"]["O"] ),
+      get_map_id( cu, data["game_meta"]["M"] ),
+      int( data["game_meta"]["1"] ),
+      cfg["run_post_process"]
+    ]);
+
+    for player in data["players"]:
+      try:
+        cu.execute( "INSERT INTO players (steam_id, name, model)", [player["P"], player["n"], player["playermodel"]] )
+      except IntegrityError:
+        cu.execute( "UPDATE players SET name = %s, model = %s WHERE steam_id = %s", [player["n"], player["playermodel"], player["P"]] )
+      
+    db.commit()
+    result = {
+      "ok": True,
+      "message": "done",
+      "match_id": match_id
+    }
   except Exception as e:
+    db.rollback()
     traceback.print_exc(file=sys.stderr)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e),
-      "match_id": data["game_meta"]["I"]
+      "match_id": match_id
     }
   finally:
     db.close()

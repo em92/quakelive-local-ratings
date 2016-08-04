@@ -7,7 +7,7 @@ import sys
 import json
 
 default_cfg = {
-  "db_url": "mongodb://localhost:27017/quakelive-local-ratings",
+  "db_url": "postgres://eugene:bebebe@localhost:5432/qllr",
   "player_count_per_page": 10,
   "httpd_port": 7081,
   "run_post_process": True,
@@ -75,7 +75,7 @@ def load():
   # checking individual params
   try:
     url_data = urlparse( cfg['db_url'] )
-    if url_data.scheme != "mongodb":
+    if url_data.scheme != "postgres":
       raise Exception( "invalid protocol: " + url_data.scheme )
 
     is_invalid_path = any( c in url_data.path[1:] for c in "‘“'\"!#$%&+^<=>?/\`" )

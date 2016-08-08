@@ -7,13 +7,13 @@ import traceback
 import psycopg2
 from urllib.parse import urlparse
 from config import cfg
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import ProgrammingError
 
 GAMETYPE_IDS = {}
 MEDAL_IDS    = {}
 WEAPON_IDS   = {}
 
-MIN_ALIVE_TIME_TO_RATE = 60*5
+MIN_ALIVE_TIME_TO_RATE = 60*10
 
 
 def db_connect():
@@ -138,6 +138,15 @@ def get_map_id( cu, map_name ):
     return cu.fetchone()[0]
 
 
+def get_player_rating( cu, steam_id, gametype_id ):
+  cu.execute( "SELECT rating FROM gametype_ratings WHERE steam_id = %s AND gametype_id = %s", [steam_id, gametype_id] )
+  try:
+    return cu.fetchone()[0]
+  except TypeError:
+    cu.execute("INSERT INTO gametype_ratings (steam_id, gametype_id, rating) VALUES (%s, %s, %s)", [steam_id, gametype_id, None])
+    return None
+
+
 def count_player_match_rating( gametype, player_data ):
   alive_time    = int( player_data["alivetime"] )
   score         = int( player_data["scoreboard-score"] )
@@ -161,6 +170,10 @@ def count_player_match_rating( gametype, player_data ):
 
 
 def post_process(cu, match_id, gametype_id):
+  """
+  Updates players' ratings for match_id. I call this post processing
+
+  """
   cu.execute("SELECT steam_id, team, match_rating FROM scoreboards WHERE match_id = %s AND alive_time > %s", [match_id, MIN_ALIVE_TIME_TO_RATE])
 
   rows = cu.fetchall()
@@ -169,11 +182,7 @@ def post_process(cu, match_id, gametype_id):
     team         = row[1]
     match_rating = row[2]
 
-    try:
-      cu.execute("SELECT rating FROM gametype_ratings WHERE steam_id = %s AND gametype_id = %s", [steam_id, gametype_id])
-      old_rating = cu.fetchone()[0]
-    except TypeError:
-      old_rating = None
+    old_rating = get_player_rating( cu, steam_id, gametype_id )
 
     cu.execute("UPDATE scoreboards SET history_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
 
@@ -189,13 +198,13 @@ def post_process(cu, match_id, gametype_id):
         FROM
           matches m
         LEFT JOIN
-          scoreboard s on s.match_id = m.match_id
+          scoreboards s on s.match_id = m.match_id
         WHERE
           s.steam_id = %s AND
           s.match_rating IS NOT NULL
         ORDER BY m.timestamp DESC
         LIMIT 50
-      )'''
+      ) t'''
       cu.execute(query_string, [steam_id])
       new_rating = cu.fetchone()[0]
 
@@ -298,15 +307,19 @@ def submit_match(data):
     # post processing
     if cfg["run_post_process"] == True:
       post_process( cu, match_id, GAMETYPE_IDS[ data["game_meta"]["G"] ] )
+      result = {
+        "ok": True,
+        "message": "done",
+        "match_id": match_id
+      }
     else:
-      raise Exception("skipped post processing")
+      result = {
+        "ok": False,
+        "message": "skipped post processing",
+        "match_id": match_id
+      }
 
     db.commit()
-    result = {
-      "ok": True,
-      "message": "done",
-      "match_id": match_id
-    }
   except Exception as e:
     db.rollback()
     traceback.print_exc(file=sys.stderr)
@@ -335,5 +348,11 @@ cu.execute("SELECT weapon_id, weapon_short FROM weapons")
 for row in cu.fetchall():
   WEAPON_IDS[ row[1] ] = row[0]
 
+if cfg["run_post_process"]:
+  cu.execute("SELECT match_id, gametype_id, timestamp FROM matches WHERE post_processed = FALSE ORDER BY timestamp ASC")
+  for row in cu.fetchall():
+    print("running post process: " + str(row[0]) + "\t" + str(row[2]))
+    post_process(cu, row[0], row[1])
+    db.commit()
 cu.close()
 db.close()

@@ -120,7 +120,7 @@ CREATE TABLE scoreboards_weapons (
   shots INTEGER,
   FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team),
   FOREIGN KEY (weapon_id) REFERENCES weapons(weapon_id),
-  PRIMARY KEY (match_id, steam_id, weapon_id)
+  PRIMARY KEY (match_id, steam_id, team, weapon_id)
 );
 
 CREATE TABLE scoreboards_medals (
@@ -131,6 +131,6 @@ CREATE TABLE scoreboards_medals (
   count SMALLINT,
   FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team),
   FOREIGN KEY (medal_id) REFERENCES medals(medal_id),
-  PRIMARY KEY (match_id, steam_id, medal_id) 
+  PRIMARY KEY (match_id, steam_id, team, medal_id)
 );
 

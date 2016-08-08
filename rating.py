@@ -13,6 +13,8 @@ GAMETYPE_IDS = {}
 MEDAL_IDS    = {}
 WEAPON_IDS   = {}
 
+MIN_ALIVE_TIME_TO_RATE = 60*5
+
 
 def db_connect():
   result = urlparse( cfg["db_url"] )
@@ -40,10 +42,6 @@ def parse_stats_submission(body):
   for line in body.split('\n'):
     try:
       (key, value) = line.strip().split(' ', 1)
-
-      # Server (S) and Nick (n) fields can have international characters.
-      if key in 'S' 'n':
-        value = unicode(value, 'utf-8')
 
       if key not in 'P' 'Q' 'n' 'e' 't' 'i':
         game_meta[key] = value
@@ -149,7 +147,12 @@ def count_player_match_rating( gametype, player_data ):
   deaths_count  = int( player_data["scoreboard-deaths"] )
   capture_count = int( player_data["medal-captures"] )
   win           = 1 if "win" in player_data else 0
-  time_factor   = 1200./alive_time
+
+  if alive_time < MIN_ALIVE_TIME_TO_RATE:
+    return None
+  else:
+    time_factor   = 1200./alive_time
+
   return {
     "ad": ( damage_dealt/100 + frags_count + capture_count ) * time_factor,
     "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor + win*300 ) / 2.35,
@@ -157,12 +160,56 @@ def count_player_match_rating( gametype, player_data ):
   }[gametype]
 
 
-def submit_match(body):
+def post_process(cu, match_id, gametype_id):
+  cu.execute("SELECT steam_id, team, match_rating FROM scoreboards WHERE match_id = %s AND alive_time > %s", [match_id, MIN_ALIVE_TIME_TO_RATE])
+
+  rows = cu.fetchall()
+  for row in rows:
+    steam_id     = row[0]
+    team         = row[1]
+    match_rating = row[2]
+
+    try:
+      cu.execute("SELECT rating FROM gametype_ratings WHERE steam_id = %s AND gametype_id = %s", [steam_id, gametype_id])
+      old_rating = cu.fetchone()[0]
+    except TypeError:
+      old_rating = None
+
+    cu.execute("UPDATE scoreboards SET history_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
+
+    if old_rating == None:
+      new_rating = match_rating
+    else:
+      query_string = '''
+      SELECT
+        AVG(rating)
+      FROM (
+        SELECT
+          s.match_rating as rating
+        FROM
+          matches m
+        LEFT JOIN
+          scoreboard s on s.match_id = m.match_id
+        WHERE
+          s.steam_id = %s AND
+          s.match_rating IS NOT NULL
+        ORDER BY m.timestamp DESC
+        LIMIT 50
+      )'''
+      cu.execute(query_string, [steam_id])
+      new_rating = cu.fetchone()[0]
+
+    cu.execute("UPDATE gametype_ratings SET rating = %s WHERE steam_id = %s", [new_rating, steam_id])
+
+  cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
+
+
+def submit_match(data):
   """
   Match report handler
 
   Args:
-    body (str): match report
+    data (str): match report
 
   Returns: {
       "ok: True/False - on success/fail
@@ -171,8 +218,8 @@ def submit_match(body):
     }
   """
   try:
-    if type(body).__name__ == 'str':
-      body = parse_stats_submission( body )
+    if type(data).__name__ == 'str':
+      data = parse_stats_submission( data )
 
     if is_instagib(data):
       data["game_meta"]["G"] = "i" + data["game_meta"]["G"]
@@ -198,10 +245,6 @@ def submit_match(body):
 
   try:
     cu = db.cursor()
-    cfg["run_post_process"]
-    # ToDo: medals
-    # ToDo: weapons
-    # 
 
     cu.execute("INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, post_processed) VALUES (%s, %s, %s, %s, %s, %s)", [
       match_id,
@@ -210,14 +253,54 @@ def submit_match(body):
       get_map_id( cu, data["game_meta"]["M"] ),
       int( data["game_meta"]["1"] ),
       cfg["run_post_process"]
-    ]);
+    ])
 
     for player in data["players"]:
-      try:
-        cu.execute( "INSERT INTO players (steam_id, name, model)", [player["P"], player["n"], player["playermodel"]] )
-      except IntegrityError:
+      player["P"] = int(player["P"])
+      team = int(player["t"]) if "t" in player else 0
+
+      cu.execute( "SELECT EXISTS(SELECT steam_id FROM players WHERE steam_id = %s)", [player["P"]] )
+      player_exists = cu.fetchone()[0]
+
+      if player_exists:
         cu.execute( "UPDATE players SET name = %s, model = %s WHERE steam_id = %s", [player["n"], player["playermodel"], player["P"]] )
-      
+      else:
+        cu.execute( "INSERT INTO players (steam_id, name, model) VALUES (%s, %s, %s)", [player["P"], player["n"], player["playermodel"]] )
+
+      cu.execute("INSERT INTO scoreboards (match_id, steam_id, match_rating, alive_time, team) VALUES (%s, %s, %s, %s, %s)", [
+        match_id,
+        player["P"],
+        count_player_match_rating( data["game_meta"]["G"], player),
+        int( player["alivetime"] ),
+        team
+      ])
+
+      for weapon, weapon_id in WEAPON_IDS.items():
+        cu.execute("INSERT INTO scoreboards_weapons (match_id, steam_id, team, weapon_id, frags, hits, shots) VALUES (%s, %s, %s, %s, %s, %s, %s)", [
+          match_id,
+          player["P"],
+          team,
+          weapon_id,
+          int( player["acc-" + weapon + "-frags"] ),
+          int( player["acc-" + weapon + "-cnt-hit"] ),
+          int( player["acc-" + weapon + "-cnt-fired"] )
+        ])
+
+      for medal, medal_id in MEDAL_IDS.items():
+        cu.execute("INSERT INTO scoreboards_medals (match_id, steam_id, team, medal_id, count) VALUES (%s, %s, %s, %s, %s)", [
+          match_id,
+          player["P"],
+          team,
+          medal_id,
+          int( player["medal-" + medal] )
+        ])
+
+    # post processing
+    if cfg["run_post_process"] == True:
+      post_process( cu, match_id, GAMETYPE_IDS[ data["game_meta"]["G"] ] )
+    else:
+      raise Exception("skipped post processing")
+
     db.commit()
     result = {
       "ok": True,
@@ -251,3 +334,6 @@ for row in cu.fetchall():
 cu.execute("SELECT weapon_id, weapon_short FROM weapons")
 for row in cu.fetchall():
   WEAPON_IDS[ row[1] ] = row[0]
+
+cu.close()
+db.close()

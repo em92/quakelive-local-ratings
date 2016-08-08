@@ -43,7 +43,7 @@ def http_stats_submit():
     print(request.remote_addr + ": non-loopback requests are not allowed", file=sys.stderr)
     return jsonify(ok=False, message="non-loopback requests are not allowed"), 403
 
-  result = rating.submitMatch(request.data)
+  result = rating.submit_match(request.data.decode('utf-8'))
   if result["ok"] == False:
     print(result["match_id"] + ": " + result["message"], file=sys.stderr)
     if "match_already_exists" in result:

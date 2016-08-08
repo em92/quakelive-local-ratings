@@ -208,7 +208,7 @@ def post_process(cu, match_id, gametype_id):
       cu.execute(query_string, [steam_id])
       new_rating = cu.fetchone()[0]
 
-    cu.execute("UPDATE gametype_ratings SET rating = %s WHERE steam_id = %s", [new_rating, steam_id])
+    cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1 WHERE steam_id = %s", [new_rating, steam_id])
 
   cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
 

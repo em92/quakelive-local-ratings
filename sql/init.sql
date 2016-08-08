@@ -101,22 +101,24 @@ CREATE TABLE matches (
 CREATE TABLE scoreboards (
   match_id UUID,
   steam_id BIGINT,
+  team SMALLINT,
+  alive_time INTEGER,
   match_rating REAL,
-  history_rating REAL,
-  history_rank INTEGER,
+  history_rating REAL DEFAULT NULL,
   FOREIGN KEY (match_id) REFERENCES matches(match_id),
   FOREIGN KEY (steam_id) REFERENCES players(steam_id),
-  PRIMARY KEY (match_id, steam_id)
+  PRIMARY KEY (match_id, steam_id, team)
 );
 
 CREATE TABLE scoreboards_weapons (
   match_id UUID,
   steam_id BIGINT,
+  team SMALLINT,
   weapon_id SMALLINT,
   frags SMALLINT,
   hits  INTEGER,
   shots INTEGER,
-  FOREIGN KEY (match_id, steam_id) REFERENCES scoreboards(match_id, steam_id),
+  FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team),
   FOREIGN KEY (weapon_id) REFERENCES weapons(weapon_id),
   PRIMARY KEY (match_id, steam_id, weapon_id)
 );
@@ -124,9 +126,10 @@ CREATE TABLE scoreboards_weapons (
 CREATE TABLE scoreboards_medals (
   match_id UUID,
   steam_id BIGINT,
+  team SMALLINT,
   medal_id SMALLINT,
   count SMALLINT,
-  FOREIGN KEY (match_id, steam_id) REFERENCES scoreboards(match_id, steam_id),
+  FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team),
   FOREIGN KEY (medal_id) REFERENCES medals(medal_id),
   PRIMARY KEY (match_id, steam_id, medal_id) 
 );

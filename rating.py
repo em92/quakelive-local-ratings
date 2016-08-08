@@ -147,6 +147,54 @@ def get_player_rating( cu, steam_id, gametype_id ):
     return None
 
 
+def get_for_balance_plugin( steam_ids ):
+  players = {}
+  result = []
+  try:
+
+    db = db_connect()
+    cu = db.cursor()
+
+    query = '''
+    SELECT
+      steam_id, gametype_short, rating, n
+    FROM
+      gametype_ratings gr
+    LEFT JOIN
+      gametypes gt ON gr.gametype_id = gt.gametype_id
+    WHERE
+      steam_id IN %s'''
+    cu.execute( query, [tuple(steam_ids)] )
+    for row in cu.fetchall():
+      steam_id = str(row[0])
+      gametype = row[1]
+      rating   = row[2]
+      n        = row[3]
+      if steam_id not in players:
+        players[ steam_id ] = {"steamid": steam_id}
+      players[ steam_id ][ gametype ] = {"games": n, "elo": rating}
+
+    for steam_id, data in players.items():
+      result.append( data )
+    result = {
+      "ok": True,
+      "players": result,
+      "deactivated": []
+    }
+
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    db.close()
+
+  return result
+
+
 def count_player_match_rating( gametype, player_data ):
   alive_time    = int( player_data["alivetime"] )
   score         = int( player_data["scoreboard-score"] )
@@ -201,14 +249,15 @@ def post_process(cu, match_id, gametype_id):
           scoreboards s on s.match_id = m.match_id
         WHERE
           s.steam_id = %s AND
+          m.gametype_id = %s AND
           s.match_rating IS NOT NULL
         ORDER BY m.timestamp DESC
         LIMIT 50
       ) t'''
-      cu.execute(query_string, [steam_id])
+      cu.execute(query_string, [gametype_id, steam_id])
       new_rating = cu.fetchone()[0]
 
-    cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1 WHERE steam_id = %s", [new_rating, steam_id])
+    cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1 WHERE steam_id = %s AND gametype_id = %s", [new_rating, steam_id, gametype_id])
 
   cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
 

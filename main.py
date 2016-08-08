@@ -13,8 +13,8 @@ app = Flask(__name__)
 @app.route("/elo/<ids>")
 @app.route("/elo_b/<ids>")
 def http_elo(ids):
-  ids = ids.split("+")
-  return jsonify( **rating.getForBalancePlugin(ids) )
+  ids = list( map(lambda id_: int(id_), ids.split("+")) )
+  return jsonify( **rating.get_for_balance_plugin(ids) )
 
 
 @app.route("/player/<id>")

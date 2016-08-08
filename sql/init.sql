@@ -64,6 +64,7 @@ CREATE TABLE gametype_ratings (
   steam_id BIGINT,
   gametype_id SMALLINT,
   rating REAL,
+  n BIGINT DEFAULT 0,
   FOREIGN KEY (steam_id)    REFERENCES players(steam_id),
   FOREIGN KEY (gametype_id) REFERENCES gametypes(gametype_id),
   PRIMARY KEY (steam_id, gametype_id)

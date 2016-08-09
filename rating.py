@@ -182,8 +182,70 @@ def get_list(gametype, page):
   return result
 
 
-def get_player_info(player_id):
-  return {"ok": False, "message": "not implemented"}
+def get_player_info(steam_id):
+
+  try:
+    db = db_connect()
+  except Exception as e:
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+    return result
+
+  try:
+    cu = db.cursor()
+    result = {}
+    for gametype, gametype_id in GAMETYPE_IDS.items():
+      query = '''
+      SELECT 
+        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.history_rating
+      FROM
+        players p
+      LEFT JOIN gametype_ratings gr ON gr.steam_id = p.steam_id
+      LEFT JOIN gametypes g on gr.gametype_id = g.gametype_id
+      LEFT JOIN (
+        SELECT
+          m.match_id, m.timestamp, m.gametype_id, s.history_rating
+        FROM
+          matches m
+        LEFT JOIN scoreboards s ON s.match_id = m.match_id
+        WHERE
+          s.steam_id = %s AND
+          m.gametype_id = %s
+        ORDER BY m.timestamp ASC
+        LIMIT 50
+      ) m ON m.gametype_id = g.gametype_id
+      WHERE
+        p.steam_id = %s AND
+        g.gametype_id = %s
+      '''
+      cu.execute(query, [steam_id, gametype_id, steam_id, gametype_id])
+      for row in cu.fetchall():
+        result[ "_id" ] = str(row[0])
+        result[ "name" ] = row[1]
+        result[ "model" ] = row[2]
+        if gametype not in result:
+          result[ gametype ] = {"rating": row[4], "n": row[5], "history": []}
+        result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": row[8]})
+
+    result = {
+      "ok": True,
+      "player": result
+    }
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    cu.close()
+    db.close()
+
+  return result
 
 
 def get_factory_id( cu, factory ):

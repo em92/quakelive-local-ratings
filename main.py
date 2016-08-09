@@ -22,9 +22,9 @@ def http_elo(ids):
   return jsonify( **rating.get_for_balance_plugin(ids) )
 
 
-@app.route("/player/<id>")
-def http_player_id(player_id):
-  return jsonify( **rating.getPlayerInfo(player_id) )
+@app.route("/player/<int:steam_id>")
+def http_player_id(steam_id):
+  return jsonify( **rating.get_player_info(int(steam_id)) )
 
 
 @app.route("/rating/<gametype>/<int:page>")

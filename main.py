@@ -7,7 +7,12 @@ import rating
 import sys
 
 RUN_POST_PROCESS = cfg['run_post_process']
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
+
+
+@app.route('/')
+def http_root():
+  return app.send_static_file('index.html')
 
 
 @app.route("/elo/<ids>")

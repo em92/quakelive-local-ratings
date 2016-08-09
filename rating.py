@@ -8,6 +8,7 @@ import psycopg2
 from urllib.parse import urlparse
 from config import cfg
 from sqlalchemy.exc import ProgrammingError
+from math import ceil
 
 GAMETYPE_IDS = {}
 MEDAL_IDS    = {}
@@ -110,12 +111,78 @@ def is_instagib(data):
 
 
 def get_list(gametype, page):
-  return {"ok": False, "message": "not implemented"}
+
+  try:
+    gametype_id = GAMETYPE_IDS[ gametype ];
+  except KeyError:
+    return {
+      "ok": False,
+      "message": "gametype is not supported: " + gametype
+    }
+
+  try:
+    db = db_connect()
+  except Exception as e:
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+    return result
+
+  try:
+    cu = db.cursor()
+    query = '''
+    SELECT
+      p.steam_id, p.name, p.model, gr.rating, gr.n, count(*) OVER () AS count
+    FROM
+      players p
+    LEFT JOIN gametype_ratings gr ON
+      gr.steam_id = p.steam_id
+    WHERE
+      gr.n >= 10 AND
+      gr.gametype_id = %s
+    ORDER BY gr.rating DESC
+    LIMIT %s
+    OFFSET %s'''
+    cu.execute(query, [gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
+
+    result = []
+    rank = cfg["player_count_per_page"]*page + 1
+    player_count = 0
+    for row in cu.fetchall():
+      if row[0] != None:
+        result.append({
+          "_id": str(row[0]),
+          "name": row[1],
+          "model": row[2] + ("/default" if row[2].find("/") == -1 else ""),
+          "rating": row[3],
+          "n": row[4],
+          "rank": rank
+        })
+        rank += 1
+      player_count = row[5]
+
+    result = {
+      "ok": True,
+      "response": result,
+      "page_count": ceil(player_count / cfg["player_count_per_page"])
+    }
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    cu.close()
+    db.close()
+
+  return result
+
 
 def get_player_info(player_id):
-  return {"ok": False, "message": "not implemented"}
-
-def get_for_balance_plugin(ids):
   return {"ok": False, "message": "not implemented"}
 
 

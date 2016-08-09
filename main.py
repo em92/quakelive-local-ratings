@@ -24,7 +24,7 @@ def http_player_id(player_id):
 
 @app.route("/rating/<gametype>/<int:page>")
 def http_rating_gametype_page(gametype, page):
-  return jsonify( **rating.getList( gametype, page ) )
+  return jsonify( **rating.get_list( gametype, page ) )
 
 
 @app.route("/rating/<gametype>")

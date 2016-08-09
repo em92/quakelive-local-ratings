@@ -233,6 +233,7 @@ def post_process(cu, match_id, gametype_id):
     old_rating = get_player_rating( cu, steam_id, gametype_id )
 
     cu.execute("UPDATE scoreboards SET history_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
+    assert cu.rowcount == 1
 
     if old_rating == None:
       new_rating = match_rating
@@ -250,16 +251,20 @@ def post_process(cu, match_id, gametype_id):
         WHERE
           s.steam_id = %s AND
           m.gametype_id = %s AND
+          (m.post_processed = TRUE OR m.match_id = %s) AND
           s.match_rating IS NOT NULL
         ORDER BY m.timestamp DESC
         LIMIT 50
       ) t'''
-      cu.execute(query_string, [gametype_id, steam_id])
+      cu.execute(query_string, [steam_id, gametype_id, match_id])
       new_rating = cu.fetchone()[0]
+      assert new_rating != None
 
     cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1 WHERE steam_id = %s AND gametype_id = %s", [new_rating, steam_id, gametype_id])
+    assert cu.rowcount == 1
 
   cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
+  assert cu.rowcount == 1
 
 
 def submit_match(data):

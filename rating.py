@@ -212,6 +212,7 @@ def get_player_info(steam_id):
           matches m
         LEFT JOIN scoreboards s ON s.match_id = m.match_id
         WHERE
+          s.history_rating IS NOT NULL AND
           s.steam_id = %s AND
           m.gametype_id = %s
         ORDER BY m.timestamp ASC
@@ -227,8 +228,8 @@ def get_player_info(steam_id):
         result[ "name" ] = row[1]
         result[ "model" ] = row[2]
         if gametype not in result:
-          result[ gametype ] = {"rating": row[4], "n": row[5], "history": []}
-        result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": row[8]})
+          result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": []}
+        result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})
 
     result = {
       "ok": True,
@@ -317,7 +318,7 @@ def get_for_balance_plugin( steam_ids ):
     for row in cu.fetchall():
       steam_id = str(row[0])
       gametype = row[1]
-      rating   = row[2]
+      rating   = round(row[2], 2)
       n        = row[3]
       if steam_id not in players:
         players[ steam_id ] = {"steamid": steam_id}
@@ -371,13 +372,13 @@ def post_process(cu, match_id, gametype_id):
   Updates players' ratings for match_id. I call this post processing
 
   """
-  cu.execute("SELECT steam_id, team, match_rating FROM scoreboards WHERE match_id = %s AND alive_time > %s", [match_id, MIN_ALIVE_TIME_TO_RATE])
+  cu.execute("SELECT steam_id, team, match_rating FROM scoreboards WHERE match_rating IS NOT NULL AND match_id = %s", [match_id])
 
   rows = cu.fetchall()
   for row in rows:
     steam_id     = row[0]
     team         = row[1]
-    match_rating = row[2]
+    match_rating = round(row[2], 2)
 
     old_rating = get_player_rating( cu, steam_id, gametype_id )
 

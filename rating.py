@@ -368,7 +368,7 @@ def submit_match(data):
       }
     else:
       result = {
-        "ok": False,
+        "ok": True,
         "message": "skipped post processing",
         "match_id": match_id
       }

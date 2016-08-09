@@ -48,14 +48,15 @@ def http_stats_submit():
     print(result["match_id"] + ": " + result["message"], file=sys.stderr)
     if "match_already_exists" in result:
       return jsonify(**result), 409
-    elif cfg['run_post_process'] == False:
-      return jsonify(**result), 202
     else:
       return jsonify(**result), 422
   else:
-    print(result["match_id"] + ": ok")
-
-  return jsonify(**result)
+    print(result["match_id"] + ": " + result["message"])
+    if cfg['run_post_process'] == False:
+      result["ok"] = False
+      return jsonify(**result), 202
+    else:
+      return jsonify(**result), 200
 
 
 if __name__ == "__main__":

@@ -148,6 +148,26 @@ def get_player_rating( cu, steam_id, gametype_id ):
 
 
 def get_for_balance_plugin( steam_ids ):
+  """
+  Outputs player ratings compatible with balance.py plugin from miqlx-plugins
+
+  Args:
+    steam_ids (list): array of steam ids
+
+  Returns:
+    on success:
+    {
+      "ok": True
+      "players": [...],
+      "deactivated": []
+    }
+
+    on fail:
+    {
+      "ok": False
+      "message": "error message"
+    }
+  """
   players = {}
   result = []
   try:

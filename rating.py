@@ -215,12 +215,13 @@ def get_player_info(steam_id):
           s.history_rating IS NOT NULL AND
           s.steam_id = %s AND
           m.gametype_id = %s
-        ORDER BY m.timestamp ASC
+        ORDER BY m.timestamp DESC
         LIMIT 50
       ) m ON m.gametype_id = g.gametype_id
       WHERE
         p.steam_id = %s AND
         g.gametype_id = %s
+      ORDER BY m.timestamp ASC
       '''
       cu.execute(query, [steam_id, gametype_id, steam_id, gametype_id])
       for row in cu.fetchall():

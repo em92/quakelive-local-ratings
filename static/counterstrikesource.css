@@ -66,6 +66,10 @@ td {
     border-top: none;
 }
 
+.qc0 {
+	color: rgb(128, 128, 128);
+}
+
 .qc1 {
 	color: rgb(255, 0, 0);
 }

@@ -18,7 +18,7 @@ function drawRatings(self) {
 };
 
 function renderQLNickname(nickname) {
-  nickname = ['1', '2', '3', '4', '5', '6', '7'].reduce(function(sum, current) {
+  nickname = ['0', '1', '2', '3', '4', '5', '6', '7'].reduce(function(sum, current) {
     return sum.split("^" + current).join('</span><span class="qc' + current + '">');
   }, nickname);
   return '<span class="qc7">' + nickname + '</span>';

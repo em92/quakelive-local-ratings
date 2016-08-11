@@ -460,12 +460,24 @@ def submit_match(data):
   try:
     cu = db.cursor()
 
-    cu.execute("INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, post_processed) VALUES (%s, %s, %s, %s, %s, %s)", [
+    team_scores = [None, None]
+    team_index = -1
+    for team_data in data["teams"]:
+      team_index = int( team_data["Q"].replace("team#", "") ) - 1
+      for key in ["scoreboard-rounds", "scoreboard-caps", "scoreboard-score"]:
+        if key in team_data:
+          team_scores[team_index] = int(team_data[key])
+    team1_score, team2_score = team_scores
+
+    cu.execute("INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", [
       match_id,
       GAMETYPE_IDS[ data["game_meta"]["G"] ],
       get_factory_id( cu, data["game_meta"]["O"] ),
       get_map_id( cu, data["game_meta"]["M"] ),
       int( data["game_meta"]["1"] ),
+      int( data["game_meta"]["D"] ),
+      team1_score,
+      team2_score,
       cfg["run_post_process"]
     ])
 

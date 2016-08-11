@@ -5,6 +5,7 @@ from config import cfg
 from flask import Flask, request, jsonify
 import rating
 import sys
+from uuid import UUID
 
 RUN_POST_PROCESS = cfg['run_post_process']
 app = Flask(__name__, static_url_path='')
@@ -35,6 +36,18 @@ def http_rating_gametype_page(gametype, page):
 @app.route("/rating/<gametype>")
 def http_rating_gametype(gametype):
   return http_rating_gametype_page( gametype, 0 )
+
+
+@app.route("/scoreboard/<match_id>")
+def http_scoreboard_match_id(match_id):
+  try:
+    if len(match_id) != len('12345678-1234-5678-1234-567812345678'):
+      raise ValueError()
+    UUID(match_id)
+  except ValueError:
+    return jsonify(ok=False, message="invalid match_id")
+
+  return jsonify(**rating.get_scoreboard(match_id))
 
 
 @app.route("/stats/submit", methods=["POST"])

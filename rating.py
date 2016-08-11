@@ -539,6 +539,121 @@ def submit_match(data):
   return result
 
 
+def get_scoreboard(match_id):
+
+  try:
+    db = db_connect()
+  except Exception as e:
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+    return result
+
+  try:
+    cu = db.cursor()
+
+    query = '''
+    SELECT
+      json_build_object(
+        'gametype',    g.gametype_short,
+        'factory',     f.factory_short,
+        'map',         mm.map_name,
+        'team1_score', m.team1_score,
+        'team2_score', m.team2_score,
+        'timestamp',   m.timestamp,
+        'duration',    m.duration
+      )
+    FROM
+      matches m
+    LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
+    LEFT JOIN factories f ON f.factory_id = m.factory_id
+    LEFT JOIN maps mm ON m.map_id = mm.map_id
+    WHERE
+      match_id = %s;
+    '''
+    cu.execute(query, [match_id])
+    try:
+      summary = cu.fetchone()[0]
+    except TypeError:
+      return {
+        "message": "match not found",
+        "ok": False
+      }
+
+    query = '''
+    SELECT
+      json_object_agg(t.steam_id, t.weapon_stats)
+    FROM (
+      SELECT
+        t.steam_id::text,
+        json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots]) AS weapon_stats
+      FROM (
+        SELECT
+          s.steam_id,
+          w.weapon_short,
+          SUM(sw.frags) AS frags,
+          SUM(sw.hits) AS hits,
+          SUM(sw.shots) AS shots
+        FROM
+          scoreboards s
+        LEFT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
+        LEFT JOIN weapons w ON w.weapon_id = sw.weapon_id
+        WHERE
+          s.match_id = %s
+        GROUP BY s.steam_id, w.weapon_short
+      ) t
+      GROUP BY t.steam_id
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    player_weapon_stats = cu.fetchone();
+
+    query = '''
+    SELECT
+      json_object_agg(t.steam_id, t.medal_stats)
+    FROM (
+      SELECT
+        t.steam_id::text,
+        json_object_agg(t.medal_short, t.count) AS medal_stats
+      FROM (
+        SELECT
+          s.steam_id,
+          m.medal_short,
+          SUM(sm.count) AS count
+        FROM
+          scoreboards s
+        LEFT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
+        LEFT JOIN medals m ON m.medal_id = sm.medal_id
+        WHERE
+          s.match_id = %s
+        GROUP BY s.steam_id, m.medal_short
+      ) t
+      GROUP BY t.steam_id
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    player_medal_stats = cu.fetchone();
+
+    result = {
+      "summary": summary,
+      "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
+      "ok": True
+    }
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    cu.close()
+    db.close()
+
+  return result
+
 db = db_connect()
 cu = db.cursor()
 cu.execute("SELECT gametype_id, gametype_short FROM gametypes")

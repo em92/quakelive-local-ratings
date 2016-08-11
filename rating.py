@@ -200,19 +200,19 @@ def get_player_info(steam_id):
     for gametype, gametype_id in GAMETYPE_IDS.items():
       query = '''
       SELECT 
-        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.history_rating
+        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.old_rating
       FROM
         players p
       LEFT JOIN gametype_ratings gr ON gr.steam_id = p.steam_id
       LEFT JOIN gametypes g on gr.gametype_id = g.gametype_id
       LEFT JOIN (
         SELECT
-          m.match_id, m.timestamp, m.gametype_id, s.history_rating
+          m.match_id, m.timestamp, m.gametype_id, s.old_rating
         FROM
           matches m
         LEFT JOIN scoreboards s ON s.match_id = m.match_id
         WHERE
-          s.history_rating IS NOT NULL AND
+          s.old_rating IS NOT NULL AND
           s.steam_id = %s AND
           m.gametype_id = %s
         ORDER BY m.timestamp DESC
@@ -383,7 +383,7 @@ def post_process(cu, match_id, gametype_id):
 
     old_rating = get_player_rating( cu, steam_id, gametype_id )
 
-    cu.execute("UPDATE scoreboards SET history_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
+    cu.execute("UPDATE scoreboards SET old_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
     assert cu.rowcount == 1
 
     if old_rating == None:
@@ -559,5 +559,7 @@ if cfg["run_post_process"]:
     print("running post process: " + str(row[0]) + "\t" + str(row[2]))
     post_process(cu, row[0], row[1])
     db.commit()
+
 cu.close()
 db.close()
+

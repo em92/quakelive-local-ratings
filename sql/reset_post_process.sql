@@ -1,4 +1,4 @@
-UPDATE scoreboards SET history_rating = NULL;
+UPDATE scoreboards SET old_rating = NULL, new_rating = NULL;
 UPDATE matches SET post_processed = FALSE;
 UPDATE gametype_ratings SET rating = NULL, n = 0;
 

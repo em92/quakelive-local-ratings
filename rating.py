@@ -411,6 +411,9 @@ def post_process(cu, match_id, gametype_id):
       new_rating = cu.fetchone()[0]
       assert new_rating != None
 
+    cu.execute("UPDATE scoreboards SET new_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [new_rating, match_id, steam_id, team])
+    assert cu.rowcount == 1
+
     cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1 WHERE steam_id = %s AND gametype_id = %s", [new_rating, steam_id, gametype_id])
     assert cu.rowcount == 1
 

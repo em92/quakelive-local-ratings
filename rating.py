@@ -648,9 +648,70 @@ def get_scoreboard(match_id):
     cu.execute(query, [match_id])
     player_medal_stats = cu.fetchone();
 
+    query = '''
+    SELECT 
+      json_object_agg(t.team, t.player_weapon_stats)
+    FROM (
+      SELECT
+        t.team,
+        json_object_agg(t.steam_id, t.weapon_stats) as player_weapon_stats
+      FROM (
+        SELECT
+          t.steam_id, t.team, 
+          json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots]) AS weapon_stats
+        FROM
+          (
+          SELECT
+            s.steam_id::text, s.team, w.weapon_short, sw.frags, sw.hits, sw.shots
+          FROM
+            scoreboards s
+          LEFT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
+          LEFT JOIN weapons w ON w.weapon_id = sw.weapon_id
+          WHERE
+            s.match_id = %s
+          ) t
+        GROUP BY t.steam_id, t.team
+      ) t
+      GROUP BY t.team
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    team_weapon_stats = cu.fetchone()
+
+    query = '''
+    SELECT 
+      json_object_agg(t.team, t.player_medal_stats)
+    FROM (
+      SELECT
+        t.team,
+        json_object_agg(t.steam_id, t.medal_stats) as player_medal_stats
+      FROM (
+        SELECT
+          t.steam_id, t.team, 
+          json_object_agg(t.medal_short, t.count) AS medal_stats
+        FROM
+          (
+          SELECT
+            s.steam_id::text, s.team, m.medal_short, sm.count
+          FROM
+            scoreboards s
+          LEFT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
+          LEFT JOIN medals m ON m.medal_id = sm.medal_id
+          WHERE
+            s.match_id = %s
+          ) t
+        GROUP BY t.steam_id, t.team
+      ) t
+      GROUP BY t.team
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    team_medal_stats = cu.fetchone()
+
     result = {
       "summary": summary,
       "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
+      "team_stats": {"weapons": team_weapon_stats, "medals": team_medal_stats},
       "ok": True
     }
   except Exception as e:

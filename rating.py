@@ -620,7 +620,7 @@ def get_scoreboard(match_id):
     ) t;
     '''
     cu.execute(query, [match_id])
-    player_weapon_stats = cu.fetchone();
+    player_weapon_stats = cu.fetchone()[0]
 
     query = '''
     SELECT
@@ -646,7 +646,7 @@ def get_scoreboard(match_id):
     ) t;
     '''
     cu.execute(query, [match_id])
-    player_medal_stats = cu.fetchone();
+    player_medal_stats = cu.fetchone()[0]
 
     query = '''
     SELECT 
@@ -676,7 +676,7 @@ def get_scoreboard(match_id):
     ) t;
     '''
     cu.execute(query, [match_id])
-    team_weapon_stats = cu.fetchone()
+    team_weapon_stats = cu.fetchone()[0]
 
     query = '''
     SELECT 
@@ -706,12 +706,34 @@ def get_scoreboard(match_id):
     ) t;
     '''
     cu.execute(query, [match_id])
-    team_medal_stats = cu.fetchone()
+    team_medal_stats = cu.fetchone()[0]
+
+    query = '''
+    SELECT 
+      json_object_agg(t.team, t.player_rating_history)
+    FROM (
+      SELECT
+        t.team,
+        json_object_agg(t.steam_id, t.rating_history) as player_rating_history
+      FROM (
+        SELECT
+          t.steam_id, t.team, 
+          json_build_object('old_rating', t.old_rating, 'new_rating', t.new_rating) AS rating_history
+        FROM
+          scoreboards t
+        WHERE
+          t.match_id = %s
+      ) t
+      GROUP BY t.team
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    rating_history = cu.fetchone()[0]
 
     result = {
       "summary": summary,
       "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
-      "team_stats": {"weapons": team_weapon_stats, "medals": team_medal_stats},
+      "team_stats": {"weapons": team_weapon_stats, "medals": team_medal_stats, "rating_history": rating_history},
       "ok": True
     }
   except Exception as e:

@@ -721,7 +721,7 @@ def get_scoreboard(match_id):
       FROM (
         SELECT
           t.steam_id, t.team, 
-          json_build_object('old_rating', t.old_rating, 'new_rating', t.new_rating) AS rating_history
+          json_build_object('old_rating', t.old_rating, 'new_rating', t.new_rating, 'match_rating', t.match_rating) AS rating_history
         FROM
           scoreboards t
         WHERE

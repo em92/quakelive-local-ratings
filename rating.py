@@ -15,6 +15,7 @@ MEDAL_IDS    = {}
 WEAPON_IDS   = {}
 
 MIN_ALIVE_TIME_TO_RATE = 60*10
+MAX_RATING = 1000
 
 
 def db_connect():
@@ -346,7 +347,7 @@ def get_for_balance_plugin( steam_ids ):
   return result
 
 
-def count_player_match_rating( gametype, player_data ):
+def count_player_match_perf( gametype, player_data ):
   alive_time    = int( player_data["alivetime"] )
   score         = int( player_data["scoreboard-score"] )
   damage_dealt  = int( player_data["scoreboard-pushes"] )
@@ -354,6 +355,8 @@ def count_player_match_rating( gametype, player_data ):
   frags_count   = int( player_data["scoreboard-kills"] )
   deaths_count  = int( player_data["scoreboard-deaths"] )
   capture_count = int( player_data["medal-captures"] )
+  defends_count = int( player_data["medal-defends"] )
+  assists_count = int( player_data["medal-assists"] )
   win           = 1 if "win" in player_data else 0
 
   if alive_time < MIN_ALIVE_TIME_TO_RATE:
@@ -366,6 +369,36 @@ def count_player_match_rating( gametype, player_data ):
     "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor + win*300 ) / 2.35,
     "tdm": ( 0.5 * (frags_count - deaths_count) + 0.004 * (damage_dealt - damage_taken) + 0.003 * damage_dealt ) * time_factor
   }[gametype]
+
+
+def count_player_match_rating( gametype, all_players_data ):
+
+  result = {}
+  temp = []
+  for player in all_players_data:
+    team     = int(player["t"]) if "t" in player else 0
+    steam_id = int(player["P"])
+    perf     = count_player_match_perf( gametype, player )
+    if perf != None:
+      temp.append({
+        "team":     team,
+        "steam_id": steam_id,
+        "perf":     perf
+      })
+    if team not in result:
+      result[ team ] = {}
+    result[ team ][ steam_id ] = { "perf": perf, "rating": None }
+
+  temp = sorted(temp, key=lambda player: player["perf"])
+
+  player_count = len(temp)
+  for i in range(player_count):
+    team     = temp[i]["team"]
+    steam_id = temp[i]["steam_id"]
+    rating   = i*MAX_RATING/player_count
+    result[ team ][ steam_id ][ "rating" ] = rating
+
+  return result
 
 
 def post_process(cu, match_id, gametype_id):
@@ -484,6 +517,7 @@ def submit_match(data):
       cfg["run_post_process"]
     ])
 
+    player_match_ratings = count_player_match_rating( data["game_meta"]["G"], data["players"] )
     for player in data["players"]:
       player["P"] = int(player["P"])
       team = int(player["t"]) if "t" in player else 0
@@ -496,10 +530,11 @@ def submit_match(data):
       else:
         cu.execute( "INSERT INTO players (steam_id, name, model) VALUES (%s, %s, %s)", [player["P"], player["n"], player["playermodel"]] )
 
-      cu.execute("INSERT INTO scoreboards (match_id, steam_id, match_rating, alive_time, team) VALUES (%s, %s, %s, %s, %s)", [
+      cu.execute("INSERT INTO scoreboards (match_id, steam_id, match_perf, match_rating, alive_time, team) VALUES (%s, %s, %s, %s, %s, %s)", [
         match_id,
         player["P"],
-        count_player_match_rating( data["game_meta"]["G"], player),
+        player_match_ratings[ team ][ player["P"] ][ "perf" ],
+        player_match_ratings[ team ][ player["P"] ][ "rating" ],
         int( player["alivetime"] ),
         team
       ])
@@ -751,6 +786,7 @@ def get_scoreboard(match_id):
     db.close()
 
   return result
+
 
 db = db_connect()
 cu = db.cursor()

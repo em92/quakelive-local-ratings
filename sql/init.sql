@@ -112,6 +112,7 @@ CREATE TABLE scoreboards (
   damage_taken INTEGER,
   score SMALLINT,
   alive_time INTEGER,
+  match_perf REAL,
   match_rating REAL,
   old_rating REAL DEFAULT NULL,
   new_rating REAL DEFAULT NULL,

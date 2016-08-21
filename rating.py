@@ -23,7 +23,8 @@ def db_connect():
   password = result.password
   database = result.path[1:]
   hostname = result.hostname
-  return psycopg2.connect(database = database, user = username, password = password, host = hostname)
+  port = result.port
+  return psycopg2.connect(database = database, user = username, password = password, host = hostname, port = port)
 
 
 # https://github.com/PredatH0r/XonStat/blob/380fbd4aeafb722c844f66920fb850a0ad6821d3/xonstat/views/submission.py#L19

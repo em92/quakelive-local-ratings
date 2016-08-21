@@ -10,7 +10,7 @@
       <td class="col-md-1"><%= item.rank %></td>
       <td class="col-md-3">
         <a href="http://steamcommunity.com/profiles/<%= item._id %>/">
-          <img src="/images/icons_small/<%= item.model %>.png" />&nbsp;
+          <img class="player_icon" src="/images/players/<%= item.model.replace('/', '/icon_') %>.png" />&nbsp;
           <%! renderQLNickname(item.name) %>
         </a>
       </td>

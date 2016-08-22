@@ -375,6 +375,7 @@ def count_player_match_rating( gametype, all_players_data ):
 
   result = {}
   temp = []
+  sum_perf = 0
   for player in all_players_data:
     team     = int(player["t"]) if "t" in player else 0
     steam_id = int(player["P"])
@@ -385,17 +386,20 @@ def count_player_match_rating( gametype, all_players_data ):
         "steam_id": steam_id,
         "perf":     perf
       })
+      sum_perf += perf
     if team not in result:
       result[ team ] = {}
     result[ team ][ steam_id ] = { "perf": perf, "rating": None }
 
-  temp = sorted(temp, key=lambda player: player["perf"])
+  if sum_perf < 1:
+    return result
 
   player_count = len(temp)
   for i in range(player_count):
     team     = temp[i]["team"]
     steam_id = temp[i]["steam_id"]
-    rating   = i*MAX_RATING/player_count
+    perf     = temp[i]["perf"]
+    rating   = perf/sum_perf*MAX_RATING
     result[ team ][ steam_id ][ "rating" ] = rating
 
   return result

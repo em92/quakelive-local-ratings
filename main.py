@@ -23,6 +23,12 @@ def http_elo(ids):
   return jsonify( **rating.get_for_balance_plugin(ids) )
 
 
+@app.route("/elo_map/<gametype>/<mapname>/<ids>")
+def http_elo_map(gametype, mapname, ids):
+  ids = list( map(lambda id_: int(id_), ids.split("+")) )
+  return jsonify( **rating.get_for_balance_plugin_for_certain_map(ids, gametype, mapname) )
+
+
 @app.route("/player/<int:steam_id>")
 def http_player_id(steam_id):
   return jsonify( **rating.get_player_info(int(steam_id)) )

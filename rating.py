@@ -260,12 +260,14 @@ def get_factory_id( cu, factory ):
     return cu.fetchone()[0]
 
 
-def get_map_id( cu, map_name ):
+def get_map_id( cu, map_name, dont_create = False ):
   map_name = map_name.lower()
   cu.execute( "SELECT map_id FROM maps WHERE map_name = %s", [map_name] )
   try:
     return cu.fetchone()[0]
   except TypeError:
+    if dont_create:
+      return None
     cu.execute("INSERT INTO maps (map_id, map_name) VALUES (nextval('map_seq'), %s) RETURNING map_id", [map_name])
     return cu.fetchone()[0]
 
@@ -347,6 +349,98 @@ def get_for_balance_plugin( steam_ids ):
   return result
 
 
+def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
+  """
+  Outputs player ratings compatible with balance.py plugin from miqlx-plugins
+
+  Args:
+    steam_ids (list): array of steam ids
+
+  Returns:
+    on success:
+    {
+      "ok": True
+      "players": [...],
+      "deactivated": []
+    }
+
+    on fail:
+    {
+      "ok": False
+      "message": "error message"
+    }
+  """
+  players = {}
+  for player in get_for_balance_plugin( steam_ids )["players"]:
+    steam_id = player["steamid"]
+    if gametype in player:
+      players[ steam_id ] = {
+        "steamid": steam_id,
+        gametype: {
+          "games": 0,
+          "elo": player[gametype]["elo"]
+        }
+      }
+  
+  result = []
+  try:
+
+    db = db_connect()
+    cu = db.cursor()
+    
+    try:
+      gametype_id = GAMETYPE_IDS[ gametype ]
+    except KeyError:
+      raise Exception("Invalid gametype: " + gametype)
+
+    map_id = get_map_id(cu, mapname, dont_create = True)
+    if map_id == None:
+      raise Exception("Unknown map: " + mapname)
+
+    for steam_id in steam_ids:
+      query = '''
+      SELECT
+        AVG(t.match_rating), MAX(t.n)
+      FROM (
+        SELECT
+          s.match_rating, count(*) OVER() AS n
+        FROM
+          scoreboards s
+        LEFT JOIN matches m ON m.match_id = s.match_id
+        WHERE s.steam_id = %s AND m.gametype_id = %s AND m.map_id = %s
+        ORDER BY m.timestamp DESC
+        LIMIT 50
+        ) t;'''
+      cu.execute( query, [steam_id, gametype_id, map_id] )
+      row = cu.fetchone()
+      if row[0] == None:
+        continue
+      steam_id = str(steam_id)
+      rating   = round(row[0], 2)
+      n        = row[1]
+      players[ steam_id ][ gametype ] = {"games": n, "elo": rating}
+
+    for steam_id, data in players.items():
+      result.append( data )
+    result = {
+      "ok": True,
+      "players": result,
+      "deactivated": []
+    }
+
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    db.close()
+
+  return result
+
+
 def count_player_match_perf( gametype, player_data ):
   alive_time    = int( player_data["alivetime"] )
   score         = int( player_data["scoreboard-score"] )
@@ -389,8 +483,9 @@ def count_player_match_rating( gametype, all_players_data ):
       sum_perf += perf
     if team not in result:
       result[ team ] = {}
-    result[ team ][ steam_id ] = { "perf": perf, "rating": None }
+    result[ team ][ steam_id ] = { "perf": perf, "rating": perf }
 
+  '''
   if sum_perf < 1:
     return result
 
@@ -401,7 +496,7 @@ def count_player_match_rating( gametype, all_players_data ):
     perf     = temp[i]["perf"]
     rating   = perf/sum_perf*MAX_RATING
     result[ team ][ steam_id ][ "rating" ] = rating
-
+  '''
   return result
 
 

@@ -13,9 +13,11 @@ from math import ceil
 GAMETYPE_IDS = {}
 MEDAL_IDS    = {}
 WEAPON_IDS   = {}
+LAST_GAME_TIMESTAMPS = {}
 
 MIN_ALIVE_TIME_TO_RATE = 60*10
 MAX_RATING = 1000
+KEEPING_TIME = 60*60*24*30
 
 
 def db_connect():
@@ -142,11 +144,12 @@ def get_list(gametype, page):
       gr.steam_id = p.steam_id
     WHERE
       gr.n >= 10 AND
+      gr.last_played_timestamp > %s AND
       gr.gametype_id = %s
     ORDER BY gr.rating DESC
     LIMIT %s
     OFFSET %s'''
-    cu.execute(query, [gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
+    cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
 
     result = []
     rank = cfg["player_count_per_page"]*page + 1
@@ -505,6 +508,7 @@ def post_process(cu, match_id, gametype_id, match_timestamp):
   Updates players' ratings for match_id. I call this post processing
 
   """
+  global LAST_GAME_TIMESTAMPS
   cu.execute("SELECT steam_id, team, match_rating FROM scoreboards WHERE match_rating IS NOT NULL AND match_id = %s", [match_id])
 
   rows = cu.fetchall()
@@ -551,6 +555,8 @@ def post_process(cu, match_id, gametype_id, match_timestamp):
 
   cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
   assert cu.rowcount == 1
+
+  LAST_GAME_TIMESTAMPS[ gametype_id ] = match_timestamp
 
 
 def submit_match(data):
@@ -935,6 +941,12 @@ if cfg["run_post_process"]:
     print("running post process: " + str(row[0]) + "\t" + str(row[2]))
     post_process(cu, row[0], row[1], row[2])
     db.commit()
+
+for _, gametype_id in GAMETYPE_IDS.items():
+  LAST_GAME_TIMESTAMPS[ gametype_id ] = 0
+  cu.execute("SELECT timestamp FROM matches WHERE gametype_id = %s ORDER BY timestamp DESC LIMIT 1", [gametype_id])
+  for row in cu.fetchall():
+    LAST_GAME_TIMESTAMPS[ gametype_id ] = row[0]
 
 cu.close()
 db.close()

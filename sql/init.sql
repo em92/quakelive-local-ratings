@@ -2,6 +2,7 @@ CREATE TABLE players (
   steam_id BIGINT,
   name TEXT,
   model TEXT,
+  last_played_timestamp BIGINT DEFAULT 0,
   PRIMARY KEY (steam_id)
 );
 
@@ -65,6 +66,7 @@ CREATE TABLE gametype_ratings (
   gametype_id SMALLINT,
   rating REAL,
   n BIGINT DEFAULT 0,
+  last_played_timestamp BIGINT DEFAULT 0,
   FOREIGN KEY (steam_id)    REFERENCES players(steam_id),
   FOREIGN KEY (gametype_id) REFERENCES gametypes(gametype_id),
   PRIMARY KEY (steam_id, gametype_id)

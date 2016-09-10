@@ -500,7 +500,7 @@ def count_player_match_rating( gametype, all_players_data ):
   return result
 
 
-def post_process(cu, match_id, gametype_id):
+def post_process(cu, match_id, gametype_id, match_timestamp):
   """
   Updates players' ratings for match_id. I call this post processing
 
@@ -546,7 +546,7 @@ def post_process(cu, match_id, gametype_id):
     cu.execute("UPDATE scoreboards SET new_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [new_rating, match_id, steam_id, team])
     assert cu.rowcount == 1
 
-    cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1 WHERE steam_id = %s AND gametype_id = %s", [new_rating, steam_id, gametype_id])
+    cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1, last_played_timestamp = %s WHERE steam_id = %s AND gametype_id = %s", [new_rating, match_timestamp, steam_id, gametype_id])
     assert cu.rowcount == 1
 
   cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
@@ -604,12 +604,13 @@ def submit_match(data):
           team_scores[team_index] = int(team_data[key])
     team1_score, team2_score = team_scores
 
+    match_timestamp = int( data["game_meta"]["1"] )
     cu.execute("INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", [
       match_id,
       GAMETYPE_IDS[ data["game_meta"]["G"] ],
       get_factory_id( cu, data["game_meta"]["O"] ),
       get_map_id( cu, data["game_meta"]["M"] ),
-      int( data["game_meta"]["1"] ),
+      match_timestamp,
       int( data["game_meta"]["D"] ),
       team1_score,
       team2_score,
@@ -621,13 +622,23 @@ def submit_match(data):
       player["P"] = int(player["P"])
       team = int(player["t"]) if "t" in player else 0
 
-      cu.execute( "SELECT EXISTS(SELECT steam_id FROM players WHERE steam_id = %s)", [player["P"]] )
-      player_exists = cu.fetchone()[0]
-
-      if player_exists:
-        cu.execute( "UPDATE players SET name = %s, model = %s WHERE steam_id = %s", [player["n"], player["playermodel"], player["P"]] )
-      else:
-        cu.execute( "INSERT INTO players (steam_id, name, model) VALUES (%s, %s, %s)", [player["P"], player["n"], player["playermodel"]] )
+      cu.execute( '''INSERT INTO players (
+        steam_id,
+        name,
+        model,
+        last_played_timestamp
+      ) VALUES (%s, %s, %s, %s)
+      ON CONFLICT (steam_id) DO UPDATE SET (name, model, last_played_timestamp) = (%s, %s, %s)
+      WHERE players.last_played_timestamp < %s''', [
+        player["P"],
+        player["n"],
+        player["playermodel"],
+        match_timestamp,
+        player["n"],
+        player["playermodel"],
+        match_timestamp,
+        match_timestamp
+      ])
 
       cu.execute('''INSERT INTO scoreboards (
         match_id,
@@ -677,7 +688,7 @@ def submit_match(data):
 
     # post processing
     if cfg["run_post_process"] == True:
-      post_process( cu, match_id, GAMETYPE_IDS[ data["game_meta"]["G"] ] )
+      post_process( cu, match_id, GAMETYPE_IDS[ data["game_meta"]["G"] ], match_timestamp )
       result = {
         "ok": True,
         "message": "done",
@@ -922,7 +933,7 @@ if cfg["run_post_process"]:
   cu.execute("SELECT match_id, gametype_id, timestamp FROM matches WHERE post_processed = FALSE ORDER BY timestamp ASC")
   for row in cu.fetchall():
     print("running post process: " + str(row[0]) + "\t" + str(row[2]))
-    post_process(cu, row[0], row[1])
+    post_process(cu, row[0], row[1], row[2])
     db.commit()
 
 cu.close()

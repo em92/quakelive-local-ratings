@@ -629,9 +629,26 @@ def submit_match(data):
       else:
         cu.execute( "INSERT INTO players (steam_id, name, model) VALUES (%s, %s, %s)", [player["P"], player["n"], player["playermodel"]] )
 
-      cu.execute("INSERT INTO scoreboards (match_id, steam_id, match_perf, match_rating, alive_time, team) VALUES (%s, %s, %s, %s, %s, %s)", [
+      cu.execute('''INSERT INTO scoreboards (
+        match_id,
+        steam_id,
+        frags,
+        deaths,
+        damage_dealt,
+        damage_taken,
+        score,
+        match_perf,
+        match_rating,
+        alive_time,
+        team
+      ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''', [
         match_id,
         player["P"],
+        int( player["scoreboard-kills"] ),
+        int( player["scoreboard-deaths"] ),
+        int( player["scoreboard-pushes"] ),
+        int( player["scoreboard-destroyed"] ),
+        int( player["scoreboard-score"] ),
         player_match_ratings[ team ][ player["P"] ][ "perf" ],
         player_match_ratings[ team ][ player["P"] ][ "rating" ],
         int( player["alivetime"] ),

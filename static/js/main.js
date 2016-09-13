@@ -17,6 +17,35 @@ function drawRatings(self) {
   });
 };
 
+function drawPlayerInfo(self) {
+  var steam_id = this.params['steam_id'];
+  var gametype = this.params['gametype'];
+
+  if ( $.inArray( gametype, GAMETYPES_AVAILABLE ) == -1 ) {
+    this.$element().html( "invalid gametype: " + gametype );
+    return;
+  }
+
+  var chart_block = this.$element().get( 0 );
+  $.get('/player/' + steam_id)
+  .done( function( player_info ) {
+    var history = player_info.player[ gametype ].history;
+    var chart = new google.visualization.ColumnChart( chart_block );
+    var options = {
+      bar: {groupWidth: "50%"},
+      height: 400,
+      explorer: { keepInBounds: true }
+    };
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Date');
+    data.addColumn('number', 'Rating');
+    data.addRows(history.map( function (item, i) {
+      return [new Date(item.timestamp*1000).toLocaleFormat('%d-%b-%Y %H:%M:%S'), item.rating];
+    }));
+    chart.draw(data, options);
+  });
+};
+
 function renderQLNickname(nickname) {
   nickname = ['0', '1', '2', '3', '4', '5', '6', '7'].reduce(function(sum, current) {
     return sum.split("^" + current).join('</span><span class="qc' + current + '">');
@@ -40,10 +69,11 @@ var app = $.sammy("#content", function() {
   this.get('#/ratings/:gametype/', drawRatings);
   this.get('#/ratings/:gametype/:page', drawRatings);
 
-  
+  this.get('#/player/:steam_id/:gametype', drawPlayerInfo);
 });
 
-$(document).ready(function() {
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback( function() {
   app.run('#/');
 });
 

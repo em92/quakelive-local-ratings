@@ -921,6 +921,81 @@ def get_scoreboard(match_id):
   return result
 
 
+def get_last_matches( gametype = None, page = 0 ):
+  """
+  Returns last matches
+
+  Returns: {
+      "ok: True/False - on success/fail
+      "matches": [
+        {
+          "match_id": ...
+          "timestamp": ...
+          "gametype" ...
+          "map": ...
+        },
+        {...}
+      ]
+    }
+  """
+  if gametype != None and gametype not in GAMETYPE_IDS:
+    return {
+      "ok": False,
+      "message": "gametype is not accepted: " + gametype
+    }
+
+  try:
+    db = db_connect()
+
+  except Exception as e:
+    traceback.print_exc(file=sys.stderr)
+    return {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e),
+      "match_id": None
+    }
+
+  try:
+    cu = db.cursor()
+
+    query = '''
+    SELECT
+      json_build_object('match_id', m.match_id, 'timestamp', m.timestamp, 'gametype', g.gametype_short, 'map', mm.map_name )
+    FROM
+      matches m
+    LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
+    LEFT JOIN maps mm ON mm.map_id = m.map_id
+    {WHERE_CLAUSE}
+    ORDER BY timestamp DESC
+    OFFSET %s
+    LIMIT 25
+    '''.replace("{WHERE_CLAUSE}\n", "" if gametype == None else "WHERE m.gametype_id = %s")
+
+    params = [ ]
+    if gametype != None:
+      params.append( GAMETYPE_IDS[ gametype ] )
+    params.append( page * 25 )
+
+    cu.execute( query, params )
+
+    result = {
+      "ok": True,
+      "matches": list( map( lambda x: x[0], cu.fetchall() ) )
+    }
+
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    db.close()
+
+  return result
+
+
 db = db_connect()
 cu = db.cursor()
 cu.execute("SELECT gametype_id, gametype_short FROM gametypes")

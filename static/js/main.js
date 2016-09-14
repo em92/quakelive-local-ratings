@@ -46,6 +46,20 @@ function drawPlayerInfo(self) {
   });
 };
 
+function drawLastMatches(self) {
+  var gametype = this.params['gametype'];
+
+  if ( gametype && $.inArray( gametype, GAMETYPES_AVAILABLE ) == -1 ) {
+    this.$element().html( "invalid gametype: " + gametype );
+    return;
+  }
+
+  $.get('/last_matches' + (gametype ? "/" + gametype : ""))
+  .done( function( data ) {
+    self.render('templates/index.html', {list: data.matches}).replace( self.$element() );
+  });
+}
+
 function renderQLNickname(nickname) {
   nickname = ['0', '1', '2', '3', '4', '5', '6', '7'].reduce(function(sum, current) {
     return sum.split("^" + current).join('</span><span class="qc' + current + '">');
@@ -61,15 +75,15 @@ var app = $.sammy("#content", function() {
     this.$element().html("404 - " + path);
   };
 
-  this.get('#/', function() {
-    this.render('templates/index.html').replace( this.$element() );
-  });
+  this.get('#/', drawLastMatches);
   
   this.get('#/ratings/:gametype', drawRatings);
   this.get('#/ratings/:gametype/', drawRatings);
   this.get('#/ratings/:gametype/:page', drawRatings);
 
   this.get('#/player/:steam_id/:gametype', drawPlayerInfo);
+
+  this.get('#/last_matches/:gametype', drawLastMatches);
 });
 
 google.charts.load('current', {'packages':['corechart']});

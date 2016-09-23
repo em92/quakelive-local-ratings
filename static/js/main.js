@@ -84,6 +84,8 @@ var app = $.sammy("#content", function() {
   this.get('#/player/:steam_id/:gametype', drawPlayerInfo);
 
   this.get('#/last_matches/:gametype', drawLastMatches);
+
+  this.get('', drawLastMatches);
 });
 
 google.charts.load('current', {'packages':['corechart']});

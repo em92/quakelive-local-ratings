@@ -901,10 +901,44 @@ def get_scoreboard(match_id):
     cu.execute(query, [match_id])
     rating_history = cu.fetchone()[0]
 
+    query = '''
+    SELECT
+      json_object_agg(t.team, t.player_overall_stats)
+    FROM (
+      SELECT
+        t.team,
+        json_object_agg(t.steam_id, t.overall_stats) as player_overall_stats
+      FROM (
+        SELECT
+          t.steam_id, t.team,
+          json_build_object(
+            'score',        t.score,
+            'frags',        t.frags,
+            'deaths',       t.deaths,
+            'damage_dealt', t.damage_dealt,
+            'damage_taken', t.damage_taken,
+            'alive_time',   t.alive_time
+          ) AS overall_stats
+        FROM
+          scoreboards t
+        WHERE
+          t.match_id = %s
+      ) t
+      GROUP BY t.team
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    overall_stats = cu.fetchone()[0]
+
     result = {
       "summary": summary,
       "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
-      "team_stats": {"weapons": team_weapon_stats, "medals": team_medal_stats, "rating_history": rating_history},
+      "team_stats": {
+        "weapons":        team_weapon_stats,
+        "medals":         team_medal_stats,
+        "rating_history": rating_history,
+        "overall":        overall_stats
+      },
       "ok": True
     }
   except Exception as e:

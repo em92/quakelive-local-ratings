@@ -1,3 +1,20 @@
-<a href="#/ratings/ad">ad</a><br>
-<a href="#/ratings/ctf">ctf</a><br>
-<a href="#/ratings/tdm">tdm</a><br>
+<div id="summary-table-wrapper">
+  <table id="summary-table" table="table table-borderless">
+    <thead><tr>
+      <th>Time</th>
+      <th>Gametype</th>
+      <th>Map</th>
+      <th>Link</th>
+    </tr></thead>
+    <tbody><% list.forEach( function( item ) { %><tr>
+      <td class="col-md-2"><%= item.datetime %></td>
+      <td class="col-md-1">
+        <a href="/#/last_matches/<%= item.gametype %>"><%= item.gametype %></a>
+      </td>
+      <td class="col-md-3"><%= item.map %></td>
+      <td class="col-md-1">
+        <a href="http://qlstats.net/game/<%= item.match_id %>">link</a>
+      </td>
+    </tr><% }); %></tbody>
+  </table>
+</div>

@@ -15,7 +15,10 @@ default_cfg = {
 }
 
 try:
-  cfg_filename = sys.argv[1]
+  if sys.argv[1] == "-c":
+    cfg_filename = sys.argv[2]
+  else:
+    cfg_filename = "./cfg.json"
 except IndexError:
   cfg_filename = "./cfg.json"
 

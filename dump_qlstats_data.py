@@ -22,13 +22,13 @@ def download(link):
   return r.text
 
 
-def download_stats(match_id, timestamp):
+def download_stats(match_id, timestamp, path = "./"):
   uttz = timezone('UTC')
   vitz = timezone('Europe/Vienna')
   d = datetime.fromtimestamp( timestamp, tz = uttz ).replace(tzinfo = uttz).astimezone( vitz )
   link = "https://api.qlstats.net/api/jsons/" + str(d.year) + "-" + str(d.month).zfill(2) + "-" + str(d.day).zfill(2) + "/" + match_id + ".json"
   data = download(link)
-  f = gzip.open(match_id + ".json.gz", 'wb')
+  f = gzip.open(path + match_id + ".json.gz", 'wb')
   f.write( data.encode('utf-8') )
   f.close()
   data = json.loads(data)

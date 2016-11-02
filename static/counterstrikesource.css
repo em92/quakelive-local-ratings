@@ -1,5 +1,5 @@
 body {
-	background-color: thistle;
+	background-color: #0066cc;
 }
 
 a {
@@ -14,7 +14,6 @@ noscript {
 	text-align: center;
 	display: block;
 	position: fixed;
-	color: yellow;
 }
 
 #top-right-fixed {
@@ -118,5 +117,17 @@ li {
 }
 
 #content {
-	margin-left: 20px;
+  margin: 20px;
+}
+
+#footer {
+  margin-top: 25px;
+  margin-bottom: 20px;
+  padding: 3px;
+  background-color: #CCC;
+  border: 1px solid black;
+  width: 450px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }

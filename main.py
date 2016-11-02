@@ -5,6 +5,7 @@ from config import cfg
 from flask import Flask, request, jsonify
 import rating
 import sys
+from uuid import UUID
 
 RUN_POST_PROCESS = cfg['run_post_process']
 app = Flask(__name__, static_url_path='')
@@ -22,6 +23,12 @@ def http_elo(ids):
   return jsonify( **rating.get_for_balance_plugin(ids) )
 
 
+@app.route("/elo_map/<gametype>/<mapname>/<ids>")
+def http_elo_map(gametype, mapname, ids):
+  ids = list( map(lambda id_: int(id_), ids.split("+")) )
+  return jsonify( **rating.get_for_balance_plugin_for_certain_map(ids, gametype, mapname) )
+
+
 @app.route("/player/<int:steam_id>")
 def http_player_id(steam_id):
   return jsonify( **rating.get_player_info(int(steam_id)) )
@@ -35,6 +42,25 @@ def http_rating_gametype_page(gametype, page):
 @app.route("/rating/<gametype>")
 def http_rating_gametype(gametype):
   return http_rating_gametype_page( gametype, 0 )
+
+
+@app.route("/scoreboard/<match_id>")
+def http_scoreboard_match_id(match_id):
+  try:
+    if len(match_id) != len('12345678-1234-5678-1234-567812345678'):
+      raise ValueError()
+    UUID(match_id)
+  except ValueError:
+    return jsonify(ok=False, message="invalid match_id")
+
+  return jsonify(**rating.get_scoreboard(match_id))
+
+
+@app.route("/last_matches")
+@app.route("/last_matches/<gametype>")
+@app.route("/last_matches/<gametype>/<int:page>")
+def http_last_matches(gametype = None, page = 0):
+  return jsonify(**rating.get_last_matches( gametype, page ))
 
 
 @app.route("/stats/submit", methods=["POST"])

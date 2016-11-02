@@ -13,8 +13,11 @@ from math import ceil
 GAMETYPE_IDS = {}
 MEDAL_IDS    = {}
 WEAPON_IDS   = {}
+LAST_GAME_TIMESTAMPS = {}
 
 MIN_ALIVE_TIME_TO_RATE = 60*10
+MAX_RATING = 1000
+KEEPING_TIME = 60*60*24*30
 
 
 def db_connect():
@@ -142,11 +145,12 @@ def get_list(gametype, page):
       gr.steam_id = p.steam_id
     WHERE
       gr.n >= 10 AND
+      gr.last_played_timestamp > %s AND
       gr.gametype_id = %s
     ORDER BY gr.rating DESC
     LIMIT %s
     OFFSET %s'''
-    cu.execute(query, [gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
+    cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
 
     result = []
     rank = cfg["player_count_per_page"]*page + 1
@@ -201,19 +205,19 @@ def get_player_info(steam_id):
     for gametype, gametype_id in GAMETYPE_IDS.items():
       query = '''
       SELECT 
-        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.history_rating
+        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.old_rating
       FROM
         players p
       LEFT JOIN gametype_ratings gr ON gr.steam_id = p.steam_id
       LEFT JOIN gametypes g on gr.gametype_id = g.gametype_id
       LEFT JOIN (
         SELECT
-          m.match_id, m.timestamp, m.gametype_id, s.history_rating
+          m.match_id, m.timestamp, m.gametype_id, s.old_rating
         FROM
           matches m
         LEFT JOIN scoreboards s ON s.match_id = m.match_id
         WHERE
-          s.history_rating IS NOT NULL AND
+          s.old_rating IS NOT NULL AND
           s.steam_id = %s AND
           m.gametype_id = %s
         ORDER BY m.timestamp DESC
@@ -261,12 +265,14 @@ def get_factory_id( cu, factory ):
     return cu.fetchone()[0]
 
 
-def get_map_id( cu, map_name ):
+def get_map_id( cu, map_name, dont_create = False ):
   map_name = map_name.lower()
   cu.execute( "SELECT map_id FROM maps WHERE map_name = %s", [map_name] )
   try:
     return cu.fetchone()[0]
   except TypeError:
+    if dont_create:
+      return None
     cu.execute("INSERT INTO maps (map_id, map_name) VALUES (nextval('map_seq'), %s) RETURNING map_id", [map_name])
     return cu.fetchone()[0]
 
@@ -348,7 +354,99 @@ def get_for_balance_plugin( steam_ids ):
   return result
 
 
-def count_player_match_rating( gametype, player_data ):
+def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
+  """
+  Outputs player ratings compatible with balance.py plugin from miqlx-plugins
+
+  Args:
+    steam_ids (list): array of steam ids
+
+  Returns:
+    on success:
+    {
+      "ok": True
+      "players": [...],
+      "deactivated": []
+    }
+
+    on fail:
+    {
+      "ok": False
+      "message": "error message"
+    }
+  """
+  players = {}
+  for player in get_for_balance_plugin( steam_ids )["players"]:
+    steam_id = player["steamid"]
+    if gametype in player:
+      players[ steam_id ] = {
+        "steamid": steam_id,
+        gametype: {
+          "games": 0,
+          "elo": player[gametype]["elo"]
+        }
+      }
+  
+  result = []
+  try:
+
+    db = db_connect()
+    cu = db.cursor()
+    
+    try:
+      gametype_id = GAMETYPE_IDS[ gametype ]
+    except KeyError:
+      raise Exception("Invalid gametype: " + gametype)
+
+    map_id = get_map_id(cu, mapname, dont_create = True)
+    if map_id == None:
+      raise Exception("Unknown map: " + mapname)
+
+    for steam_id in steam_ids:
+      query = '''
+      SELECT
+        AVG(t.match_rating), MAX(t.n)
+      FROM (
+        SELECT
+          s.match_rating, count(*) OVER() AS n
+        FROM
+          scoreboards s
+        LEFT JOIN matches m ON m.match_id = s.match_id
+        WHERE s.steam_id = %s AND m.gametype_id = %s AND m.map_id = %s
+        ORDER BY m.timestamp DESC
+        LIMIT 50
+        ) t;'''
+      cu.execute( query, [steam_id, gametype_id, map_id] )
+      row = cu.fetchone()
+      if row[0] == None:
+        continue
+      steam_id = str(steam_id)
+      rating   = round(row[0], 2)
+      n        = row[1]
+      players[ steam_id ][ gametype ] = {"games": n, "elo": rating}
+
+    for steam_id, data in players.items():
+      result.append( data )
+    result = {
+      "ok": True,
+      "players": result,
+      "deactivated": []
+    }
+
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    db.close()
+
+  return result
+
+
+def count_player_match_perf( gametype, player_data ):
   alive_time    = int( player_data["alivetime"] )
   score         = int( player_data["scoreboard-score"] )
   damage_dealt  = int( player_data["scoreboard-pushes"] )
@@ -356,6 +454,8 @@ def count_player_match_rating( gametype, player_data ):
   frags_count   = int( player_data["scoreboard-kills"] )
   deaths_count  = int( player_data["scoreboard-deaths"] )
   capture_count = int( player_data["medal-captures"] )
+  defends_count = int( player_data["medal-defends"] )
+  assists_count = int( player_data["medal-assists"] )
   win           = 1 if "win" in player_data else 0
 
   if alive_time < MIN_ALIVE_TIME_TO_RATE:
@@ -370,11 +470,47 @@ def count_player_match_rating( gametype, player_data ):
   }[gametype]
 
 
-def post_process(cu, match_id, gametype_id):
+def count_player_match_rating( gametype, all_players_data ):
+
+  result = {}
+  temp = []
+  sum_perf = 0
+  for player in all_players_data:
+    team     = int(player["t"]) if "t" in player else 0
+    steam_id = int(player["P"])
+    perf     = count_player_match_perf( gametype, player )
+    if perf != None:
+      temp.append({
+        "team":     team,
+        "steam_id": steam_id,
+        "perf":     perf
+      })
+      sum_perf += perf
+    if team not in result:
+      result[ team ] = {}
+    result[ team ][ steam_id ] = { "perf": perf, "rating": perf }
+
+  '''
+  if sum_perf < 1:
+    return result
+
+  player_count = len(temp)
+  for i in range(player_count):
+    team     = temp[i]["team"]
+    steam_id = temp[i]["steam_id"]
+    perf     = temp[i]["perf"]
+    rating   = perf/sum_perf*MAX_RATING
+    result[ team ][ steam_id ][ "rating" ] = rating
+  '''
+  return result
+
+
+def post_process(cu, match_id, gametype_id, match_timestamp):
   """
   Updates players' ratings for match_id. I call this post processing
 
   """
+  global LAST_GAME_TIMESTAMPS
   cu.execute("SELECT steam_id, team, match_rating FROM scoreboards WHERE match_rating IS NOT NULL AND match_id = %s", [match_id])
 
   rows = cu.fetchall()
@@ -385,7 +521,7 @@ def post_process(cu, match_id, gametype_id):
 
     old_rating = get_player_rating( cu, steam_id, gametype_id )
 
-    cu.execute("UPDATE scoreboards SET history_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
+    cu.execute("UPDATE scoreboards SET old_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
     assert cu.rowcount == 1
 
     if old_rating == None:
@@ -413,11 +549,16 @@ def post_process(cu, match_id, gametype_id):
       new_rating = cu.fetchone()[0]
       assert new_rating != None
 
-    cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1 WHERE steam_id = %s AND gametype_id = %s", [new_rating, steam_id, gametype_id])
+    cu.execute("UPDATE scoreboards SET new_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [new_rating, match_id, steam_id, team])
+    assert cu.rowcount == 1
+
+    cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1, last_played_timestamp = %s WHERE steam_id = %s AND gametype_id = %s", [new_rating, match_timestamp, steam_id, gametype_id])
     assert cu.rowcount == 1
 
   cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
   assert cu.rowcount == 1
+
+  LAST_GAME_TIMESTAMPS[ gametype_id ] = match_timestamp
 
 
 def submit_match(data):
@@ -462,31 +603,73 @@ def submit_match(data):
   try:
     cu = db.cursor()
 
-    cu.execute("INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, post_processed) VALUES (%s, %s, %s, %s, %s, %s)", [
+    team_scores = [None, None]
+    team_index = -1
+    for team_data in data["teams"]:
+      team_index = int( team_data["Q"].replace("team#", "") ) - 1
+      for key in ["scoreboard-rounds", "scoreboard-caps", "scoreboard-score"]:
+        if key in team_data:
+          team_scores[team_index] = int(team_data[key])
+    team1_score, team2_score = team_scores
+
+    match_timestamp = int( data["game_meta"]["1"] )
+    cu.execute("INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", [
       match_id,
       GAMETYPE_IDS[ data["game_meta"]["G"] ],
       get_factory_id( cu, data["game_meta"]["O"] ),
       get_map_id( cu, data["game_meta"]["M"] ),
-      int( data["game_meta"]["1"] ),
+      match_timestamp,
+      int( data["game_meta"]["D"] ),
+      team1_score,
+      team2_score,
       cfg["run_post_process"]
     ])
 
+    player_match_ratings = count_player_match_rating( data["game_meta"]["G"], data["players"] )
     for player in data["players"]:
       player["P"] = int(player["P"])
       team = int(player["t"]) if "t" in player else 0
 
-      cu.execute( "SELECT EXISTS(SELECT steam_id FROM players WHERE steam_id = %s)", [player["P"]] )
-      player_exists = cu.fetchone()[0]
+      cu.execute( '''INSERT INTO players (
+        steam_id,
+        name,
+        model,
+        last_played_timestamp
+      ) VALUES (%s, %s, %s, %s)
+      ON CONFLICT (steam_id) DO UPDATE SET (name, model, last_played_timestamp) = (%s, %s, %s)
+      WHERE players.last_played_timestamp < %s''', [
+        player["P"],
+        player["n"],
+        player["playermodel"],
+        match_timestamp,
+        player["n"],
+        player["playermodel"],
+        match_timestamp,
+        match_timestamp
+      ])
 
-      if player_exists:
-        cu.execute( "UPDATE players SET name = %s, model = %s WHERE steam_id = %s", [player["n"], player["playermodel"], player["P"]] )
-      else:
-        cu.execute( "INSERT INTO players (steam_id, name, model) VALUES (%s, %s, %s)", [player["P"], player["n"], player["playermodel"]] )
-
-      cu.execute("INSERT INTO scoreboards (match_id, steam_id, match_rating, alive_time, team) VALUES (%s, %s, %s, %s, %s)", [
+      cu.execute('''INSERT INTO scoreboards (
+        match_id,
+        steam_id,
+        frags,
+        deaths,
+        damage_dealt,
+        damage_taken,
+        score,
+        match_perf,
+        match_rating,
+        alive_time,
+        team
+      ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''', [
         match_id,
         player["P"],
-        count_player_match_rating( data["game_meta"]["G"], player),
+        int( player["scoreboard-kills"] ),
+        int( player["scoreboard-deaths"] ),
+        int( player["scoreboard-pushes"] ),
+        int( player["scoreboard-destroyed"] ),
+        int( player["scoreboard-score"] ),
+        player_match_ratings[ team ][ player["P"] ][ "perf" ],
+        player_match_ratings[ team ][ player["P"] ][ "rating" ],
         int( player["alivetime"] ),
         team
       ])
@@ -513,7 +696,7 @@ def submit_match(data):
 
     # post processing
     if cfg["run_post_process"] == True:
-      post_process( cu, match_id, GAMETYPE_IDS[ data["game_meta"]["G"] ] )
+      post_process( cu, match_id, GAMETYPE_IDS[ data["game_meta"]["G"] ], match_timestamp )
       result = {
         "ok": True,
         "message": "done",
@@ -541,6 +724,314 @@ def submit_match(data):
   return result
 
 
+def get_scoreboard(match_id):
+
+  try:
+    db = db_connect()
+  except Exception as e:
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+    return result
+
+  try:
+    cu = db.cursor()
+
+    query = '''
+    SELECT
+      json_build_object(
+        'gametype',    g.gametype_short,
+        'factory',     f.factory_short,
+        'map',         mm.map_name,
+        'team1_score', m.team1_score,
+        'team2_score', m.team2_score,
+        'timestamp',   m.timestamp,
+        'duration',    m.duration
+      )
+    FROM
+      matches m
+    LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
+    LEFT JOIN factories f ON f.factory_id = m.factory_id
+    LEFT JOIN maps mm ON m.map_id = mm.map_id
+    WHERE
+      match_id = %s;
+    '''
+    cu.execute(query, [match_id])
+    try:
+      summary = cu.fetchone()[0]
+    except TypeError:
+      return {
+        "message": "match not found",
+        "ok": False
+      }
+
+    query = '''
+    SELECT
+      json_object_agg(t.steam_id, t.weapon_stats)
+    FROM (
+      SELECT
+        t.steam_id::text,
+        json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots]) AS weapon_stats
+      FROM (
+        SELECT
+          s.steam_id,
+          w.weapon_short,
+          SUM(sw.frags) AS frags,
+          SUM(sw.hits) AS hits,
+          SUM(sw.shots) AS shots
+        FROM
+          scoreboards s
+        LEFT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
+        LEFT JOIN weapons w ON w.weapon_id = sw.weapon_id
+        WHERE
+          s.match_id = %s
+        GROUP BY s.steam_id, w.weapon_short
+      ) t
+      GROUP BY t.steam_id
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    player_weapon_stats = cu.fetchone()[0]
+
+    query = '''
+    SELECT
+      json_object_agg(t.steam_id, t.medal_stats)
+    FROM (
+      SELECT
+        t.steam_id::text,
+        json_object_agg(t.medal_short, t.count) AS medal_stats
+      FROM (
+        SELECT
+          s.steam_id,
+          m.medal_short,
+          SUM(sm.count) AS count
+        FROM
+          scoreboards s
+        LEFT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
+        LEFT JOIN medals m ON m.medal_id = sm.medal_id
+        WHERE
+          s.match_id = %s
+        GROUP BY s.steam_id, m.medal_short
+      ) t
+      GROUP BY t.steam_id
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    player_medal_stats = cu.fetchone()[0]
+
+    query = '''
+    SELECT 
+      json_object_agg(t.team, t.player_weapon_stats)
+    FROM (
+      SELECT
+        t.team,
+        json_object_agg(t.steam_id, t.weapon_stats) as player_weapon_stats
+      FROM (
+        SELECT
+          t.steam_id, t.team, 
+          json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots]) AS weapon_stats
+        FROM
+          (
+          SELECT
+            s.steam_id::text, s.team, w.weapon_short, sw.frags, sw.hits, sw.shots
+          FROM
+            scoreboards s
+          LEFT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
+          LEFT JOIN weapons w ON w.weapon_id = sw.weapon_id
+          WHERE
+            s.match_id = %s
+          ) t
+        GROUP BY t.steam_id, t.team
+      ) t
+      GROUP BY t.team
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    team_weapon_stats = cu.fetchone()[0]
+
+    query = '''
+    SELECT 
+      json_object_agg(t.team, t.player_medal_stats)
+    FROM (
+      SELECT
+        t.team,
+        json_object_agg(t.steam_id, t.medal_stats) as player_medal_stats
+      FROM (
+        SELECT
+          t.steam_id, t.team, 
+          json_object_agg(t.medal_short, t.count) AS medal_stats
+        FROM
+          (
+          SELECT
+            s.steam_id::text, s.team, m.medal_short, sm.count
+          FROM
+            scoreboards s
+          LEFT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
+          LEFT JOIN medals m ON m.medal_id = sm.medal_id
+          WHERE
+            s.match_id = %s
+          ) t
+        GROUP BY t.steam_id, t.team
+      ) t
+      GROUP BY t.team
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    team_medal_stats = cu.fetchone()[0]
+
+    query = '''
+    SELECT 
+      json_object_agg(t.team, t.player_rating_history)
+    FROM (
+      SELECT
+        t.team,
+        json_object_agg(t.steam_id, t.rating_history) as player_rating_history
+      FROM (
+        SELECT
+          t.steam_id, t.team, 
+          json_build_object('old_rating', t.old_rating, 'new_rating', t.new_rating, 'match_rating', t.match_rating) AS rating_history
+        FROM
+          scoreboards t
+        WHERE
+          t.match_id = %s
+      ) t
+      GROUP BY t.team
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    rating_history = cu.fetchone()[0]
+
+    query = '''
+    SELECT
+      json_object_agg(t.team, t.player_overall_stats)
+    FROM (
+      SELECT
+        t.team,
+        json_object_agg(t.steam_id, t.overall_stats) as player_overall_stats
+      FROM (
+        SELECT
+          t.steam_id, t.team,
+          json_build_object(
+            'score',        t.score,
+            'frags',        t.frags,
+            'deaths',       t.deaths,
+            'damage_dealt', t.damage_dealt,
+            'damage_taken', t.damage_taken,
+            'alive_time',   t.alive_time
+          ) AS overall_stats
+        FROM
+          scoreboards t
+        WHERE
+          t.match_id = %s
+      ) t
+      GROUP BY t.team
+    ) t;
+    '''
+    cu.execute(query, [match_id])
+    overall_stats = cu.fetchone()[0]
+
+    result = {
+      "summary": summary,
+      "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
+      "team_stats": {
+        "weapons":        team_weapon_stats,
+        "medals":         team_medal_stats,
+        "rating_history": rating_history,
+        "overall":        overall_stats
+      },
+      "ok": True
+    }
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    cu.close()
+    db.close()
+
+  return result
+
+
+def get_last_matches( gametype = None, page = 0 ):
+  """
+  Returns last matches
+
+  Returns: {
+      "ok: True/False - on success/fail
+      "matches": [
+        {
+          "match_id": ...
+          "timestamp": ...
+          "gametype" ...
+          "map": ...
+        },
+        {...}
+      ]
+    }
+  """
+  if gametype != None and gametype not in GAMETYPE_IDS:
+    return {
+      "ok": False,
+      "message": "gametype is not accepted: " + gametype
+    }
+
+  try:
+    db = db_connect()
+
+  except Exception as e:
+    traceback.print_exc(file=sys.stderr)
+    return {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e),
+      "match_id": None
+    }
+
+  try:
+    cu = db.cursor()
+
+    query = '''
+    SELECT
+      json_build_object('match_id', m.match_id, 'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'), 'gametype', g.gametype_short, 'map', mm.map_name )
+    FROM
+      matches m
+    LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
+    LEFT JOIN maps mm ON mm.map_id = m.map_id
+    {WHERE_CLAUSE}
+    ORDER BY timestamp DESC
+    OFFSET %s
+    LIMIT 25
+    '''.replace("{WHERE_CLAUSE}\n", "" if gametype == None else "WHERE m.gametype_id = %s")
+
+    params = [ ]
+    if gametype != None:
+      params.append( GAMETYPE_IDS[ gametype ] )
+    params.append( page * 25 )
+
+    cu.execute( query, params )
+
+    result = {
+      "ok": True,
+      "matches": list( map( lambda x: x[0], cu.fetchall() ) )
+    }
+
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    db.close()
+
+  return result
+
+
 db = db_connect()
 cu = db.cursor()
 cu.execute("SELECT gametype_id, gametype_short FROM gametypes")
@@ -559,7 +1050,15 @@ if cfg["run_post_process"]:
   cu.execute("SELECT match_id, gametype_id, timestamp FROM matches WHERE post_processed = FALSE ORDER BY timestamp ASC")
   for row in cu.fetchall():
     print("running post process: " + str(row[0]) + "\t" + str(row[2]))
-    post_process(cu, row[0], row[1])
+    post_process(cu, row[0], row[1], row[2])
     db.commit()
+
+for _, gametype_id in GAMETYPE_IDS.items():
+  LAST_GAME_TIMESTAMPS[ gametype_id ] = 0
+  cu.execute("SELECT timestamp FROM matches WHERE gametype_id = %s ORDER BY timestamp DESC LIMIT 1", [gametype_id])
+  for row in cu.fetchall():
+    LAST_GAME_TIMESTAMPS[ gametype_id ] = row[0]
+
 cu.close()
 db.close()
+

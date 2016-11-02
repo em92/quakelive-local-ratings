@@ -2,6 +2,7 @@ CREATE TABLE players (
   steam_id BIGINT,
   name TEXT,
   model TEXT,
+  last_played_timestamp BIGINT DEFAULT 0,
   PRIMARY KEY (steam_id)
 );
 
@@ -65,6 +66,7 @@ CREATE TABLE gametype_ratings (
   gametype_id SMALLINT,
   rating REAL,
   n BIGINT DEFAULT 0,
+  last_played_timestamp BIGINT DEFAULT 0,
   FOREIGN KEY (steam_id)    REFERENCES players(steam_id),
   FOREIGN KEY (gametype_id) REFERENCES gametypes(gametype_id),
   PRIMARY KEY (steam_id, gametype_id)
@@ -91,7 +93,10 @@ CREATE TABLE matches (
   gametype_id SMALLINT,
   factory_id SMALLINT,
   map_id SMALLINT,
+  team1_score SMALLINT,
+  team2_score SMALLINT,
   timestamp BIGINT,
+  duration SMALLINT,
   post_processed BOOL,
   FOREIGN KEY (gametype_id) REFERENCES gametypes(gametype_id),
   FOREIGN KEY (factory_id)  REFERENCES factories(factory_id),
@@ -103,9 +108,16 @@ CREATE TABLE scoreboards (
   match_id UUID,
   steam_id BIGINT,
   team SMALLINT,
+  frags SMALLINT,
+  deaths SMALLINT,
+  damage_dealt INTEGER,
+  damage_taken INTEGER,
+  score SMALLINT,
   alive_time INTEGER,
+  match_perf REAL,
   match_rating REAL,
-  history_rating REAL DEFAULT NULL,
+  old_rating REAL DEFAULT NULL,
+  new_rating REAL DEFAULT NULL,
   FOREIGN KEY (match_id) REFERENCES matches(match_id),
   FOREIGN KEY (steam_id) REFERENCES players(steam_id),
   PRIMARY KEY (match_id, steam_id, team)

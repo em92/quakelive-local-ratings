@@ -20,7 +20,10 @@ def http_root():
 @app.route("/elo_b/<ids>")
 def http_elo(ids):
   ids = list( map(lambda id_: int(id_), ids.split("+")) )
-  return jsonify( **rating.get_for_balance_plugin(ids) )
+  try:
+    return jsonify( **rating.get_for_balance_plugin_for_certain_map(ids, request.headers['X-QuakeLive-Gametype'], request.headers['X-QuakeLive-Map']) )
+  except KeyError:
+    return jsonify( **rating.get_for_balance_plugin(ids) )
 
 
 @app.route("/elo_map/<gametype>/<mapname>/<ids>")

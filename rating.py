@@ -26,7 +26,8 @@ def db_connect():
   password = result.password
   database = result.path[1:]
   hostname = result.hostname
-  return psycopg2.connect(database = database, user = username, password = password, host = hostname)
+  port = result.port
+  return psycopg2.connect(database = database, user = username, password = password, host = hostname, port = port)
 
 
 # https://github.com/PredatH0r/XonStat/blob/380fbd4aeafb722c844f66920fb850a0ad6821d3/xonstat/views/submission.py#L19
@@ -234,7 +235,8 @@ def get_player_info(steam_id):
         result[ "model" ] = row[2]
         if gametype not in result:
           result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": []}
-        result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})
+        if row[8] != None:
+          result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})
 
     result = {
       "ok": True,

@@ -103,6 +103,11 @@ td {
 	width: 800px;
 }
 
+img.player_icon {
+  width: 32px;
+  height: 32px;
+}
+
 li {
 	width: 400px;
 	padding: 3px;

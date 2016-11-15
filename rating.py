@@ -400,7 +400,7 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
 
     map_id = get_map_id(cu, mapname, dont_create = True)
     if map_id == None:
-      raise Exception("Unknown map: " + mapname)
+      raise KeyError("Unknown map: " + mapname)
 
     for steam_id in steam_ids:
       query = '''
@@ -433,6 +433,14 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
       "deactivated": []
     }
 
+  except KeyError as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": True,
+      "players": list(players.values()),
+      "deactivated": []
+    }
   except Exception as e:
     db.rollback()
     traceback.print_exc(file=sys.stderr)

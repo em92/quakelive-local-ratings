@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from config import cfg
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect, url_for
 import rating
 import sys
 from uuid import UUID
@@ -19,10 +19,17 @@ def http_root():
 @app.route("/elo/<ids>")
 @app.route("/elo_b/<ids>")
 def http_elo(ids):
-  ids = list( map(lambda id_: int(id_), ids.split("+")) )
   try:
-    return jsonify( **rating.get_for_balance_plugin_for_certain_map(ids, request.headers['X-QuakeLive-Gametype'], request.headers['X-QuakeLive-Map']) )
+    return redirect(
+      url_for(
+        'http_elo_map',
+        gametype = request.headers['X-QuakeLive-Gametype'],
+        mapname  = request.headers['X-QuakeLive-Map'],
+        ids = ids
+      )
+    )
   except KeyError:
+    ids = list( map(lambda id_: int(id_), ids.split("+")) )
     return jsonify( **rating.get_for_balance_plugin(ids) )
 
 

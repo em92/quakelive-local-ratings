@@ -6,6 +6,10 @@ a {
   cursor: pointer;
 }
 
+.pagination {
+  background-color: white;
+}
+
 noscript {
 	background-color: red;
 	border: 1px solid black;

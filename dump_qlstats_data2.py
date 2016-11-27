@@ -170,6 +170,11 @@ def get_game_results(game_id):
     result.append( "O " + re.search('\((.*?)\)', blocks[0].select("p")[0].text).group(1) ) # factory
     result.append( "1 " +  blocks[0].select("span.abstime")[0]['data-epoch'] ) # timestamp
     result.append( "D " + str( get_sec( get_text_between( blocks[0].select("p")[0].text ) ) ) ) # duration
+    if gametype in ['ad', 'ctf', 'tdm']:
+      team_numbers = {'red': '1', 'blue': '2'}
+      for team in ['red', 'blue']:
+        result.append( 'Q team#' + team_numbers[team] )
+        result.append( 'e scoreboard-score ' + soup.select(".teamscore .{}".format( team ))[1].text.strip() )
     result.append( generate_scoreboard(gametype, weapon_stats, blocks[1], True) )
     result.append( generate_scoreboard(gametype, weapon_stats, blocks[2], False) )
   except IndexError:
@@ -215,4 +220,7 @@ def main(args):
 
 if __name__ == '__main__':
   import sys
+  if rating.cfg['run_post_process']:
+    print("disable run_post_process in cfg.json. exiting...")
+    sys.exit(1)
   sys.exit(main(sys.argv))

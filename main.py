@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from config import cfg
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 import rating
 import sys
 from uuid import UUID
@@ -42,6 +42,29 @@ def http_rating_gametype_page(gametype, page):
 @app.route("/rating/<gametype>")
 def http_rating_gametype(gametype):
   return http_rating_gametype_page( gametype, 0 )
+
+
+@app.route("/export_rating/<frmt>/<gametype>")
+def http_export_rating_format_gametype(frmt, gametype):
+  frmt = frmt.lower()
+  if frmt == "json":
+    return jsonify( **rating.export( gametype ) )
+  elif frmt == "csv":
+    data = rating.export( gametype )
+    if data['ok'] == False:
+      return "Error: " + data['message'], 400
+
+    result = ""
+    
+    for row in data["response"]:
+      result += ";".join([ row["name"], str(row["rating"]), str(row["n"]), 'http://qlstats.net/player/' + row["_id"] ]) + "\n"
+
+    response = make_response(result)
+    response.headers["Content-Disposition"] = "attachment; filename=" + gametype + "_ratings.csv"
+    response.headers["Content-Type"]        = "text/csv"
+    return response
+  else:
+    return "Error: invalid format: " + frmt, 400
 
 
 @app.route("/scoreboard/<match_id>")

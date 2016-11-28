@@ -187,6 +187,78 @@ def get_list(gametype, page):
   return result
 
 
+def export(gametype):
+
+  def clean_name(name):
+    for s in ['0', '1', '2', '3', '4', '5', '6', '7']:
+      name = name.replace("^" + s, "")
+
+    if name == "":
+      name = "unnamed"
+
+    return name
+
+  try:
+    gametype_id = GAMETYPE_IDS[ gametype ];
+  except KeyError:
+    return {
+      "ok": False,
+      "message": "gametype is not supported: " + gametype
+    }
+
+  try:
+    db = db_connect()
+  except Exception as e:
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+    return result
+
+  try:
+    cu = db.cursor()
+    query = '''
+    SELECT
+      p.steam_id, p.name, gr.rating, gr.n
+    FROM
+      players p
+    LEFT JOIN gametype_ratings gr ON
+      gr.steam_id = p.steam_id
+    WHERE
+      gr.gametype_id = %s
+    ORDER BY gr.rating DESC
+    '''
+    cu.execute(query, [gametype_id])
+
+    result = []
+    for row in cu.fetchall():
+      if row[0] != None:
+        result.append({
+          "_id": str(row[0]),
+          "name": clean_name(row[1]),
+          "rating": row[2],
+          "n": row[3]
+        })
+
+    result = {
+      "ok": True,
+      "response": result
+    }
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    cu.close()
+    db.close()
+
+  return result
+
+
 def get_player_info(steam_id):
 
   try:

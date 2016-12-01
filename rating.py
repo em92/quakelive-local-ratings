@@ -16,6 +16,11 @@ WEAPON_IDS   = {}
 LAST_GAME_TIMESTAMPS = {}
 
 MIN_ALIVE_TIME_TO_RATE = 60*10
+MIN_PLAYER_COUNT_TO_RATE = {
+  "ad":  cfg['min_player_count_in_match_to_rate_ad'],
+  "ctf": cfg['min_player_count_in_match_to_rate_ctf'],
+  "tdm": cfg['min_player_count_in_match_to_rate_tdm']
+}
 MAX_RATING = 1000
 KEEPING_TIME = 60*60*24*30
 
@@ -550,7 +555,7 @@ def count_player_match_rating( gametype, all_players_data ):
   for player in all_players_data:
     team     = int(player["t"]) if "t" in player else 0
     steam_id = int(player["P"])
-    perf     = count_player_match_perf( gametype, player )
+    perf     = count_player_match_perf( gametype, player ) if MIN_PLAYER_COUNT_TO_RATE[ gametype ] <= len(all_players_data) else None
     if perf != None:
       temp.append({
         "team":     team,

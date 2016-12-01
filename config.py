@@ -11,6 +11,9 @@ default_cfg = {
   "player_count_per_page": 10,
   "httpd_port": 7081,
   "run_post_process": True,
+  "min_player_count_in_match_to_rate_ad": 6,
+  "min_player_count_in_match_to_rate_ctf": 6,
+  "min_player_count_in_match_to_rate_tdm": 6,
   "moving_average_count": 50
 }
 
@@ -93,6 +96,9 @@ def load():
   use_default_if_not_uint( 'httpd_port' );
   use_default_if_not_uint( 'player_count_per_page' );
   use_default_if_not_uint( 'moving_average_count' );
+  use_default_if_not_uint( 'min_player_count_in_match_to_rate_ad' );
+  use_default_if_not_uint( 'min_player_count_in_match_to_rate_ctf' );
+  use_default_if_not_uint( 'min_player_count_in_match_to_rate_tdm' );
   use_default_if_not_bool( 'run_post_process' );
 
 

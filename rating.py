@@ -29,7 +29,6 @@ def db_connect():
   port = result.port
   return psycopg2.connect(database = database, user = username, password = password, host = hostname, port = port)
 
-
 # https://github.com/PredatH0r/XonStat/blob/380fbd4aeafb722c844f66920fb850a0ad6821d3/xonstat/views/submission.py#L19
 def parse_stats_submission(body):
   """
@@ -125,16 +124,6 @@ def get_list(gametype, page):
     }
 
   try:
-    db = db_connect()
-  except Exception as e:
-    traceback.print_exc(file=sys.stderr)
-    result = {
-      "ok": False,
-      "message": type(e).__name__ + ": " + str(e)
-    }
-    return result
-
-  try:
     cu = db.cursor()
     query = '''
     SELECT
@@ -182,22 +171,11 @@ def get_list(gametype, page):
     }
   finally:
     cu.close()
-    db.close()
 
   return result
 
 
 def get_player_info(steam_id):
-
-  try:
-    db = db_connect()
-  except Exception as e:
-    traceback.print_exc(file=sys.stderr)
-    result = {
-      "ok": False,
-      "message": type(e).__name__ + ": " + str(e)
-    }
-    return result
 
   try:
     cu = db.cursor()
@@ -251,7 +229,6 @@ def get_player_info(steam_id):
     }
   finally:
     cu.close()
-    db.close()
 
   return result
 
@@ -311,7 +288,6 @@ def get_for_balance_plugin( steam_ids ):
   result = []
   try:
 
-    db = db_connect()
     cu = db.cursor()
 
     query = '''
@@ -348,8 +324,6 @@ def get_for_balance_plugin( steam_ids ):
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
     }
-  finally:
-    db.close()
 
   return result
 
@@ -390,7 +364,6 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
   result = []
   try:
 
-    db = db_connect()
     cu = db.cursor()
     
     try:
@@ -448,8 +421,6 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
     }
-  finally:
-    db.close()
 
   return result
 
@@ -583,6 +554,8 @@ def submit_match(data):
     }
   """
   try:
+    match_id = None
+
     if type(data).__name__ == 'str':
       data = parse_stats_submission( data )
 
@@ -598,17 +571,6 @@ def submit_match(data):
         "match_id": match_id
       }
 
-    db = db_connect()
-
-  except Exception as e:
-    traceback.print_exc(file=sys.stderr)
-    return {
-      "ok": False,
-      "message": type(e).__name__ + ": " + str(e),
-      "match_id": None
-    }
-
-  try:
     cu = db.cursor()
 
     team_scores = [None, None]
@@ -726,23 +688,11 @@ def submit_match(data):
       "message": type(e).__name__ + ": " + str(e),
       "match_id": match_id
     }
-  finally:
-    db.close()
 
   return result
 
 
 def get_scoreboard(match_id):
-
-  try:
-    db = db_connect()
-  except Exception as e:
-    traceback.print_exc(file=sys.stderr)
-    result = {
-      "ok": False,
-      "message": type(e).__name__ + ": " + str(e)
-    }
-    return result
 
   try:
     cu = db.cursor()
@@ -960,7 +910,6 @@ def get_scoreboard(match_id):
     }
   finally:
     cu.close()
-    db.close()
 
   return result
 
@@ -986,17 +935,6 @@ def get_last_matches( gametype = None, page = 0 ):
     return {
       "ok": False,
       "message": "gametype is not accepted: " + gametype
-    }
-
-  try:
-    db = db_connect()
-
-  except Exception as e:
-    traceback.print_exc(file=sys.stderr)
-    return {
-      "ok": False,
-      "message": type(e).__name__ + ": " + str(e),
-      "match_id": None
     }
 
   try:
@@ -1034,8 +972,6 @@ def get_last_matches( gametype = None, page = 0 ):
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
     }
-  finally:
-    db.close()
 
   return result
 
@@ -1068,5 +1004,4 @@ for _, gametype_id in GAMETYPE_IDS.items():
     LAST_GAME_TIMESTAMPS[ gametype_id ] = row[0]
 
 cu.close()
-db.close()
 

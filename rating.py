@@ -288,6 +288,7 @@ def get_player_info2( steam_id, gametype ):
     result['player']['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
 
     # 10 last matches
+    '''
         SELECT
           m.match_id, mm.map_name, m.timestamp, s.old_rating
         FROM
@@ -300,6 +301,7 @@ def get_player_info2( steam_id, gametype ):
           m.gametype_id = %s
         ORDER BY m.timestamp DESC
         LIMIT 50
+    '''
   except Exception as e:
     db.rollback()
     traceback.print_exc(file=sys.stderr)

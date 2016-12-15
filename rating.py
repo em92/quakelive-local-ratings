@@ -233,6 +233,84 @@ def get_player_info(steam_id):
   return result
 
 
+def get_player_info2( steam_id, gametype ):
+
+  result = {"ok": True, "player": {}}
+
+  try:
+    gametype_id = GAMETYPE_IDS[ gametype ];
+  except KeyError:
+    return {
+      "ok": False,
+      "message": "gametype is not supported: " + gametype
+    }
+
+  try:
+    cu = db.cursor()
+
+    # player name, rating and games played
+    cu.execute('''
+      SELECT json_build_object('name', p.name, 'rating', round(cast(gr.rating as numeric), 2), 'n', gr.n)
+      FROM players p
+      LEFT JOIN gametype_ratings gr ON p.steam_id = gr.steam_id
+      WHERE p.steam_id = %s AND gr.gametype_id = %s
+    ''', [steam_id, gametype_id])
+
+    if cu.rowcount == 0:
+      cu.close()
+      return {
+        "ok": False,
+        "message": "player not found in database"
+      }
+
+    result["player"] = cu.fetchone()[0]
+
+    # weapon stats (frags + acc)
+    # ToDo: accuracy for last 50 matches
+    cu.execute('''
+      SELECT json_build_object('name', w.weapon_name, 'short', w.weapon_short, 'frags', t.frags, 'acc', t.accuracy)
+      FROM (
+        SELECT
+          weapon_id,
+          SUM(frags) AS frags,
+          CASE WHEN SUM(shots) = 0 THEN 0
+            ELSE CAST(100. * SUM(hits) / SUM(shots) AS INT)
+          END AS accuracy
+        FROM scoreboards_weapons sw
+        LEFT JOIN matches m ON sw.match_id = m.match_id
+        WHERE steam_id = %s AND m.gametype_id = %s
+        GROUP BY weapon_id
+      ) t
+      LEFT JOIN weapons w ON t.weapon_id = w.weapon_id
+      ORDER BY t.weapon_id DESC
+    ''', [steam_id, gametype_id])
+
+    result['player']['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
+
+    # 10 last matches
+        SELECT
+          m.match_id, mm.map_name, m.timestamp, s.old_rating
+        FROM
+          matches m
+        LEFT JOIN scoreboards s ON s.match_id = m.match_id
+        LEFT JOIN maps mm ON m.map_id = mm.map_id
+        WHERE
+          s.old_rating IS NOT NULL AND
+          s.steam_id = %s AND
+          m.gametype_id = %s
+        ORDER BY m.timestamp DESC
+        LIMIT 50
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    cu.close()
+
+
 def get_factory_id( cu, factory ):
   cu.execute( "SELECT factory_id FROM factories WHERE factory_short = %s", [factory] )
   try:

@@ -24,6 +24,19 @@ MIN_PLAYER_COUNT_TO_RATE = {
 MAX_RATING = 1000
 KEEPING_TIME = 60*60*24*30
 
+SQL_TOP_PLAYERS_BY_GAMETYPE = '''
+  SELECT
+    p.steam_id, p.name, p.model, gr.rating, gr.n, count(*) OVER () AS count, ROW_NUMBER() OVER (ORDER BY gr.rating DESC) AS rank
+  FROM
+    players p
+  LEFT JOIN gametype_ratings gr ON
+    gr.steam_id = p.steam_id
+  WHERE
+    gr.n >= 10 AND
+    gr.last_played_timestamp > %s AND
+    gr.gametype_id = %s
+  ORDER BY gr.rating DESC
+'''
 
 def db_connect():
   result = urlparse( cfg["db_url"] )
@@ -130,24 +143,12 @@ def get_list(gametype, page):
 
   try:
     cu = db.cursor()
-    query = '''
-    SELECT
-      p.steam_id, p.name, p.model, gr.rating, gr.n, count(*) OVER () AS count
-    FROM
-      players p
-    LEFT JOIN gametype_ratings gr ON
-      gr.steam_id = p.steam_id
-    WHERE
-      gr.n >= 10 AND
-      gr.last_played_timestamp > %s AND
-      gr.gametype_id = %s
-    ORDER BY gr.rating DESC
+    query = SQL_TOP_PLAYERS_BY_GAMETYPE + '''
     LIMIT %s
     OFFSET %s'''
     cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
 
     result = []
-    rank = cfg["player_count_per_page"]*page + 1
     player_count = 0
     for row in cu.fetchall():
       if row[0] != None:
@@ -157,9 +158,8 @@ def get_list(gametype, page):
           "model": (row[2] + ("/default" if row[2].find("/") == -1 else "")).lower(),
           "rating": row[3],
           "n": row[4],
-          "rank": rank
+          "rank": row[6]
         })
-        rank += 1
       player_count = row[5]
 
     result = {
@@ -260,7 +260,7 @@ def get_player_info(steam_id):
     for gametype, gametype_id in GAMETYPE_IDS.items():
       query = '''
       SELECT 
-        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.old_rating
+        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.old_rating, rt.rank, rt.count
       FROM
         players p
       LEFT JOIN gametype_ratings gr ON gr.steam_id = p.steam_id
@@ -278,18 +278,19 @@ def get_player_info(steam_id):
         ORDER BY m.timestamp DESC
         LIMIT 50
       ) m ON m.gametype_id = g.gametype_id
+      LEFT JOIN (''' + SQL_TOP_PLAYERS_BY_GAMETYPE + ''') rt ON rt.steam_id = p.steam_id
       WHERE
         p.steam_id = %s AND
         g.gametype_id = %s
       ORDER BY m.timestamp ASC
       '''
-      cu.execute(query, [steam_id, gametype_id, steam_id, gametype_id])
+      cu.execute(query, [steam_id, gametype_id, LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, steam_id, gametype_id])
       for row in cu.fetchall():
         result[ "_id" ] = str(row[0])
         result[ "name" ] = row[1]
         result[ "model" ] = row[2]
         if gametype not in result:
-          result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": []}
+          result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": [], "rank": row[9], "max_rank": row[10]}
         if row[8] != None:
           result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})
 

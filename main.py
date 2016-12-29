@@ -39,6 +39,33 @@ def http_elo_map(gametype, mapname, ids):
   return jsonify( **rating.get_for_balance_plugin_for_certain_map(ids, gametype, mapname) )
 
 
+@app.route("/steam_api/GetPlayerSummaries/")
+def http_steam_api_GetPlayerSummaries():
+  ids = request.args.get("steamids")
+  if ids == None:
+    return jsonify( ok = False, message = "Required parameter 'steamids' is missing" ), 400
+
+  try:
+    ids = ids.replace(",", " ").replace("+", " ")
+    ids = list( map(lambda id_: int(id_), ids.split(" ")) )
+  except ValueError as e:
+    return jsonify( ok = False, message = str(e) ), 400
+
+  players = []
+  for steam_id in ids:
+    player_info = rating.get_player_info( steam_id )
+    if player_info["ok"]:
+      if "name" in player_info["player"]:
+        players.append({
+          "personaname": player_info["player"]["name"],
+          "steamid": str(steam_id)
+        })
+    else:
+      return jsonify( ok = False, message = player_info["message"] ), 500
+
+  return jsonify( ok = True, response = { "players": players } )
+
+
 @app.route("/player/<int:steam_id>")
 def http_player_id(steam_id):
   return jsonify( **rating.get_player_info(int(steam_id)) )

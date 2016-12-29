@@ -156,7 +156,7 @@ def get_list(gametype, page):
           "_id": str(row[0]),
           "name": row[1],
           "model": (row[2] + ("/default" if row[2].find("/") == -1 else "")).lower(),
-          "rating": row[3],
+          "rating": round(row[3], 2),
           "n": row[4],
           "rank": row[6]
         })

@@ -16,9 +16,27 @@ WEAPON_IDS   = {}
 LAST_GAME_TIMESTAMPS = {}
 
 MIN_ALIVE_TIME_TO_RATE = 60*10
+MIN_PLAYER_COUNT_TO_RATE = {
+  "ad":  cfg['min_player_count_in_match_to_rate_ad'],
+  "ctf": cfg['min_player_count_in_match_to_rate_ctf'],
+  "tdm": cfg['min_player_count_in_match_to_rate_tdm']
+}
 MAX_RATING = 1000
 KEEPING_TIME = 60*60*24*30
 
+SQL_TOP_PLAYERS_BY_GAMETYPE = '''
+  SELECT
+    p.steam_id, p.name, p.model, gr.rating, gr.n, count(*) OVER () AS count, ROW_NUMBER() OVER (ORDER BY gr.rating DESC) AS rank
+  FROM
+    players p
+  LEFT JOIN gametype_ratings gr ON
+    gr.steam_id = p.steam_id
+  WHERE
+    gr.n >= 10 AND
+    gr.last_played_timestamp > %s AND
+    gr.gametype_id = %s
+  ORDER BY gr.rating DESC
+'''
 
 def db_connect():
   result = urlparse( cfg["db_url"] )
@@ -125,36 +143,23 @@ def get_list(gametype, page):
 
   try:
     cu = db.cursor()
-    query = '''
-    SELECT
-      p.steam_id, p.name, p.model, gr.rating, gr.n, count(*) OVER () AS count
-    FROM
-      players p
-    LEFT JOIN gametype_ratings gr ON
-      gr.steam_id = p.steam_id
-    WHERE
-      gr.n >= 10 AND
-      gr.last_played_timestamp > %s AND
-      gr.gametype_id = %s
-    ORDER BY gr.rating DESC
+    query = SQL_TOP_PLAYERS_BY_GAMETYPE + '''
     LIMIT %s
     OFFSET %s'''
     cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
 
     result = []
-    rank = cfg["player_count_per_page"]*page + 1
     player_count = 0
     for row in cu.fetchall():
       if row[0] != None:
         result.append({
           "_id": str(row[0]),
           "name": row[1],
-          "model": row[2] + ("/default" if row[2].find("/") == -1 else ""),
+          "model": (row[2] + ("/default" if row[2].find("/") == -1 else "")).lower(),
           "rating": round(row[3], 2),
           "n": row[4],
-          "rank": rank
+          "rank": row[6]
         })
-        rank += 1
       player_count = row[5]
 
     result = {
@@ -175,6 +180,78 @@ def get_list(gametype, page):
   return result
 
 
+def export(gametype):
+
+  def clean_name(name):
+    for s in ['0', '1', '2', '3', '4', '5', '6', '7']:
+      name = name.replace("^" + s, "")
+
+    if name == "":
+      name = "unnamed"
+
+    return name
+
+  try:
+    gametype_id = GAMETYPE_IDS[ gametype ];
+  except KeyError:
+    return {
+      "ok": False,
+      "message": "gametype is not supported: " + gametype
+    }
+
+  try:
+    db = db_connect()
+  except Exception as e:
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+    return result
+
+  try:
+    cu = db.cursor()
+    query = '''
+    SELECT
+      p.steam_id, p.name, gr.rating, gr.n
+    FROM
+      players p
+    LEFT JOIN gametype_ratings gr ON
+      gr.steam_id = p.steam_id
+    WHERE
+      gr.gametype_id = %s
+    ORDER BY gr.rating DESC
+    '''
+    cu.execute(query, [gametype_id])
+
+    result = []
+    for row in cu.fetchall():
+      if row[0] != None:
+        result.append({
+          "_id": str(row[0]),
+          "name": clean_name(row[1]),
+          "rating": row[2],
+          "n": row[3]
+        })
+
+    result = {
+      "ok": True,
+      "response": result
+    }
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    cu.close()
+    db.close()
+
+  return result
+
+
 def get_player_info(steam_id):
 
   try:
@@ -183,7 +260,7 @@ def get_player_info(steam_id):
     for gametype, gametype_id in GAMETYPE_IDS.items():
       query = '''
       SELECT 
-        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.old_rating
+        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.old_rating, rt.rank, rt.count
       FROM
         players p
       LEFT JOIN gametype_ratings gr ON gr.steam_id = p.steam_id
@@ -201,18 +278,19 @@ def get_player_info(steam_id):
         ORDER BY m.timestamp DESC
         LIMIT 50
       ) m ON m.gametype_id = g.gametype_id
+      LEFT JOIN (''' + SQL_TOP_PLAYERS_BY_GAMETYPE + ''') rt ON rt.steam_id = p.steam_id
       WHERE
         p.steam_id = %s AND
         g.gametype_id = %s
       ORDER BY m.timestamp ASC
       '''
-      cu.execute(query, [steam_id, gametype_id, steam_id, gametype_id])
+      cu.execute(query, [steam_id, gametype_id, LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, steam_id, gametype_id])
       for row in cu.fetchall():
         result[ "_id" ] = str(row[0])
         result[ "name" ] = row[1]
         result[ "model" ] = row[2]
         if gametype not in result:
-          result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": []}
+          result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": [], "rank": row[9], "max_rank": row[10]}
         if row[8] != None:
           result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})
 
@@ -537,7 +615,7 @@ def count_player_match_rating( gametype, all_players_data ):
   for player in all_players_data:
     team     = int(player["t"]) if "t" in player else 0
     steam_id = int(player["P"])
-    perf     = count_player_match_perf( gametype, player )
+    perf     = count_player_match_perf( gametype, player ) if MIN_PLAYER_COUNT_TO_RATE[ gametype ] <= len(all_players_data) else None
     if perf != None:
       temp.append({
         "team":     team,
@@ -1052,6 +1130,97 @@ def get_last_matches( gametype = None, page = 0 ):
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
     }
+
+  return result
+
+
+def reset_match_rating( gametype ):
+  """
+  Resets match ratings for gametype
+  """
+  if gametype not in GAMETYPE_IDS:
+    print("gametype is not accepted: " + gametype)
+    return False
+
+  gametype_id = GAMETYPE_IDS[gametype]
+  result = False
+  try:
+    db = db_connect()
+    cu = db.cursor()
+    cw = db.cursor()
+
+    cw.execute('UPDATE matches SET post_processed = FALSE WHERE gametype_id = %s', [gametype_id])
+    cw.execute('UPDATE gametype_ratings SET rating = NULL, n = 0 WHERE gametype_id = %s', [gametype_id])
+    scoreboard_query = '''
+    SELECT
+      s.match_id,
+      MIN(m.team1_score) AS team1_score,
+      MIN(m.team2_score) AS team1_score,
+      array_agg(json_build_object(
+        'P',                    s.steam_id,
+        't',                    s.team,
+        'alivetime',            s.alive_time,
+        'scoreboard-score',     s.score,
+        'scoreboard-pushes',    s.damage_dealt,
+        'scoreboard-destroyed', s.damage_taken,
+        'scoreboard-kills',     s.frags,
+        'scoreboard-deaths',    s.deaths,
+        'medal-captures',       mm.medals->'captures',
+        'medal-defends',        mm.medals->'defends',
+        'medal-assists',        mm.medals->'assists'
+      ))
+    FROM
+      scoreboards s
+    LEFT JOIN matches m ON m.match_id = s.match_id
+    LEFT JOIN (
+      SELECT
+        sm.steam_id, sm.team, sm.match_id,
+        json_object_agg(mm.medal_short, sm.count) as medals
+      FROM
+        scoreboards_medals sm
+      LEFT JOIN
+        medals mm ON mm.medal_id = sm.medal_id
+      GROUP BY sm.steam_id, sm.team, sm.match_id
+    ) mm ON mm.match_id = s.match_id AND s.steam_id = mm.steam_id AND s.team = mm.team
+    WHERE gametype_id = %s
+    GROUP BY s.match_id;
+    '''
+
+    cu.execute(scoreboard_query, [gametype_id])
+    for row in cu:
+      match_id = row[0]
+      team1_score = row[1]
+      team2_score = row[2]
+      all_players_data = []
+      for player in row[3]:
+        if player['t'] == 1 and team1_score > team2_score:
+          player['win'] = 1
+        if player['t'] == 2 and team1_score < team2_score:
+          player['win'] = 1
+        all_players_data.append(player.copy())
+      print(match_id)
+      player_match_ratings = count_player_match_rating( gametype, all_players_data )
+
+      for player in all_players_data:
+        player["P"] = int(player["P"])
+        team = int(player["t"]) if "t" in player else 0
+
+        cw.execute(
+          'UPDATE scoreboards SET match_perf = %s, match_rating = %s, new_rating = NULL, old_rating = NULL WHERE match_id = %s AND team = %s AND steam_id = %s', [
+            player_match_ratings[ team ][ player["P"] ][ "perf" ],
+            player_match_ratings[ team ][ player["P"] ][ "rating" ],
+            match_id, team, player["P"]
+          ]
+        )
+
+    db.commit()
+    result = True
+
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+  finally:
+    db.close()
 
   return result
 

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<style type="text/css">
+#content {
+  background-color: white;
+  padding: 5px;
+}
+
+#info {
+  border: 1px solid red;
+  padding: 2px;
+}
+
+#rating_tables {
+  display: table;
+}
+
+#rating_table .rating_table_wrapper table {
+}
+
+#rating_tables .rating_table_wrapper td {
+  padding-left:  5px;
+  padding-right: 5px;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+#rating_tables .rating_table_wrapper {
+  display: table-cell;
+  width: 300px;
+}
+
+.rating_table_wrapper tr.selected td {
+  background-color: red;
+}
+
+</style>
+<meta charset="UTF-8" />
+<meta name="robots" content="noindex, nofollow"/>
+<title>КПРФ - Капиталистическая Партия Российской Федерации</title>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+</head>
+<body>
+<noscript>Товарищ! Включи яваскрипт!</noscript>
+<div id="content">
+  <div id="info">
+  <p>Здравствуйте, представители эксплуатируемого класса!</p>
+  <p>В среду, 25 января 2017 года, возникла жаркая дискуссия по поводу адекватности подсчитывания рейтинга цтф-игроков. Основной вывод из этой дискуссии - надо поправить 
+формулу или оставить ее как есть.</p>
+  <p>Напомню, что рейтинг игрока считается как средний рейтинг за матчи. Рейтинг за матч высчитывается по определенной формуле.</p>
+  <p>Предлагаемые формулы вычисления рейтинг игрока за матч обозначены номерами:</p>
+  <ol>
+    <li>Классическая формула (http://bot.xurv.org/rating.pdf). За победу дается примерно 127 очков</li>
+    <li>Модифицированная классическая формула. За победу дается 300 очков</li>
+    <li>Из классической формулы убран damage_dealt / damage_taken (т.е. приравнен к единице)</li>
+    <li>Количество побед в процентном соотношении</li>
+    <li>Только по очкам (с учетом timefactor)</li>
+  </ol>
+  <p>Если Вы считаете, что мне надо еще формулы для рассмотрения добавить - дайте мне знать.</p>
+  <p>Ниже приведены рейтинги игроков подсчитанные по разным формулам. Сами формулы (точнее их номера) можно выбирать с помощью выпадающего списка</p>
+  <p>Для удобства сравнения можете</p>
+  <ol>
+    <li>добавить еще таблицы с помощью кнопки рядом</li>
+    <li>кликнуть на строку с игроком, чтобы он высвечивался во всех таблицах</li>
+  </ol>
+  <p>Спасибо за внимание,<br>eugene</p>
+  </div>
+
+  <button onclick="copy_table(this)">Давай еще таблицу</button>
+
+  <div id="rating_tables">
+
+  <div class="rating_table_wrapper">
+    <select onchange="switch_data(this)">
+      <option value="original1.json">1</option>
+      <option value="original2.json">2</option>
+      <option value="removed_dgdt.json">3</option>
+      <option value="winrate.json">4</option>
+      <option value="score_only.json">5</option>
+    </select>
+  </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+var copy_table = function() {
+  var cloned = $(".rating_table_wrapper:last").clone();
+  cloned.find("tr").click( on_player_row_click );
+  $("#rating_tables").append( cloned );
+}
+
+var on_player_row_click = function(el) {
+  var player_id = $(el.target).parent().attr("data-player-id");
+  $(".rating_table_wrapper tr.selected").removeClass();
+  $(".rating_table_wrapper tr[data-player-id="+player_id+"]").addClass("selected");
+}
+
+var switch_data = function(el) {
+  var wrapper = $(el).parent();
+  wrapper.find("table").remove();
+  $.getJSON( el.value, function( data ) {
+    var tbody = $("<table></table>");
+    var counter = 1;
+    data.response.forEach( function(player, i) {
+      if (player.n < 10) return;
+
+      $("<tr></tr>")
+        .attr( "data-player-id", player._id )
+        .click( on_player_row_click )
+        .append( $("<td></td>").html( counter++ ) )
+        .append( $("<td></td>").html( player.name ) )
+        .append( $("<td></td>").html( player.rating.toFixed(2) ) )
+        .append( $("<td></td>").html( player.n ) )
+        .appendTo( tbody.appendTo(wrapper) );
+    });
+  });
+} 
+
+$(document).ready( function() {
+  switch_data( $(".rating_table_wrapper select").get(0) );
+});
+</script>
+</body>
+</html>
+<!-- тебя зовут Витя или Максим. Ну или Егор. -->

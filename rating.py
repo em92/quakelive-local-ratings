@@ -602,7 +602,7 @@ def count_player_match_perf( gametype, player_data ):
 
   return {
     "ad": ( damage_dealt/100 + frags_count + capture_count ) * time_factor,
-    "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor + win*300 ) / 2.35,
+    "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor ) / 2.35 + win*300,
     "tdm": ( 0.5 * (frags_count - deaths_count) + 0.004 * (damage_dealt - damage_taken) + 0.003 * damage_dealt ) * time_factor
   }[gametype]
 

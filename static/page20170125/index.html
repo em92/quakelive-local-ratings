@@ -57,6 +57,8 @@
     <li>Из классической формулы убран damage_dealt / damage_taken (т.е. приравнен к единице)</li>
     <li>Количество побед в процентном соотношении</li>
     <li>Только по очкам (с учетом timefactor)</li>
+    <li>avg_match_rating * (1 + (0.15 * (wins / matches - losses / matches))). avg_match_rating считается по формуле 1</li>
+    <li>avg_match_rating * (1 + (0.15 * (wins / matches - losses / matches))). avg_match_rating считается по формуле 2</li>
   </ol>
   <p>Если Вы считаете, что мне надо еще формулы для рассмотрения добавить - дайте мне знать.</p>
   <p>Ниже приведены рейтинги игроков подсчитанные по разным формулам. Сами формулы (точнее их номера) можно выбирать с помощью выпадающего списка</p>
@@ -79,6 +81,8 @@
       <option value="removed_dgdt.json">3</option>
       <option value="winrate.json">4</option>
       <option value="score_only.json">5</option>
+      <option value="1m.json">6</option>
+      <option value="2m.json">7</option>
     </select>
   </div>
   </div>
@@ -125,3 +129,4 @@ $(document).ready( function() {
 </body>
 </html>
 <!-- тебя зовут Витя или Максим. Ну или Егор. -->
+<!-- в этой странице больше не будет интересных паскалок. Уходи -->

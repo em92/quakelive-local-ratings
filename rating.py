@@ -289,7 +289,7 @@ def get_player_info(steam_id):
         result[ "_id" ] = str(row[0])
         result[ "name" ] = row[1]
         result[ "model" ] = row[2]
-        if gametype not in result:
+        if gametype not in result and row[4] != None:
           result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": [], "rank": row[9], "max_rank": row[10]}
         if row[8] != None:
           result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})

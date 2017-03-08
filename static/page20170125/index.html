@@ -17,7 +17,9 @@
   display: table;
 }
 
-#rating_table .rating_table_wrapper table {
+.rating_table_wrapper input,
+.rating_table_wrapper table {
+  width: 100%;
 }
 
 #rating_tables .rating_table_wrapper td {
@@ -29,7 +31,7 @@
 
 #rating_tables .rating_table_wrapper {
   display: table-cell;
-  width: 300px;
+  width: 500px;
 }
 
 .rating_table_wrapper tr.selected td {
@@ -52,13 +54,13 @@
   <p>Напомню, что рейтинг игрока считается как средний рейтинг за матчи. Рейтинг за матч высчитывается по определенной формуле.</p>
   <p>Предлагаемые формулы вычисления рейтинг игрока за матч обозначены номерами:</p>
   <ol>
-    <li>Классическая формула (http://bot.xurv.org/rating.pdf). За победу дается примерно 127 очков</li>
-    <li>Модифицированная классическая формула. За победу дается 300 очков</li>
-    <li>Из классической формулы убран damage_dealt / damage_taken (т.е. приравнен к единице)</li>
+    <li><img src="r1.png" /></li>
+    <li><img src="r2.png" /></li>
+    <li><img src="r3.png" /></li>
     <li>Количество побед в процентном соотношении</li>
     <li>Только по очкам (с учетом timefactor)</li>
-    <li>avg_match_rating * (1 + (0.15 * (wins / matches - losses / matches))). avg_match_rating считается по формуле 1</li>
-    <li>avg_match_rating * (1 + (0.15 * (wins / matches - losses / matches))). avg_match_rating считается по формуле 2</li>
+    <li><img src="r6.png" /></li>
+    <li><img src="r7.png" /></li>
   </ol>
   <p>Если Вы считаете, что мне надо еще формулы для рассмотрения добавить - дайте мне знать.</p>
   <p>Ниже приведены рейтинги игроков подсчитанные по разным формулам. Сами формулы (точнее их номера) можно выбирать с помощью выпадающего списка</p>
@@ -75,7 +77,13 @@
   <div id="rating_tables">
 
   <div class="rating_table_wrapper">
-    <select onchange="switch_data(this)">
+
+    <div class="formula_wrapper">
+      <input class="formula" type="text" value="avr" />
+      <button onClick="on_calculate_click(this)">Посчитать</button>
+    </div>
+
+    <select class="filename" onchange="switch_data(this)">
       <option value="original1.json">1</option>
       <option value="original2.json">2</option>
       <option value="removed_dgdt.json">3</option>
@@ -89,6 +97,8 @@
 </div>
 
 <script type="text/javascript">
+var ref = {};
+
 var copy_table = function() {
   var cloned = $(".rating_table_wrapper:last").clone();
   cloned.find("tr").click( on_player_row_click );
@@ -101,21 +111,81 @@ var on_player_row_click = function(el) {
   $(".rating_table_wrapper tr[data-player-id="+player_id+"]").addClass("selected");
 }
 
+var eval_formula = function( vars, formula, avr ) {
+  var c = vars.c;
+  var a = vars.a;
+  var d = vars.d;
+
+  var dd = vars.dd;
+  var dt = vars.dt;
+
+  var k = vars.k;
+  var de = vars.de;
+  var s = vars.s;
+
+  var w = vars.w;
+  var l = vars.l;
+  var m = vars.n;
+
+  return eval(formula).toFixed(2);
+}
+
+var check_formula = function( formula ) {
+  if ( formula.trim() == "" ) throw new Error("empty formula");
+
+  var tokens = formula.split(/\W+/);
+  tokens = tokens.filter( function(token) {
+    if (token == "") return false; // empty string
+    if ( isNaN( token ) == false ) return false; // numeric
+    return ['c', 'a', 'd', 'dd', 'dt', 'k', 'd', 's', 'w', 'l', 'm', 'avr'].indexOf(token) == -1;
+  });
+
+  if ( tokens.length == 0 ) return;
+  throw new Error("found invalid tokens: " + tokens.join(", "));
+}
+
+var on_calculate_click = function( el ) {
+  var wrapper = $(el).parent().parent();
+  var filename = wrapper.find(".filename").val();
+  update_table(wrapper, filename);
+}
+
 var switch_data = function(el) {
   var wrapper = $(el).parent();
+  update_table(wrapper, el.value);
+}
+
+var update_table = function(wrapper, filename) {
   wrapper.find("table").remove();
-  $.getJSON( el.value, function( data ) {
+  var formula = wrapper.find(".formula").val();
+console.log(formula);
+
+  try {
+    check_formula( formula );
+  } catch(e) {
+    alert(e.message);
+    return;
+  }
+
+  $.getJSON( filename, function( data ) {
     var tbody = $("<table></table>");
     var counter = 1;
-    data.response.forEach( function(player, i) {
-      if (player.n < 10) return;
 
+    data = data.response.filter( function( player ) {
+      return player > 9;
+    });
+
+    data = data.map( function( player ) {
+      player.rating = eval_formula( ref[player._id], formula, player.rating ) );
+    });
+
+    data.forEach( function(player, i) {
       $("<tr></tr>")
         .attr( "data-player-id", player._id )
         .click( on_player_row_click )
         .append( $("<td></td>").html( counter++ ) )
         .append( $("<td></td>").html( player.name ) )
-        .append( $("<td></td>").html( player.rating.toFixed(2) ) )
+        .append( $("<td></td>").html( eval_formula( ref[player._id], formula, player.rating ) ) )
         .append( $("<td></td>").html( player.n ) )
         .appendTo( tbody.appendTo(wrapper) );
     });
@@ -123,7 +193,10 @@ var switch_data = function(el) {
 } 
 
 $(document).ready( function() {
-  switch_data( $(".rating_table_wrapper select").get(0) );
+  $.getJSON( "ref.json", function( data ) {
+    ref = data.response;
+    switch_data( $(".rating_table_wrapper select").get(0) );
+  });
 });
 </script>
 </body>

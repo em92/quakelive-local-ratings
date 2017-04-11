@@ -22,6 +22,10 @@ For qllr itself:
 * Python 3.4 with pip
 * PostgreSQL 9.5
 
+For feeder:
+* Node.js 0.11.13
+* libzmq3
+
 ### Installation
 
 * [Instructions for Debian Jessie](README-Debian-Jessie.md)

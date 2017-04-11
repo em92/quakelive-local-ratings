@@ -1,27 +1,50 @@
-# quakelive-local-ratings
+# quakelive-local-ratings (qllr)
+
+QLLR is quake live match stats database that can be used to generate ratings for players.
+Usually it is used with [feeder](https://github.com/PredatH0r/XonStat/tree/master/feeder) from [Predath0r's](https://github.com/PredatH0r) [QLStats](https://github.com/PredatH0r/XonStat) repository in order to collect match data from online quake live servers.
+On quake live server side with minqlx [balance.py](https://github.com/MinoMino/minqlx-plugins/blob/master/balance.py) plugin it can be used to generate balanced teams.
+
+### Supported gametypes
+
+* Attack & Defend
+* Capture The Flag
+* Team Deathmatch
+
+### Differences between QLLR and [QLStats](http://qlstats.net/)
+
+* player ratings per map support
+* player ratings are based on average player perfomance for 50 last matches
+* limited supported gametypes
 
 ### Requirements
 
-* Python 3.4
+For qllr itself:
+* Python 3.4 with pip
 * PostgreSQL 9.5
+
+For feeder:
+* Node.js 0.11.13
+* libzmq3
 
 ### Installation
 
-* run following commands in shell:
+* [Instructions for Debian Jessie](README-Debian-Jessie.md)
+* [Instructions for Debian Stretch](README-Debian-Stretch.md)
+
+### qlds/minqlx configuration
+
+In server.cfg:
 
 ```
-git clone https://github.com/em92/quakelive-local-ratings
-cd ./quakelive-local-ratings
+seta qlx_balanceUrl "YOUR-HOST-HERE"
+seta qlx_balanceMinimumSuggestionDiff 0
+seta qlx_balanceApi "elo"
 ```
 
-* edit cfg.json to change "db_url" key to your link to your postgres db url;
+Make sure that http://YOUR-HOST-HERE/elo/666 is accessible.
 
-That's it. Now run
+If you want to used per-map ratings, make sure that you are using [modified balance.py plugin](https://github.com/em92/minqlx-plugins/blob/master/balance.py) and in server.cfg:
 
 ```
-./main.py
+seta qlx_balanceApi "elo_map"
 ```
-
-### ToDo
-
-PostgreSQL configuration

@@ -44,6 +44,9 @@ That's it. Now run in separate screen.
 ./main.py
 ```
 
+By default it is running on port 7081.
+
+
 ### Installing and configurating feeder
 
 ```
@@ -59,6 +62,8 @@ mkdir ql-match-jsons
 mkdir ql-match-jsons/errors
 sed -i.bak '/database/d' cfg.json
 ```
+
+Edit cfg.json. *xonstatSubmissionUrl* value must point to our qllr (example http://YOUR-HOST-HERE:7081/stats/submit).
 
 Now run in separate screen.
 ```

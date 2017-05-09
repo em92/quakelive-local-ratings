@@ -3,3 +3,4 @@ psycopg2
 requests
 beautifulsoup4
 pytz
+sqlalchemy

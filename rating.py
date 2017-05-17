@@ -5,6 +5,7 @@
 import sys
 import traceback
 import psycopg2
+import trueskill
 from urllib.parse import urlparse
 from config import cfg
 from sqlalchemy.exc import ProgrammingError
@@ -412,15 +413,6 @@ def get_map_id( cu, map_name, dont_create = False ):
     return cu.fetchone()[0]
 
 
-def get_player_rating( cu, steam_id, gametype_id ):
-  cu.execute( "SELECT rating FROM gametype_ratings WHERE steam_id = %s AND gametype_id = %s", [steam_id, gametype_id] )
-  try:
-    return cu.fetchone()[0]
-  except TypeError:
-    cu.execute("INSERT INTO gametype_ratings (steam_id, gametype_id, rating) VALUES (%s, %s, %s)", [steam_id, gametype_id, None])
-    return None
-
-
 def get_for_balance_plugin( steam_ids ):
   """
   Outputs player ratings compatible with balance.py plugin from miqlx-plugins
@@ -607,7 +599,7 @@ def count_player_match_perf( gametype, player_data ):
   }[gametype]
 
 
-def count_player_match_rating( gametype, all_players_data ):
+def count_multiple_players_match_perf( gametype, all_players_data ):
 
   result = {}
   temp = []
@@ -625,20 +617,8 @@ def count_player_match_rating( gametype, all_players_data ):
       sum_perf += perf
     if team not in result:
       result[ team ] = {}
-    result[ team ][ steam_id ] = { "perf": perf, "rating": perf }
+    result[ team ][ steam_id ] = { "perf": perf }
 
-  '''
-  if sum_perf < 1:
-    return result
-
-  player_count = len(temp)
-  for i in range(player_count):
-    team     = temp[i]["team"]
-    steam_id = temp[i]["steam_id"]
-    perf     = temp[i]["perf"]
-    rating   = perf/sum_perf*MAX_RATING
-    result[ team ][ steam_id ][ "rating" ] = rating
-  '''
   return result
 
 
@@ -648,48 +628,81 @@ def post_process(cu, match_id, gametype_id, match_timestamp):
 
   """
   global LAST_GAME_TIMESTAMPS
-  cu.execute("SELECT steam_id, team, match_rating FROM scoreboards WHERE match_rating IS NOT NULL AND match_id = %s", [match_id])
+  cu.execute("SELECT team2_score > team1_score, team2_score < team1_score FROM matches WHERE match_id = %s", [ match_id ])
+  row = cu.fetchone()
+  team_ranks = [ row[0], row[1] ]
 
+  cu.execute('''
+    SELECT
+      s.steam_id,
+      team,
+      s.match_perf,
+      gr.mean,
+      gr.deviation
+    FROM
+      scoreboards s
+    LEFT JOIN (
+      SELECT steam_id, mean, deviation
+      FROM gametype_ratings
+      WHERE gametype_id = %s
+    ) gr ON gr.steam_id = s.steam_id
+    WHERE
+      match_perf IS NOT NULL AND
+      match_id = %s
+    ''', [gametype_id, match_id])
+
+  team_ratings_old = [ [], [] ]
+  team_ratings_new = [ [], [] ]
+  team_steam_ids   = [ [], [] ]
   rows = cu.fetchall()
   for row in rows:
     steam_id     = row[0]
     team         = row[1]
-    match_rating = round(row[2], 2)
+    # match_perf   = row[2]
+    mean         = row[3]
+    deviation    = row[4]
 
-    old_rating = get_player_rating( cu, steam_id, gametype_id )
+    try:
+      team_ratings_old[ team - 1 ].append( trueskill.Rating( mean, deviation ) )
+      team_steam_ids  [ team - 1 ].append( steam_id )
+    except KeyError:
+      continue
 
-    cu.execute("UPDATE scoreboards SET old_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
+  team1_ratings, team2_ratings = trueskill.rate( team_ratings_old, ranks=team_ranks )
+  team_ratings_new = [team1_ratings, team2_ratings]
+
+  steam_ids   = team_steam_ids[0] + team_steam_ids[1]
+  new_ratings = team1_ratings + team2_ratings
+  old_ratings = team_ratings_old[0] + team_ratings_old[1]
+
+  assert len(steam_ids) == len(new_ratings) == len(old_ratings)
+
+  steam_ratings = {}
+  for i in range( len(steam_ids) ):
+    steam_id = steam_ids[i]
+
+    if steam_id in steam_ratings: # player played for both teams. Ignoring...
+      del steam_ratings[ steam_id ]
+
+    steam_ratings[ steam_id ] = {
+      "old": old_ratings[i],
+      "new": new_ratings[i],
+      "team": 1 if i < len(team1_ratings) else 2
+    }
+
+  for steam_id, ratings in steam_ratings.items():
+    cu.execute('''
+      UPDATE scoreboards
+      SET
+        old_mean = %s, old_deviation = %s,
+        new_mean = %s, new_deviation = %s
+      WHERE match_id = %s AND steam_id = %s AND team = %s
+    ''', [ratings["old"].mu, ratings["old"].sigma, ratings["new"].mu, ratings["new"].sigma, match_id, steam_id, ratings["team"]])
     assert cu.rowcount == 1
 
-    if old_rating == None:
-      new_rating = match_rating
-    else:
-      query_string = '''
-      SELECT
-        AVG(rating)
-      FROM (
-        SELECT
-          s.match_rating as rating
-        FROM
-          matches m
-        LEFT JOIN
-          scoreboards s on s.match_id = m.match_id
-        WHERE
-          s.steam_id = %s AND
-          m.gametype_id = %s AND
-          (m.post_processed = TRUE OR m.match_id = %s) AND
-          s.match_rating IS NOT NULL
-        ORDER BY m.timestamp DESC
-        LIMIT 50
-      ) t'''
-      cu.execute(query_string, [steam_id, gametype_id, match_id])
-      new_rating = cu.fetchone()[0]
-      assert new_rating != None
-
-    cu.execute("UPDATE scoreboards SET new_rating = %s WHERE match_id = %s AND steam_id = %s AND team = %s", [new_rating, match_id, steam_id, team])
-    assert cu.rowcount == 1
-
-    cu.execute("UPDATE gametype_ratings SET rating = %s, n = n + 1, last_played_timestamp = %s WHERE steam_id = %s AND gametype_id = %s", [new_rating, match_timestamp, steam_id, gametype_id])
+    cu.execute("UPDATE gametype_ratings SET mean = %s, deviation = %s, n = n + 1, last_played_timestamp = %s WHERE steam_id = %s AND gametype_id = %s", [ratings['new'].mu, ratings['new'].sigma, match_timestamp, steam_id, gametype_id])
+    if cu.rowcount == 0:
+      cu.execute("INSERT INTO gametype_ratings (steam_id, gametype_id, mean, deviation, last_played_timestamp, n) VALUES (%s, %s, %s, %s, %s, 1)", [steam_id, gametype_id, ratings['new'].mu, ratings['new'].sigma, match_timestamp])
     assert cu.rowcount == 1
 
   cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
@@ -753,7 +766,7 @@ def submit_match(data):
       cfg["run_post_process"]
     ])
 
-    player_match_ratings = count_player_match_rating( data["game_meta"]["G"], data["players"] )
+    player_match_ratings = count_multiple_players_match_perf( data["game_meta"]["G"], data["players"] )
     for player in data["players"]:
       player["P"] = int(player["P"])
       team = int(player["t"]) if "t" in player else 0
@@ -785,10 +798,9 @@ def submit_match(data):
         damage_taken,
         score,
         match_perf,
-        match_rating,
         alive_time,
         team
-      ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''', [
+      ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''', [
         match_id,
         player["P"],
         int( player["scoreboard-kills"] ),
@@ -797,7 +809,6 @@ def submit_match(data):
         int( player["scoreboard-destroyed"] ),
         int( player["scoreboard-score"] ),
         player_match_ratings[ team ][ player["P"] ][ "perf" ],
-        player_match_ratings[ team ][ player["P"] ][ "rating" ],
         int( player["alivetime"] ),
         team
       ])
@@ -1134,6 +1145,7 @@ def get_last_matches( gametype = None, page = 0 ):
   return result
 
 
+# ToDo: reimplement
 def reset_match_rating( gametype ):
   """
   Resets match ratings for gametype

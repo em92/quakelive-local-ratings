@@ -27,7 +27,7 @@ KEEPING_TIME = 60*60*24*30
 
 SQL_TOP_PLAYERS_BY_GAMETYPE = '''
   SELECT
-    p.steam_id, p.name, p.model, gr.rating, gr.n, count(*) OVER () AS count, ROW_NUMBER() OVER (ORDER BY gr.rating DESC) AS rank
+    p.steam_id, p.name, p.model, gr.mean AS rating, gr.n, count(*) OVER () AS count, ROW_NUMBER() OVER (ORDER BY gr.mean DESC) AS rank
   FROM
     players p
   LEFT JOIN gametype_ratings gr ON
@@ -36,7 +36,7 @@ SQL_TOP_PLAYERS_BY_GAMETYPE = '''
     gr.n >= 10 AND
     gr.last_played_timestamp > %s AND
     gr.gametype_id = %s
-  ORDER BY gr.rating DESC
+  ORDER BY gr.mean DESC
 '''
 
 def db_connect():
@@ -214,14 +214,14 @@ def export(gametype):
     cu = db.cursor()
     query = '''
     SELECT
-      p.steam_id, p.name, gr.rating, gr.n
+      p.steam_id, p.name, gr.mean, gr.n
     FROM
       players p
     LEFT JOIN gametype_ratings gr ON
       gr.steam_id = p.steam_id
     WHERE
       gr.gametype_id = %s
-    ORDER BY gr.rating DESC
+    ORDER BY gr.mean DESC
     '''
     cu.execute(query, [gametype_id])
 
@@ -260,20 +260,20 @@ def get_player_info(steam_id):
     result = {}
     for gametype, gametype_id in GAMETYPE_IDS.items():
       query = '''
-      SELECT 
-        p.steam_id, p.name, p.model, g.gametype_short, gr.rating, gr.n, m.match_id, m.timestamp, m.old_rating, rt.rank, rt.count
+      SELECT
+        p.steam_id, p.name, p.model, g.gametype_short, gr.mean, gr.n, m.match_id, m.timestamp, m.old_mean, rt.rank, rt.count
       FROM
         players p
       LEFT JOIN gametype_ratings gr ON gr.steam_id = p.steam_id
       LEFT JOIN gametypes g on gr.gametype_id = g.gametype_id
       LEFT JOIN (
         SELECT
-          m.match_id, m.timestamp, m.gametype_id, s.old_rating
+          m.match_id, m.timestamp, m.gametype_id, s.old_mean
         FROM
           matches m
         LEFT JOIN scoreboards s ON s.match_id = m.match_id
         WHERE
-          s.old_rating IS NOT NULL AND
+          s.old_mean IS NOT NULL AND
           s.steam_id = %s AND
           m.gametype_id = %s
         ORDER BY m.timestamp DESC
@@ -329,7 +329,7 @@ def get_player_info2( steam_id, gametype ):
 
     # player name, rating and games played
     cu.execute('''
-      SELECT json_build_object('name', p.name, 'rating', round(cast(gr.rating as numeric), 2), 'n', gr.n)
+      SELECT json_build_object('name', p.name, 'rating', round(cast(gr.mean as numeric), 2), 'n', gr.n)
       FROM players p
       LEFT JOIN gametype_ratings gr ON p.steam_id = gr.steam_id
       WHERE p.steam_id = %s AND gr.gametype_id = %s
@@ -442,7 +442,7 @@ def get_for_balance_plugin( steam_ids ):
 
     query = '''
     SELECT
-      steam_id, gametype_short, rating, n
+      steam_id, gametype_short, mean, n
     FROM
       gametype_ratings gr
     LEFT JOIN
@@ -528,10 +528,10 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
     for steam_id in steam_ids:
       query = '''
       SELECT
-        AVG(t.match_rating), MAX(t.n)
+        AVG(t.match_perf), MAX(t.n)
       FROM (
         SELECT
-          s.match_rating, count(*) OVER() AS n
+          s.match_perf, count(*) OVER() AS n
         FROM
           scoreboards s
         LEFT JOIN matches m ON m.match_id = s.match_id

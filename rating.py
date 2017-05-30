@@ -289,7 +289,7 @@ def get_player_info(steam_id):
         result[ "_id" ] = str(row[0])
         result[ "name" ] = row[1]
         result[ "model" ] = row[2]
-        if gametype not in result:
+        if gametype not in result and row[4] != None:
           result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": [], "rank": row[9], "max_rank": row[10]}
         if row[8] != None:
           result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})
@@ -602,7 +602,7 @@ def count_player_match_perf( gametype, player_data ):
 
   return {
     "ad": ( damage_dealt/100 + frags_count + capture_count ) * time_factor,
-    "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor + win*300 ) / 2.35,
+    "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor ) / 2.35 + win*300,
     "tdm": ( 0.5 * (frags_count - deaths_count) + 0.004 * (damage_dealt - damage_taken) + 0.003 * damage_dealt ) * time_factor
   }[gametype]
 

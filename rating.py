@@ -1145,10 +1145,9 @@ def get_last_matches( gametype = None, page = 0 ):
   return result
 
 
-# ToDo: reimplement
-def reset_match_rating( gametype ):
+def reset_gametype_ratings( gametype ):
   """
-  Resets match ratings for gametype
+  Resets ratings for gametype
   """
   if gametype not in GAMETYPE_IDS:
     print("gametype is not accepted: " + gametype)
@@ -1162,7 +1161,7 @@ def reset_match_rating( gametype ):
     cw = db.cursor()
 
     cw.execute('UPDATE matches SET post_processed = FALSE WHERE gametype_id = %s', [gametype_id])
-    cw.execute('UPDATE gametype_ratings SET rating = NULL, n = 0 WHERE gametype_id = %s', [gametype_id])
+    cw.execute('UPDATE gametype_ratings SET mean = %s, deviation = %s, n = 0 WHERE gametype_id = %s', [trueskill.MU, trueskill.SIGMA, gametype_id])
     scoreboard_query = '''
     SELECT
       s.match_id,
@@ -1211,16 +1210,15 @@ def reset_match_rating( gametype ):
           player['win'] = 1
         all_players_data.append(player.copy())
       print(match_id)
-      player_match_ratings = count_player_match_rating( gametype, all_players_data )
+      player_match_ratings = count_multiple_players_match_perf( gametype, all_players_data )
 
       for player in all_players_data:
         player["P"] = int(player["P"])
         team = int(player["t"]) if "t" in player else 0
 
         cw.execute(
-          'UPDATE scoreboards SET match_perf = %s, match_rating = %s, new_rating = NULL, old_rating = NULL WHERE match_id = %s AND team = %s AND steam_id = %s', [
+          'UPDATE scoreboards SET match_perf = %s, new_mean = NULL, old_mean = NULL, new_deviation = NULL, old_deviation = NULL WHERE match_id = %s AND team = %s AND steam_id = %s', [
             player_match_ratings[ team ][ player["P"] ][ "perf" ],
-            player_match_ratings[ team ][ player["P"] ][ "rating" ],
             match_id, team, player["P"]
           ]
         )

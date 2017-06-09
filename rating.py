@@ -668,6 +668,13 @@ def post_process(cu, match_id, gametype_id, match_timestamp):
     except KeyError:
       continue
 
+  if len( team_ratings_old[0] ) == 0 or len( team_ratings_old[1] ) == 0:
+    cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
+    assert cu.rowcount == 1
+
+    LAST_GAME_TIMESTAMPS[ gametype_id ] = match_timestamp
+    return
+
   team1_ratings, team2_ratings = trueskill.rate( team_ratings_old, ranks=team_ranks )
   team_ratings_new = [team1_ratings, team2_ratings]
 

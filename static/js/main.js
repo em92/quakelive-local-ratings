@@ -1,4 +1,4 @@
-var GAMETYPES_AVAILABLE = ['ad', 'ctf', 'tdm'];
+var GAMETYPES_AVAILABLE = ['ad', 'ctf', 'tdm', 'tdm2v2'];
 
 function drawRatings(self) {
   var gametype = this.params['gametype'] ? this.params['gametype'].toLowerCase() : "undefined";

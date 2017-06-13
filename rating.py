@@ -22,6 +22,7 @@ MIN_PLAYER_COUNT_TO_RATE = {
   "ctf": cfg['min_player_count_in_match_to_rate_ctf'],
   "tdm": cfg['min_player_count_in_match_to_rate_tdm']
 }
+MIN_PLAYER_COUNT_TO_RATE["tdm2v2"] = 4
 MAX_RATING = 1000
 KEEPING_TIME = 60*60*24*30
 
@@ -130,6 +131,10 @@ def is_instagib(data):
     return all( map( lambda weapon: is_player_using_weapon( player, weapon), ['mg', 'sg', 'gl', 'rl', 'lg', 'pg', 'hmg', 'bfg', 'cg', 'ng', 'pm', 'gh'] ) )
 
   return all( map ( lambda player: is_player_using_railgun_and_gauntlet_only( player ), data['players'] ) )
+
+
+def is_tdm2v2(data):
+  return data["game_meta"]["G"] == "tdm" and len(data["players"]) == 4
 
 
 def get_list(gametype, page):
@@ -595,6 +600,7 @@ def count_player_match_perf( gametype, player_data ):
   return {
     "ad": ( damage_dealt/100 + frags_count + capture_count ) * time_factor,
     "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor ) / 2.35 + win*300,
+    "tdm2v2": ( 0.5 * (frags_count - deaths_count) + 0.004 * (damage_dealt - damage_taken) + 0.003 * damage_dealt ) * time_factor,
     "tdm": ( 0.5 * (frags_count - deaths_count) + 0.004 * (damage_dealt - damage_taken) + 0.003 * damage_dealt ) * time_factor
   }[gametype]
 
@@ -739,6 +745,9 @@ def submit_match(data):
 
     if is_instagib(data):
       data["game_meta"]["G"] = "i" + data["game_meta"]["G"]
+
+    if is_tdm2v2(data):
+      data["game_meta"]["G"] = "tdm2v2"
 
     match_id = data["game_meta"]["I"]
 

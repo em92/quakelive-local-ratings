@@ -8,7 +8,7 @@
 
 var match_id = $("#xonborder .note").html().trim();
 
-$.get("http://vds2.eugene24.ru:7083/scoreboard/" + match_id, function( data ) {
+$.get("http://stats.eugenemolotov.ru:7083/scoreboard/" + match_id, function( data ) {
   if (data.ok == false) return;
   
   var steam_ids = data.steam_ids;

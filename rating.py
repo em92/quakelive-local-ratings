@@ -489,6 +489,8 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
 
   Args:
     steam_ids (list): array of steam ids
+    gametype (str): short gametype
+    mapname (str): short mapname
 
   Returns:
     on success:
@@ -505,17 +507,6 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
     }
   """
   players = {}
-  for player in get_for_balance_plugin( steam_ids )["players"]:
-    steam_id = player["steamid"]
-    if gametype in player:
-      players[ steam_id ] = {
-        "steamid": steam_id,
-        gametype: {
-          "games": 0,
-          "elo": player[gametype]["elo"]
-        }
-      }
-  
   result = []
   try:
 
@@ -530,21 +521,38 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
     if map_id == None:
       raise KeyError("Unknown map: " + mapname)
 
-    for steam_id in steam_ids:
-      query = '''
+    query_template = '''
       SELECT
-        AVG(t.match_perf), MAX(t.n)
+        AVG(t.match_rating), MAX(t.n)
       FROM (
         SELECT
-          s.match_perf, count(*) OVER() AS n
+          s.match_perf as match_rating, count(*) OVER() AS n
         FROM
           scoreboards s
         LEFT JOIN matches m ON m.match_id = s.match_id
-        WHERE s.steam_id = %s AND m.gametype_id = %s AND m.map_id = %s
+        WHERE s.steam_id = %s AND m.gametype_id = %s {CLAUSE}
         ORDER BY m.timestamp DESC
         LIMIT 50
-        ) t;'''
-      cu.execute( query, [steam_id, gametype_id, map_id] )
+      ) t;'''
+
+    query_common = query_template.replace("{CLAUSE}", "")
+    query_by_map = query_template.replace("{CLAUSE}", "AND m.map_id = %s")
+
+    # getting common perfomance
+    for steam_id in steam_ids:
+      cu.execute( query_common, [steam_id, gametype_id] )
+      row = cu.fetchone()
+      if row[0] == None:
+        continue
+      steam_id = str(steam_id)
+      rating   = round(row[0], 2)
+      if steam_id not in players:
+        players[ steam_id ] = {"steamid": steam_id}
+      players[ steam_id ][ gametype ] = {"games": 0, "elo": rating}
+
+    # getting map perfomance
+    for steam_id in steam_ids:
+      cu.execute( query_by_map, [steam_id, gametype_id, map_id] )
       row = cu.fetchone()
       if row[0] == None:
         continue

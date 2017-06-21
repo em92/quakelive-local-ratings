@@ -116,9 +116,9 @@ def http_scoreboard_match_id(match_id):
   return jsonify(**rating.get_scoreboard(match_id))
 
 
-@app.route("/last_matches")
-@app.route("/last_matches/<gametype>")
-@app.route("/last_matches/<gametype>/<int:page>")
+@app.route("/last_matches.json")
+@app.route("/last_matches/<gametype>.json")
+@app.route("/last_matches/<gametype>/<int:page>.json")
 def http_last_matches(gametype = None, page = 0):
   return jsonify(**rating.get_last_matches( gametype, page ))
 

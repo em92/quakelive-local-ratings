@@ -54,7 +54,7 @@ function drawLastMatches(self) {
     return;
   }
 
-  $.get('/last_matches' + (gametype ? "/" + gametype : ""))
+  $.get('/last_matches' + (gametype ? "/" + gametype : "") + ".json")
   .done( function( data ) {
     self.render('templates/index.html', {list: data.matches}).replace( self.$element() );
   });

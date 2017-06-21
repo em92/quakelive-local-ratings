@@ -3,12 +3,14 @@
 
 from config import cfg
 from flask import Flask, request, jsonify, redirect, url_for, make_response
+from werkzeug.contrib.fixers import ProxyFix
 import rating
 import sys
 from uuid import UUID
 
 RUN_POST_PROCESS = cfg['run_post_process']
 app = Flask(__name__, static_url_path='')
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
 @app.route('/')

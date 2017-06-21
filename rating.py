@@ -1135,7 +1135,14 @@ def get_last_matches( gametype = None, page = 0 ):
 
     query = '''
     SELECT
-      json_build_object('match_id', m.match_id, 'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'), 'gametype', g.gametype_short, 'map', mm.map_name )
+      json_build_object(
+        'match_id', m.match_id,
+        'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
+        'gametype', g.gametype_short,
+        'team1_score', m.team1_score,
+        'team2_score', m.team2_score,
+        'map', mm.map_name
+      )
     FROM
       matches m
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id

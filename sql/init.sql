@@ -16,7 +16,9 @@ CREATE TABLE gametypes (
 INSERT INTO gametypes (gametype_id, gametype_name, gametype_short) VALUES
   (1, 'Attack & Defend',  'ad'),
   (2, 'Capture the Flag', 'ctf'),
-  (3, 'Team Deathmatch',  'tdm');
+  (3, 'Team Deathmatch',  'tdm'),
+  (4, 'Team Deathmatch (2v2)',  'tdm2v2');
+
 
 CREATE TABLE weapons (
   weapon_id SMALLINT,
@@ -64,7 +66,8 @@ INSERT INTO medals (medal_id, medal_name, medal_short) VALUES
 CREATE TABLE gametype_ratings (
   steam_id BIGINT,
   gametype_id SMALLINT,
-  rating REAL,
+  mean REAL,
+  deviation REAL,
   n BIGINT DEFAULT 0,
   last_played_timestamp BIGINT DEFAULT 0,
   FOREIGN KEY (steam_id)    REFERENCES players(steam_id),
@@ -115,9 +118,10 @@ CREATE TABLE scoreboards (
   score SMALLINT,
   alive_time INTEGER,
   match_perf REAL,
-  match_rating REAL,
-  old_rating REAL DEFAULT NULL,
-  new_rating REAL DEFAULT NULL,
+  old_mean REAL DEFAULT NULL,
+  old_deviation REAL DEFAULT NULL,
+  new_mean REAL DEFAULT NULL,
+  new_deviation REAL DEFAULT NULL,
   FOREIGN KEY (match_id) REFERENCES matches(match_id),
   FOREIGN KEY (steam_id) REFERENCES players(steam_id),
   PRIMARY KEY (match_id, steam_id, team)

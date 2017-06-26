@@ -5,6 +5,7 @@
       <th>Gametype</th>
       <th>Map</th>
       <th>Link</th>
+      <th>Scores</th>
     </tr></thead>
     <tbody><% list.forEach( function( item ) { %><tr>
       <td class="col-md-2"><%= item.datetime %></td>
@@ -14,6 +15,9 @@
       <td class="col-md-3"><%= item.map %></td>
       <td class="col-md-1">
         <a href="http://qlstats.net/game/<%= item.match_id %>">link</a>
+      </td>
+      <td class="col-md-1">
+        <%= item.team1_score %> : <%= item.team2_score %>
       </td>
     </tr><% }); %></tbody>
   </table>

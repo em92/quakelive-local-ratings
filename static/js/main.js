@@ -1,4 +1,4 @@
-var GAMETYPES_AVAILABLE = ['ad', 'ctf', 'tdm'];
+var GAMETYPES_AVAILABLE = ['ad', 'ctf', 'tdm', 'tdm2v2'];
 
 function drawRatings(self) {
   var gametype = this.params['gametype'] ? this.params['gametype'].toLowerCase() : "undefined";
@@ -54,7 +54,7 @@ function drawLastMatches(self) {
     return;
   }
 
-  $.get('/last_matches' + (gametype ? "/" + gametype : ""))
+  $.get('/last_matches' + (gametype ? "/" + gametype : "") + ".json")
   .done( function( data ) {
     self.render('templates/index.html', {list: data.matches}).replace( self.$element() );
   });

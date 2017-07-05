@@ -119,10 +119,23 @@ def generate_scoreboard(gametype, weapon_data, block, win):
 
 
 def get_weapon_stats(soup):
-  block = soup.select("#chartRow script")[0].decode_contents(formatter="html")
   steam_ids = map( lambda x: get_steam_id( x['href'].replace("/player/", "") ), soup.select("#accuracyTable a") )
   result = {}
-  
+
+  try:
+    block = soup.select("#chartRow script")[0].decode_contents(formatter="html")
+  except IndexError:
+    steam_ids = map( lambda x: get_steam_id( x['href'].replace("/player/", "") ), soup.select(".player-nick a") )
+    for steam_id in steam_ids:
+      result[ steam_id ] = {}
+      for weapon in ['gt', 'mg', 'sg', 'gl', 'rl', 'lg', 'rg', 'pg', 'hmg']:
+        result[ steam_id ][ weapon ] = {
+          "hits": "0",
+          "shots": "0",
+          "frags": "0"
+        }
+    return result
+
   beg = 0
   for steam_id in steam_ids:
     beg = block.index("var p = weaponStats[i++] = {};", beg)

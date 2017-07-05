@@ -5,6 +5,7 @@
       <th>Nickname</th>
       <th>Rating</th>
       <th>Match Count</th>
+      <th>Win Ratio</th>
     </tr></thead>
     <tbody><% list.forEach( function( item ) { %><tr>
       <td class="col-md-1"><%= item.rank %></td>
@@ -16,6 +17,7 @@
       </td>
       <td class="col-md-1"><%= item.rating %></td>
       <td class="col-md-1"><%= item.n %></td>
+      <td class="col-md-1"><%= item.win_ratio %></td>
     </tr><% }); %></tbody>
   </table>
   <span class="pagination">&nbsp; <% for (var i=0; i<page_count; i++) {

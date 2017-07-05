@@ -168,6 +168,32 @@ def get_list(gametype, page):
         })
       player_count = row[5]
 
+    steam_ids = list( map(
+      lambda player: player['_id'],
+      result
+    ) )
+    cu.execute('''SELECT
+        s.steam_id,
+        CEIL(AVG(CASE
+          WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 1
+          WHEN m.team2_score > m.team1_score AND s.team = 2 THEN 1
+          ELSE 0
+        END)*100)
+      FROM
+        matches m
+      LEFT JOIN scoreboards s ON s.match_id = m.match_id
+      WHERE
+        m.gametype_id = %s AND s.steam_id IN %s
+      GROUP BY s.steam_id;
+    ''', [gametype_id, tuple(steam_ids)])
+
+    for row in cu.fetchall():
+      try:
+        result_index = steam_ids.index( str(row[0]) )
+        result[ result_index ][ "win_ratio" ] = int(row[1])
+      except ValueError:
+        pass # must not happen
+
     result = {
       "ok": True,
       "response": result,

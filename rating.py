@@ -543,10 +543,6 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
     except KeyError:
       raise Exception("Invalid gametype: " + gametype)
 
-    map_id = get_map_id(cu, mapname, dont_create = True)
-    if map_id == None:
-      raise KeyError("Unknown map: " + mapname)
-
     query_template = '''
       SELECT
         AVG(t.match_rating), MAX(t.n)
@@ -575,6 +571,11 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
       if steam_id not in players:
         players[ steam_id ] = {"steamid": steam_id}
       players[ steam_id ][ gametype ] = {"games": 0, "elo": rating}
+
+    # checking, if map is played ever?
+    map_id = get_map_id(cu, mapname, dont_create = True)
+    if map_id == None:
+      raise KeyError("Unknown map: " + mapname)
 
     # getting map perfomance
     for steam_id in steam_ids:

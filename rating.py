@@ -23,6 +23,12 @@ MIN_PLAYER_COUNT_TO_RATE = {
   "tdm": cfg['min_player_count_in_match_to_rate_tdm']
 }
 MIN_PLAYER_COUNT_TO_RATE["tdm2v2"] = 4
+USE_AVG_PERF = {
+  "ad":      cfg['use_avg_perf_ad'],
+  "ctf":     cfg['use_avg_perf_ctf'],
+  "tdm":     cfg['use_avg_perf_tdm'],
+  "tdm2v2":  cfg['use_avg_perf_tdm2v2']
+}
 MAX_RATING = 1000
 KEEPING_TIME = 60*60*24*30
 
@@ -663,9 +669,64 @@ def count_multiple_players_match_perf( gametype, all_players_data ):
   return result
 
 
-def post_process(cu, match_id, gametype_id, match_timestamp):
+def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
   """
-  Updates players' ratings for match_id. I call this post processing
+  Updates players' ratings after playing match_id (using avg. perfomance)
+
+  """
+  global LAST_GAME_TIMESTAMPS
+  cu.execute("SELECT s.steam_id, team, match_perf, gr.mean FROM scoreboards s LEFT JOIN gametype_ratings gr ON gr.steam_id = s.steam_id AND gr.gametype_id = %s WHERE match_perf IS NOT NULL AND match_id = %s", [gametype_id, match_id])
+
+  rows = cu.fetchall()
+  for row in rows:
+    steam_id   = row[0]
+    team       = row[1]
+    match_perf = row[2]
+    old_rating = row[3]
+
+    cu.execute("UPDATE scoreboards SET old_mean = %s, old_deviation = 0 WHERE match_id = %s AND steam_id = %s AND team = %s", [old_rating, match_id, steam_id, team])
+    assert cu.rowcount == 1
+
+    if old_rating == None:
+      new_rating = match_perf
+    else:
+      query_string = '''
+      SELECT
+        AVG(rating)
+      FROM (
+        SELECT
+          s.match_perf as rating
+        FROM
+          matches m
+        LEFT JOIN
+          scoreboards s on s.match_id = m.match_id
+        WHERE
+          s.steam_id = %s AND
+          m.gametype_id = %s AND
+          (m.post_processed = TRUE OR m.match_id = %s) AND
+          s.match_perf IS NOT NULL
+        ORDER BY m.timestamp DESC
+        LIMIT 50
+      ) t'''
+      cu.execute(query_string, [steam_id, gametype_id, match_id])
+      new_rating = cu.fetchone()[0]
+      assert new_rating != None
+
+    cu.execute("UPDATE scoreboards SET new_mean = %s, new_deviation = 0 WHERE match_id = %s AND steam_id = %s AND team = %s", [new_rating, match_id, steam_id, team])
+    assert cu.rowcount == 1
+
+    cu.execute("UPDATE gametype_ratings SET mean = %s, deviation = 0, n = n + 1, last_played_timestamp = %s WHERE steam_id = %s AND gametype_id = %s", [new_rating, match_timestamp, steam_id, gametype_id])
+    assert cu.rowcount == 1
+
+  cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])
+  assert cu.rowcount == 1
+
+  LAST_GAME_TIMESTAMPS[ gametype_id ] = match_timestamp
+
+
+def post_process_trueskill(cu, match_id, gametype_id, match_timestamp):
+  """
+  Updates players' ratings after playing match_id (using trueskill)
 
   """
   global LAST_GAME_TIMESTAMPS
@@ -757,6 +818,13 @@ def post_process(cu, match_id, gametype_id, match_timestamp):
   assert cu.rowcount == 1
 
   LAST_GAME_TIMESTAMPS[ gametype_id ] = match_timestamp
+
+
+def post_process(cu, match_id, gametype_id, match_timestamp):
+  if USE_AVG_PERF[ gametype_id ]:
+    return post_process_avg_perf(cu, match_id, gametype_id, match_timestamp)
+  else:
+    return post_process_trueskill(cu, match_id, gametype_id, match_timestamp)
 
 
 def submit_match(data):
@@ -1298,6 +1366,7 @@ cu = db.cursor()
 cu.execute("SELECT gametype_id, gametype_short FROM gametypes")
 for row in cu.fetchall():
   GAMETYPE_IDS[ row[1] ] = row[0]
+  USE_AVG_PERF[ row[0] ] = USE_AVG_PERF[ row[1] ]
 
 cu.execute("SELECT medal_id, medal_short FROM medals")
 for row in cu.fetchall():

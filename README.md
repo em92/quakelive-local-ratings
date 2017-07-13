@@ -12,8 +12,8 @@ On quake live server side with minqlx [balance.py](https://github.com/MinoMino/m
 
 ### Differences between QLLR and [QLStats](http://qlstats.net/)
 
-* common player ratings support (based on TrueSkill)
-* player ratings per map support (based on average player perfomance for 50 last matches)
+* common player ratings support (based on TrueSkill or optinonally average player performance)
+* player ratings per map support (based on average player perfomance)
 * limited supported gametypes
 
 ### Requirements

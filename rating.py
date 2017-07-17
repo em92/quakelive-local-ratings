@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 
+import re
 import sys
 import traceback
 import psycopg2
@@ -205,6 +206,83 @@ def get_list(gametype, page):
       "ok": True,
       "response": result,
       "page_count": ceil(player_count / cfg["player_count_per_page"])
+    }
+  except Exception as e:
+    db.rollback()
+    traceback.print_exc(file=sys.stderr)
+    result = {
+      "ok": False,
+      "message": type(e).__name__ + ": " + str(e)
+    }
+  finally:
+    cu.close()
+
+  return result
+
+
+def generate_user_ratings(gametype, formula):
+  tokens = re.findall("\w+", formula)
+  valid_tokens = ["s", "k", "d", "dd", "dt", "mc", "ma", "md", "t"]
+
+  try:
+    gametype_id = GAMETYPE_IDS[ gametype ];
+  except KeyError:
+    return {
+      "ok": False,
+      "message": "gametype is not supported: " + gametype
+    }
+
+  invalid_tokens = list( filter( lambda item: item not in valid_tokens and item.isnumeric() == False, tokens ) )
+  if len(invalid_tokens) > 0:
+    return {
+      "ok": False,
+      "message": "invalid tokens " + ", ".join( invalid_tokens )
+    }
+
+  try:
+    cu = db.cursor()
+
+    rows = cu.execute('''
+SELECT
+  steam_id,
+  COUNT(steam_id),
+  AVG( ''' + formula + ''' ) as rating,
+  MIN(name)
+FROM (
+  SELECT
+    m.match_id,
+    s.steam_id,
+    p.name,
+    s.team,
+    s.score AS s,
+    s.frags AS k,
+    s.deaths AS d,
+    s.damage_dealt AS dd,
+    s.damage_taken AS dt,
+    (select count from scoreboards_medals sm where sm.medal_id = 3 and s.steam_id = sm.steam_id and s.team = sm.team and s.match_id = sm.match_id ) as mc,
+    (select count from scoreboards_medals sm where sm.medal_id = 2 and s.steam_id = sm.steam_id and s.team = sm.team and s.match_id = sm.match_id ) as ma,
+    (select count from scoreboards_medals sm where sm.medal_id = 5 and s.steam_id = sm.steam_id and s.team = sm.team and s.match_id = sm.match_id ) as md,
+    s.alive_time AS t,
+    m.timestamp, rank() over (partition by s.steam_id order by m.timestamp desc) as rank
+  FROM matches m
+  LEFT JOIN scoreboards s on s.match_id = m.match_id
+  LEFT JOIN players p ON p.steam_id = s.steam_id
+  WHERE m.gametype_id = 2 and s.alive_time > 60 order by m.timestamp desc
+) t WHERE rank <= 50 GROUP BY steam_id HAVING MAX(rank) > 10 ORDER by rating DESC;
+  ''')
+
+    result = []
+    for row in cu.fetchall():
+      result.append({
+        "_id": row[0],
+        "n": row[1],
+        "rating": float(round(row[2], 2)),
+        "name": row[3]
+      })
+
+    result = {
+      "ok": True,
+      "message": result
     }
   except Exception as e:
     db.rollback()

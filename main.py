@@ -125,6 +125,11 @@ def http_last_matches(gametype = None, page = 0):
   return jsonify(**rating.get_last_matches( gametype, page ))
 
 
+@app.route("/generate_user_ratings/<gametype>.json")
+def http_generate_ratings(gametype):
+  return jsonify(**rating.generate_user_ratings(gametype, request.query_string.decode("utf-8")))
+
+
 @app.route("/stats/submit", methods=["POST"])
 def http_stats_submit():
   # https://github.com/PredatH0r/XonStat/blob/cfeae1b0c35c48a9f14afa98717c39aa100cde59/feeder/feeder.node.js#L989

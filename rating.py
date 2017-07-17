@@ -34,7 +34,7 @@ KEEPING_TIME = 60*60*24*30
 
 SQL_TOP_PLAYERS_BY_GAMETYPE = '''
   SELECT
-    p.steam_id, p.name, p.model, gr.mean AS rating, gr.n, count(*) OVER () AS count, ROW_NUMBER() OVER (ORDER BY gr.mean DESC) AS rank
+    p.steam_id, p.name, p.model, gr.mean AS rating, gr.deviation, gr.n, count(*) OVER () AS count, ROW_NUMBER() OVER (ORDER BY gr.mean DESC) AS rank
   FROM
     players p
   LEFT JOIN gametype_ratings gr ON
@@ -169,10 +169,11 @@ def get_list(gametype, page):
           "name": row[1],
           "model": (row[2] + ("/default" if row[2].find("/") == -1 else "")).lower(),
           "rating": round(row[3], 2),
-          "n": row[4],
-          "rank": row[6]
+          "rd": round(row[4], 2),
+          "n": row[5],
+          "rank": row[7]
         })
-      player_count = row[5]
+      player_count = row[6]
 
     steam_ids = list( map(
       lambda player: player['_id'],

@@ -15,7 +15,7 @@
           <%! renderQLNickname(item.name) %>
         </a>
       </td>
-      <td class="col-md-1"><%= item.rating %></td>
+      <td class="col-md-1"><%= item.rating %> &plusmn; <%= item.rd %></td>
       <td class="col-md-1"><%= item.n %></td>
       <td class="col-md-1"><%= item.win_ratio %></td>
     </tr><% }); %></tbody>

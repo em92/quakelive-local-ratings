@@ -220,6 +220,16 @@ def get_list(gametype, page):
   return result
 
 
+def clean_name(name):
+  for s in ['0', '1', '2', '3', '4', '5', '6', '7']:
+    name = name.replace("^" + s, "")
+
+  if name == "":
+    name = "unnamed"
+
+  return name
+
+
 def generate_user_ratings(gametype, formula):
   tokens = re.findall("[a-z]+", formula)
   valid_tokens = ["s", "k", "d", "dg", "dd", "dt", "mc", "ma", "md", "t", "w"]
@@ -283,7 +293,7 @@ FROM (
         "_id": row[0],
         "n": row[1],
         "rating": float(round(row[2], 2)),
-        "name": row[3]
+        "name": clean_name(row[3])
       })
 
     result = {
@@ -304,15 +314,6 @@ FROM (
 
 
 def export(gametype):
-
-  def clean_name(name):
-    for s in ['0', '1', '2', '3', '4', '5', '6', '7']:
-      name = name.replace("^" + s, "")
-
-    if name == "":
-      name = "unnamed"
-
-    return name
 
   try:
     gametype_id = GAMETYPE_IDS[ gametype ];

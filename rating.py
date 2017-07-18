@@ -221,8 +221,8 @@ def get_list(gametype, page):
 
 
 def generate_user_ratings(gametype, formula):
-  tokens = re.findall("\w+", formula)
-  valid_tokens = ["s", "k", "d", "dd", "dt", "mc", "ma", "md", "t"]
+  tokens = re.findall("[a-z]+", formula)
+  valid_tokens = ["s", "k", "d", "dg", "dd", "dt", "mc", "ma", "md", "t", "w"]
 
   try:
     gametype_id = GAMETYPE_IDS[ gametype ];
@@ -257,12 +257,18 @@ FROM (
     s.score AS s,
     s.frags AS k,
     s.deaths AS d,
+    s.damage_dealt AS dg,
     s.damage_dealt AS dd,
     s.damage_taken AS dt,
     (select count from scoreboards_medals sm where sm.medal_id = 3 and s.steam_id = sm.steam_id and s.team = sm.team and s.match_id = sm.match_id ) as mc,
     (select count from scoreboards_medals sm where sm.medal_id = 2 and s.steam_id = sm.steam_id and s.team = sm.team and s.match_id = sm.match_id ) as ma,
     (select count from scoreboards_medals sm where sm.medal_id = 5 and s.steam_id = sm.steam_id and s.team = sm.team and s.match_id = sm.match_id ) as md,
     s.alive_time AS t,
+    CASE
+      WHEN s.team = 1 AND m.team1_score > m.team2_score THEN 1
+      WHEN s.team = 2 AND m.team2_score > m.team1_score THEN 1
+      ELSE 0
+    END AS w,
     m.timestamp, rank() over (partition by s.steam_id order by m.timestamp desc) as rank
   FROM matches m
   LEFT JOIN scoreboards s on s.match_id = m.match_id

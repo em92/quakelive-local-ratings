@@ -3,6 +3,7 @@
 
 from config import cfg
 from flask import Flask, request, jsonify, redirect, url_for, make_response
+from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
 import rating
 import sys
@@ -127,7 +128,7 @@ def http_last_matches(gametype = None, page = 0):
 
 @app.route("/generate_user_ratings/<gametype>.json")
 def http_generate_ratings(gametype):
-  return jsonify(**rating.generate_user_ratings(gametype, request.query_string.decode("utf-8")))
+  return jsonify(**rating.generate_user_ratings(gametype, unquote(request.query_string.decode("utf-8"))))
 
 
 @app.route("/stats/submit", methods=["POST"])

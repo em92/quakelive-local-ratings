@@ -795,6 +795,8 @@ def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
     assert cu.rowcount == 1
 
     cu.execute("UPDATE gametype_ratings SET mean = %s, deviation = 0, n = n + 1, last_played_timestamp = %s WHERE steam_id = %s AND gametype_id = %s", [new_rating, match_timestamp, steam_id, gametype_id])
+    if cu.rowcount == 0:
+      cu.execute("INSERT INTO gametype_ratings (steam_id, gametype_id, mean, deviation, last_played_timestamp, n) VALUES (%s, %s, %s, 0, %s, 1)", [steam_id, gametype_id, new_rating, match_timestamp])
     assert cu.rowcount == 1
 
   cu.execute("UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id])

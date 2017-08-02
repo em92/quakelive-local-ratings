@@ -48,3 +48,17 @@ If you want to used per-map ratings, make sure that you are using [modified bala
 ```
 seta qlx_balanceApi "elo_map"
 ```
+
+### Import/export database
+
+#### Export database
+
+```
+./dump_backup.py [-c cfg.json]
+```
+It will generate .tar.gz file as database backup.
+
+#### Import database
+```
+./restore_backup.py [-c cfg.json] filename.tar.gz
+```

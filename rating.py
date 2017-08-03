@@ -435,28 +435,22 @@ def get_player_info(steam_id):
   return result
 
 
-def get_player_info2( steam_id, gametype ):
+def get_player_info2( steam_id ):
 
-  result = {"ok": True, "player": {}}
-
-  try:
-    gametype_id = GAMETYPE_IDS[ gametype ];
-  except KeyError:
-    return {
-      "ok": False,
-      "message": "gametype is not supported: " + gametype
-    }
+  result = {}
 
   try:
     cu = db.cursor()
 
     # player name, rating and games played
     cu.execute('''
-      SELECT json_build_object('name', p.name, 'rating', round(cast(gr.mean as numeric), 2), 'n', gr.n)
+      SELECT p.name, gr.mean, gr.n, g.gametype_short, g.gametype_name
       FROM players p
       LEFT JOIN gametype_ratings gr ON p.steam_id = gr.steam_id
-      WHERE p.steam_id = %s AND gr.gametype_id = %s
-    ''', [steam_id, gametype_id])
+      LEFT JOIN gametypes g ON g.gametype_id = gr.gametype_id
+      WHERE p.steam_id = %s
+      ORDER BY gr.n DESC
+    ''', [steam_id])
 
     if cu.rowcount == 0:
       cu.close()
@@ -465,10 +459,18 @@ def get_player_info2( steam_id, gametype ):
         "message": "player not found in database"
       }
 
-    result["player"] = cu.fetchone()[0]
+    result['ratings'] = []
+
+    for row in cu.fetchall():
+      result['name'] = row[0]
+      result['ratings'].append({
+        "rating": round(row[1], 2),
+        "n": row[2],
+        "gametype_short": row[3],
+        "gametype": row[4]
+      })
 
     # weapon stats (frags + acc)
-    # ToDo: accuracy for last 50 matches
     cu.execute('''
       SELECT json_build_object('name', w.weapon_name, 'short', w.weapon_short, 'frags', t.frags, 'acc', t.accuracy)
       FROM (
@@ -478,31 +480,27 @@ def get_player_info2( steam_id, gametype ):
           CASE WHEN SUM(shots) = 0 THEN 0
             ELSE CAST(100. * SUM(hits) / SUM(shots) AS INT)
           END AS accuracy
-        FROM scoreboards_weapons sw
-        LEFT JOIN matches m ON sw.match_id = m.match_id
-        WHERE steam_id = %s AND m.gametype_id = %s
+        FROM (SELECT weapon_id, frags, hits, shots FROM scoreboards_weapons sw LEFT JOIN matches m ON m.match_id = sw.match_id WHERE sw.steam_id = %s ORDER BY timestamp DESC LIMIT 50) sw
         GROUP BY weapon_id
       ) t
       LEFT JOIN weapons w ON t.weapon_id = w.weapon_id
-      ORDER BY t.weapon_id DESC
-    ''', [steam_id, gametype_id])
+      ORDER BY t.weapon_id ASC
+    ''', [steam_id])
 
-    result['player']['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
+    result['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
 
     # 10 last matches
     '''
         SELECT
-          m.match_id, mm.map_name, m.timestamp, s.old_rating
+          m.match_id, mm.map_name, m.timestamp
         FROM
           matches m
         LEFT JOIN scoreboards s ON s.match_id = m.match_id
         LEFT JOIN maps mm ON m.map_id = mm.map_id
         WHERE
-          s.old_rating IS NOT NULL AND
-          s.steam_id = %s AND
-          m.gametype_id = %s
+          s.steam_id = %s
         ORDER BY m.timestamp DESC
-        LIMIT 50
+        LIMIT 10
     '''
   except Exception as e:
     db.rollback()
@@ -513,6 +511,11 @@ def get_player_info2( steam_id, gametype ):
     }
   finally:
     cu.close()
+
+  return {
+    "response": result,
+    "ok": True
+  }
 
 
 def get_factory_id( cu, factory ):

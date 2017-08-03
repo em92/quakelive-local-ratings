@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block body %}
+<div id="summary-table-wrapper">
+  <table id="summary-table" table="table table-borderless">
+    <thead><tr>
+      <th>Rank</th>
+      <th>Nickname</th>
+      <th>Rating</th>
+      <th>Match Count</th>
+      <th>Win Ratio</th>
+    </tr></thead>
+    <tbody>{% for item in response %}<tr>
+      <td class="col-md-1">{{ item['rank'] }}</td>
+      <td class="col-md-3">
+        <a href="http://steamcommunity.com/profiles/{{ item['_id'] }}/">
+          <img class="player_icon" src="/static/images/players/{{ item['model'].replace('/', '/icon_') }}.png" />&nbsp;
+          {{ item['name'] | ql_nickname | safe }}
+        </a>
+      </td>
+      <td class="col-md-1">{{ item['rating'] }}{% if item['rd'] != 0 %}
+         &plusmn; {{ item['rd'] }}
+      {% else %}
+        {{ "" }}
+      {% endif %}</td>
+      <td class="col-md-1">{{ item['n'] }}</td>
+      <td class="col-md-1">{{ item['win_ratio'] }}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  <span class="pagination">&nbsp; {% for i in range(page_count) %}
+    {% if i == current_page %}
+      [{{ i + 1 }}] &nbsp;
+    {% else %}
+      <a href="/ratings/{{ gametype }}/{{ i }}">[{{ i+1 }}]</a> &nbsp;
+    {% endif %}
+  {% endfor %}</span>
+</div>
+{% endblock %}
+

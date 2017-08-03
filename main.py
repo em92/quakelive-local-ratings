@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from config import cfg
-from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template
+from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template, escape
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
 import rating
@@ -14,12 +14,31 @@ app = Flask(__name__, static_url_path='/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
+@app.template_filter('ql_nickname')
+def render_ql_nickname( nickname ):
+  nickname = str(escape(nickname))
+  for i in range(8):
+    nickname = nickname.replace("^" + str(i), '</span><span class="qc' + str(i) + '">')
+  return '<span class="qc7">' + nickname + '</span>';
+
+
 @app.route('/')
 @app.route('/matches/')
 @app.route('/matches/<gametype>/')
 @app.route('/matches/<gametype>/<int:page>/')
 def http_root(gametype = None, page = 0):
   return render_template("match_list.html", **rating.get_last_matches( gametype, page ))
+
+
+@app.route("/ratings/<gametype>/")
+@app.route("/ratings/<gametype>/<int:page>/")
+def http_rating_gametype_page(gametype, page = 0):
+  return render_template("ratings_list.html", **rating.get_list( gametype, page ), current_page = page, gametype = gametype)
+
+
+@app.route("/ratings/<gametype>/<int:page>.json")
+def http_ratings_gametype_page_json(gametype, page):
+  return jsonify( **rating.get_list( gametype, page ) )
 
 
 @app.route("/elo/<ids>")
@@ -75,16 +94,6 @@ def http_steam_api_GetPlayerSummaries():
 @app.route("/player/<int:steam_id>")
 def http_player_id(steam_id):
   return jsonify( **rating.get_player_info(int(steam_id)) )
-
-
-@app.route("/rating/<gametype>/<int:page>")
-def http_rating_gametype_page(gametype, page):
-  return jsonify( **rating.get_list( gametype, page ) )
-
-
-@app.route("/rating/<gametype>")
-def http_rating_gametype(gametype):
-  return http_rating_gametype_page( gametype, 0 )
 
 
 @app.route("/export_rating/<frmt>/<gametype>")

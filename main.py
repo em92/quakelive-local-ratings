@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from config import cfg
-from flask import Flask, request, jsonify, redirect, url_for, make_response
+from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
 import rating
@@ -10,13 +10,16 @@ import sys
 from uuid import UUID
 
 RUN_POST_PROCESS = cfg['run_post_process']
-app = Flask(__name__, static_url_path='')
+app = Flask(__name__, static_url_path='/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
 @app.route('/')
-def http_root():
-  return app.send_static_file('index.html')
+@app.route('/matches/')
+@app.route('/matches/<gametype>/')
+@app.route('/matches/<gametype>/<int:page>/')
+def http_root(gametype = None, page = 0):
+  return render_template("match_list.html", **rating.get_last_matches( gametype, page ))
 
 
 @app.route("/elo/<ids>")
@@ -117,13 +120,6 @@ def http_scoreboard_match_id(match_id):
     return jsonify(ok=False, message="invalid match_id")
 
   return jsonify(**rating.get_scoreboard(match_id))
-
-
-@app.route("/last_matches.json")
-@app.route("/last_matches/<gametype>.json")
-@app.route("/last_matches/<gametype>/<int:page>.json")
-def http_last_matches(gametype = None, page = 0):
-  return jsonify(**rating.get_last_matches( gametype, page ))
 
 
 @app.route("/generate_user_ratings/<gametype>.json")

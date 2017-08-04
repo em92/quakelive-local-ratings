@@ -472,20 +472,27 @@ def get_player_info2( steam_id ):
 
     # weapon stats (frags + acc)
     cu.execute('''
-      SELECT json_build_object('name', w.weapon_name, 'short', w.weapon_short, 'frags', t.frags, 'acc', t.accuracy)
+      SELECT json_build_object('name', w.weapon_name, 'short', w.weapon_short, 'frags', t2.frags, 'acc', t.accuracy)
       FROM (
         SELECT
           weapon_id,
-          SUM(frags) AS frags,
           CASE WHEN SUM(shots) = 0 THEN 0
             ELSE CAST(100. * SUM(hits) / SUM(shots) AS INT)
           END AS accuracy
-        FROM (SELECT weapon_id, frags, hits, shots FROM scoreboards_weapons sw LEFT JOIN matches m ON m.match_id = sw.match_id WHERE sw.steam_id = %s ORDER BY timestamp DESC LIMIT 50) sw
+        FROM (SELECT weapon_id, frags, hits, shots FROM scoreboards_weapons sw LEFT JOIN matches m ON m.match_id = sw.match_id WHERE sw.steam_id = %(steam_id)s ORDER BY timestamp DESC LIMIT 50) sw
         GROUP BY weapon_id
       ) t
       LEFT JOIN weapons w ON t.weapon_id = w.weapon_id
+      LEFT JOIN (
+        SELECT
+          weapon_id,
+          SUM(frags) AS frags
+        FROM scoreboards_weapons sw
+        WHERE steam_id = %(steam_id)s
+        GROUP BY weapon_id
+      ) t2 ON t2.weapon_id = t.weapon_id
       ORDER BY t.weapon_id ASC
-    ''', [steam_id])
+    ''', {"steam_id": steam_id})
 
     result['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
 

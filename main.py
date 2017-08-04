@@ -45,6 +45,16 @@ def http_ratings_gametype_page_json(gametype, page):
   return jsonify( **rating.get_list( gametype, page ) )
 
 
+@app.route("/player/<int:steam_id>/")
+def http_player(steam_id):
+  return render_template("player_stats.html", **rating.get_player_info2(steam_id) )
+
+
+@app.route("/player/<int:steam_id>.json")
+def http_player_json(steam_id):
+  return jsonify( **rating.get_player_info(int(steam_id)) )
+
+
 @app.route("/elo/<ids>")
 @app.route("/elo_b/<ids>")
 def http_elo(ids):
@@ -93,11 +103,6 @@ def http_steam_api_GetPlayerSummaries():
       return jsonify( ok = False, message = player_info["message"] ), 500
 
   return jsonify( ok = True, response = { "players": players } )
-
-
-@app.route("/player/<int:steam_id>")
-def http_player_id(steam_id):
-  return jsonify( **rating.get_player_info(int(steam_id)) )
 
 
 @app.route("/export_rating/<frmt>/<gametype>")
@@ -167,5 +172,6 @@ def http_stats_submit():
       return jsonify(**result), 200
 
 
+print(rating.get_player_info2("76561198260599288"))
 if __name__ == "__main__":
     app.run( host = "0.0.0.0", port = cfg['httpd_port'], threaded = True)

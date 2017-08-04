@@ -1,5 +1,5 @@
 body {
-	background-color: #0066cc;
+	background-color: #444;
 }
 
 a {
@@ -124,6 +124,11 @@ li {
   margin: 20px;
 }
 
+.title {
+  color: #0AF;
+  text-align: center;
+}
+
 #footer {
   margin-top: 25px;
   margin-bottom: 20px;
@@ -134,4 +139,21 @@ li {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
+}
+
+#player-stats-wrapper {
+  background-color: #222;
+  border-radius: 15px;
+  padding: 20px;
+	color: rgb(204, 204, 204);
+}
+
+#weapon-stats-table {
+  width: 100%;
+}
+
+#weapon-stats-table td,
+#weapon-stats-table th {
+  padding: 10px;
+  font-size: 12px;
 }

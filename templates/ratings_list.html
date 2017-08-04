@@ -12,7 +12,7 @@
     <tbody>{% for item in response %}<tr>
       <td class="col-md-1">{{ item['rank'] }}</td>
       <td class="col-md-3">
-        <a href="http://steamcommunity.com/profiles/{{ item['_id'] }}/">
+        <a href="/player/{{ item['_id'] }}/">
           <img class="player_icon" src="/static/images/players/{{ item['model'].replace('/', '/icon_') }}.png" />&nbsp;
           {{ item['name'] | ql_nickname | safe }}
         </a>

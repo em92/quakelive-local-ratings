@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block body %}
+<div id="player-stats-wrapper">
+<h1 class="title">Player Information</h2>
+<h2>{{ response['name'] | ql_nickname | safe }}</h2>
+
+<div class="row">
+  <div class="col-sm-6">
+    <h3>Ratings</h3>
+    <ul>
+    {% for item in response['ratings'] %}
+      <li>{{ item['gametype'] }}: {{ item['rating']}} ({{ item['n'] }} games played)</li>
+    {% endfor %}
+    </ul>
+    <h3>Favorites</h3>
+    <ul>
+    <li>Arena: {{ response['fav']['map'] }}</li>
+    <li>Gametype: {{ response['fav']['gt'] }}</li>
+    <li>Weapon: {{ response['fav']['wpn'] }}</li>
+    </ul>
+  </div>
+  <div id="weapon-stats-table-wrapper" class="col-sm-6">
+    <table id="weapon-stats-table" table="table table-borderless">
+      <thead><tr>
+        <th>Weapons</th>
+        <th>Frags</th>
+        <th>Accuracy</th>
+      </tr></thead>
+      <tbody>{% for item in response['weapon_stats'] %}<tr>
+        <td class="col-md-6">{{ item['name'] }}</td>
+        <td class="col-md-3">{{ item['frags'] }}</td>
+        <td class="col-md-3">{{ item['acc'] }}</td>
+      </tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+{% endblock %}
+

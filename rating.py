@@ -7,6 +7,7 @@ import sys
 import traceback
 import psycopg2
 import trueskill
+from functools import reduce
 from urllib.parse import urlparse
 from config import cfg
 from sqlalchemy.exc import ProgrammingError
@@ -435,28 +436,22 @@ def get_player_info(steam_id):
   return result
 
 
-def get_player_info2( steam_id, gametype ):
+def get_player_info2( steam_id ):
 
-  result = {"ok": True, "player": {}}
-
-  try:
-    gametype_id = GAMETYPE_IDS[ gametype ];
-  except KeyError:
-    return {
-      "ok": False,
-      "message": "gametype is not supported: " + gametype
-    }
+  result = {}
 
   try:
     cu = db.cursor()
 
     # player name, rating and games played
     cu.execute('''
-      SELECT json_build_object('name', p.name, 'rating', round(cast(gr.mean as numeric), 2), 'n', gr.n)
+      SELECT p.name, gr.mean, gr.n, g.gametype_short, g.gametype_name
       FROM players p
       LEFT JOIN gametype_ratings gr ON p.steam_id = gr.steam_id
-      WHERE p.steam_id = %s AND gr.gametype_id = %s
-    ''', [steam_id, gametype_id])
+      LEFT JOIN gametypes g ON g.gametype_id = gr.gametype_id
+      WHERE p.steam_id = %s
+      ORDER BY gr.n DESC
+    ''', [steam_id])
 
     if cu.rowcount == 0:
       cu.close()
@@ -465,45 +460,82 @@ def get_player_info2( steam_id, gametype ):
         "message": "player not found in database"
       }
 
-    result["player"] = cu.fetchone()[0]
+    result['ratings'] = []
+
+    for row in cu.fetchall():
+      result['name'] = row[0]
+      result['ratings'].append({
+        "rating": round(row[1], 2),
+        "n": row[2],
+        "gametype_short": row[3],
+        "gametype": row[4]
+      })
 
     # weapon stats (frags + acc)
-    # ToDo: accuracy for last 50 matches
     cu.execute('''
-      SELECT json_build_object('name', w.weapon_name, 'short', w.weapon_short, 'frags', t.frags, 'acc', t.accuracy)
+      SELECT json_build_object('name', w.weapon_name, 'short', w.weapon_short, 'frags', t2.frags, 'acc', t.accuracy)
       FROM (
         SELECT
           weapon_id,
-          SUM(frags) AS frags,
           CASE WHEN SUM(shots) = 0 THEN 0
             ELSE CAST(100. * SUM(hits) / SUM(shots) AS INT)
           END AS accuracy
-        FROM scoreboards_weapons sw
-        LEFT JOIN matches m ON sw.match_id = m.match_id
-        WHERE steam_id = %s AND m.gametype_id = %s
+        FROM (SELECT weapon_id, frags, hits, shots FROM scoreboards_weapons sw LEFT JOIN matches m ON m.match_id = sw.match_id WHERE sw.steam_id = %(steam_id)s ORDER BY timestamp DESC LIMIT 50) sw
         GROUP BY weapon_id
       ) t
       LEFT JOIN weapons w ON t.weapon_id = w.weapon_id
-      ORDER BY t.weapon_id DESC
-    ''', [steam_id, gametype_id])
+      LEFT JOIN (
+        SELECT
+          weapon_id,
+          SUM(frags) AS frags
+        FROM scoreboards_weapons sw
+        WHERE steam_id = %(steam_id)s
+        GROUP BY weapon_id
+      ) t2 ON t2.weapon_id = t.weapon_id
+      ORDER BY t.weapon_id ASC
+    ''', {"steam_id": steam_id})
 
-    result['player']['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
+    result['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
+
+    # fav map
+    cu.execute('''
+      SELECT map_name
+      FROM (
+        SELECT map_id, COUNT(*) AS n
+        FROM matches m
+        WHERE match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = %(steam_id)s)
+        GROUP BY map_id
+      ) t
+      LEFT JOIN maps ON maps.map_id = t.map_id
+      ORDER BY n DESC
+      LIMIT 1
+    ''', {"steam_id": steam_id})
+
+    if cu.rowcount == 0:
+      fav_map = "None"
+    else:
+      fav_map = cu.fetchone()[0]
 
     # 10 last matches
     '''
         SELECT
-          m.match_id, mm.map_name, m.timestamp, s.old_rating
+          m.match_id, mm.map_name, m.timestamp
         FROM
           matches m
         LEFT JOIN scoreboards s ON s.match_id = m.match_id
         LEFT JOIN maps mm ON m.map_id = mm.map_id
         WHERE
-          s.old_rating IS NOT NULL AND
-          s.steam_id = %s AND
-          m.gametype_id = %s
+          s.steam_id = %s
         ORDER BY m.timestamp DESC
-        LIMIT 50
+        LIMIT 10
     '''
+
+    result['fav'] = {
+      "map": fav_map,
+      "gt": "None" if len(result["ratings"]) == 0 else result["ratings"][0]["gametype"],
+      "wpn": reduce(lambda sum, x: sum if sum['frags'] > x['frags'] else x, result['weapon_stats'], {"frags": 0, "name": "None"})["name"]
+    }
+
   except Exception as e:
     db.rollback()
     traceback.print_exc(file=sys.stderr)
@@ -513,6 +545,11 @@ def get_player_info2( steam_id, gametype ):
     }
   finally:
     cu.close()
+
+  return {
+    "response": result,
+    "ok": True
+  }
 
 
 def get_factory_id( cu, factory ):

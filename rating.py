@@ -7,6 +7,7 @@ import sys
 import traceback
 import psycopg2
 import trueskill
+from functools import reduce
 from urllib.parse import urlparse
 from config import cfg
 from sqlalchemy.exc import ProgrammingError
@@ -496,6 +497,25 @@ def get_player_info2( steam_id ):
 
     result['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
 
+    # fav map
+    cu.execute('''
+      SELECT map_name
+      FROM (
+        SELECT map_id, COUNT(*) AS n
+        FROM matches m
+        WHERE match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = %(steam_id)s)
+        GROUP BY map_id
+      ) t
+      LEFT JOIN maps ON maps.map_id = t.map_id
+      ORDER BY n DESC
+      LIMIT 1
+    ''', {"steam_id": steam_id})
+
+    if cu.rowcount == 0:
+      fav_map = "None"
+    else:
+      fav_map = cu.fetchone()[0]
+
     # 10 last matches
     '''
         SELECT
@@ -509,6 +529,13 @@ def get_player_info2( steam_id ):
         ORDER BY m.timestamp DESC
         LIMIT 10
     '''
+
+    result['fav'] = {
+      "map": fav_map,
+      "gt": "None" if len(result["ratings"]) == 0 else result["ratings"][0]["gametype"],
+      "wpn": reduce(lambda sum, x: sum if sum['frags'] > x['frags'] else x, result['weapon_stats'], {"frags": 0, "name": "None"})["name"]
+    }
+
   except Exception as e:
     db.rollback()
     traceback.print_exc(file=sys.stderr)

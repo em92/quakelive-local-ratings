@@ -26,13 +26,7 @@
       <td class="col-md-1">{{ item['win_ratio'] }}</td>
     </tr>{% endfor %}</tbody>
   </table>
-  <span class="pagination">&nbsp; {% for i in range(page_count) %}
-    {% if i == current_page %}
-      [{{ i + 1 }}] &nbsp;
-    {% else %}
-      <a href="/ratings/{{ gametype }}/{{ i }}">[{{ i+1 }}]</a> &nbsp;
-    {% endif %}
-  {% endfor %}</span>
+  {% include "paginator.html" %}
 </div>
 {% endblock %}
 

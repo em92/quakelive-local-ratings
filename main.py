@@ -24,12 +24,17 @@ def render_ql_nickname( nickname ):
 
 @app.route('/')
 @app.route('/matches/')
+@app.route('/matches/<int:page>/')
 @app.route('/matches/<gametype>/')
 @app.route('/matches/<gametype>/<int:page>/')
 def http_root(gametype = None, page = 0):
   if type(gametype) is str:
     gametype = gametype.lower()
-  return render_template("match_list.html", **rating.get_last_matches( gametype, page ))
+  return render_template("match_list.html", **rating.get_last_matches( gametype, page ),
+    gametype = gametype,
+    current_page = page,
+    page_prefix = "/matches" if gametype is None else "/matches/" + gametype
+  )
 
 
 @app.route("/ratings/<gametype>/")
@@ -37,7 +42,11 @@ def http_root(gametype = None, page = 0):
 def http_rating_gametype_page(gametype, page = 0):
   if type(gametype) is str:
     gametype = gametype.lower()
-  return render_template("ratings_list.html", **rating.get_list( gametype, page ), current_page = page, gametype = gametype)
+  return render_template("ratings_list.html", **rating.get_list( gametype, page ),
+    gametype = gametype,
+    current_page = page,
+    page_prefix = "/ratings/" + gametype
+  )
 
 
 @app.route("/ratings/<gametype>/<int:page>.json")

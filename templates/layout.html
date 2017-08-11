@@ -10,7 +10,14 @@
 </head>
 <body>
 <div id="content">
+{% if ok %}
 {% block body %}{% endblock %}
+{% else %}
+<div id="not_ok">
+<h2>Error</h2>
+<p>{{ message }}</p>
+</div>
+{% endif %}
 </div>
 <div id="footer">
   Written by Eugene M. in 2016-2017 <br> <a href="https://github.com/em92/quakelive-local-ratings" target="_blank">github</a> | <a href="mailto:eugene.molotov@yandex.ru">email</a><br>

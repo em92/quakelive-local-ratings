@@ -20,6 +20,12 @@ noscript {
 	position: fixed;
 }
 
+#not_ok {
+  background-color: #C81D11;
+  border-radius: 15px;
+  padding: 20px;
+}
+
 #top-right-fixed {
 	position: fixed;
 	top: 0px;

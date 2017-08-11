@@ -8,7 +8,7 @@
       <th>Scores</th>
     </tr></thead>
     <tbody>{% for item in matches %}<tr>
-      <td class="col-md-2">{{ item['datetime'] }}</td>
+      <td class="col-md-2">{{ item['timedelta'] }}</td>
       <td class="col-md-1">
         <a href="/matches/{{ item['gametype'] }}/">{{ item['gametype'] }}</a>
       </td>

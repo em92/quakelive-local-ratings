@@ -7,8 +7,10 @@ import sys
 import traceback
 import psycopg2
 import trueskill
+import humanize
 from functools import reduce
 from urllib.parse import urlparse
+from datetime import datetime
 from config import cfg
 from sqlalchemy.exc import ProgrammingError
 from math import ceil
@@ -1367,6 +1369,7 @@ def get_last_matches( gametype = None, page = 0 ):
       json_build_object(
         'match_id', m.match_id,
         'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
+        'timestamp', timestamp,
         'gametype', g.gametype_short,
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
@@ -1394,7 +1397,9 @@ def get_last_matches( gametype = None, page = 0 ):
     matches = []
     overall_match_count = 1
     for row in cu:
-      matches.append( row[0] )
+      item = dict(row[0])
+      item["timedelta"] = humanize.naturaltime( datetime.now() - datetime.fromtimestamp(item['timestamp'] ) )
+      matches.append( item )
       overall_match_count = row[1]
 
     result = {

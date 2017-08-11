@@ -531,6 +531,7 @@ def get_player_info2( steam_id ):
       json_build_object(
         'match_id', m.match_id,
         'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
+        'timestamp', timestamp,
         'gametype', g.gametype_short,
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
@@ -545,7 +546,11 @@ def get_player_info2( steam_id ):
     LIMIT 10
     ''', {"steam_id": steam_id})
 
-    result["matches"] = list( map( lambda row: row[0], cu.fetchall() ) )
+    result["matches"] = []
+    for row in cu:
+      item = dict(row[0])
+      item['timedelta'] = humanize.naturaltime( datetime.now() - datetime.fromtimestamp( item['timestamp'] ) )
+      result["matches"].append( item )
 
   except Exception as e:
     db.rollback()

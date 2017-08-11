@@ -148,12 +148,24 @@ li {
 	color: rgb(204, 204, 204);
 }
 
+#player-matches-table tbody tr {
+  cursor: pointer;
+}
+
+#player-matches-table,
 #weapon-stats-table {
   width: 100%;
 }
 
+#player-matches-table td,
+#player-matches-table th,
 #weapon-stats-table td,
 #weapon-stats-table th {
   padding: 10px;
   font-size: 12px;
+}
+
+
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+  background-color: #222;
 }

@@ -33,6 +33,7 @@ USE_AVG_PERF = {
 }
 MAX_RATING = 1000
 KEEPING_TIME = 60*60*24*30
+MATCH_LIST_ITEM_COUNT = 25
 
 SQL_TOP_PLAYERS_BY_GAMETYPE = '''
   SELECT
@@ -1370,7 +1371,8 @@ def get_last_matches( gametype = None, page = 0 ):
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
         'map', mm.map_name
-      )
+      ),
+      count(*) OVER () AS count
     FROM
       matches m
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
@@ -1378,19 +1380,27 @@ def get_last_matches( gametype = None, page = 0 ):
     {WHERE_CLAUSE}
     ORDER BY timestamp DESC
     OFFSET %s
-    LIMIT 25
+    LIMIT %s
     '''.replace("{WHERE_CLAUSE}\n", "" if gametype == None else "WHERE m.gametype_id = %s")
 
     params = [ ]
     if gametype != None:
       params.append( GAMETYPE_IDS[ gametype ] )
-    params.append( page * 25 )
+    params.append( page * MATCH_LIST_ITEM_COUNT )
+    params.append( MATCH_LIST_ITEM_COUNT )
 
     cu.execute( query, params )
 
+    matches = []
+    overall_match_count = 1
+    for row in cu:
+      matches.append( row[0] )
+      overall_match_count = row[1]
+
     result = {
       "ok": True,
-      "matches": list( map( lambda x: x[0], cu.fetchall() ) )
+      "page_count": ceil(overall_match_count / MATCH_LIST_ITEM_COUNT),
+      "matches": matches
     }
 
   except Exception as e:

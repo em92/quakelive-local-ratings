@@ -533,15 +533,20 @@ def get_player_info2( steam_id ):
         'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
         'timestamp', timestamp,
         'gametype', g.gametype_short,
+        'result', CASE
+          WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 'Win'
+          WHEN m.team1_score < m.team2_score AND s.team = 2 THEN 'Win'
+          ELSE 'Loss'
+        END,
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
         'map', mm.map_name
       )
     FROM
-      matches m
+      (SELECT * FROM scoreboards WHERE steam_id = %(steam_id)s) s
+    LEFT JOIN matches m ON s.match_id = m.match_id
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN maps mm ON mm.map_id = m.map_id
-    WHERE m.match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = %(steam_id)s)
     ORDER BY timestamp DESC
     LIMIT 10
     ''', {"steam_id": steam_id})

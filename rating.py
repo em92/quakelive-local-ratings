@@ -16,6 +16,8 @@ GAMETYPE_IDS = {}
 MEDAL_IDS    = {}
 WEAPON_IDS   = {}
 LAST_GAME_TIMESTAMPS = {}
+MEDALS_AVAILABLE  = []
+WEAPONS_AVAILABLE = []
 
 MIN_ALIVE_TIME_TO_RATE = 60*10
 MIN_PLAYER_COUNT_TO_RATE = {
@@ -1276,6 +1278,8 @@ def get_scoreboard(match_id):
         "rating_history": rating_history,
         "overall":        overall_stats
       },
+      "weapons_available": WEAPONS_AVAILABLE,
+      "medals_available": MEDALS_AVAILABLE,
       "ok": True
     }
   except Exception as e:
@@ -1466,13 +1470,15 @@ for row in cu.fetchall():
   GAMETYPE_IDS[ row[1] ] = row[0]
   USE_AVG_PERF[ row[0] ] = USE_AVG_PERF[ row[1] ]
 
-cu.execute("SELECT medal_id, medal_short FROM medals")
+cu.execute("SELECT medal_id, medal_short FROM medals ORDER BY medal_id")
 for row in cu.fetchall():
   MEDAL_IDS[ row[1] ] = row[0]
+  MEDALS_AVAILABLE.append( row[1] )
 
-cu.execute("SELECT weapon_id, weapon_short FROM weapons")
+cu.execute("SELECT weapon_id, weapon_short FROM weapons ORDER BY weapon_id")
 for row in cu.fetchall():
   WEAPON_IDS[ row[1] ] = row[0]
+  WEAPONS_AVAILABLE.append( row[1] )
 
 if cfg["run_post_process"]:
   cu.execute("SELECT match_id, gametype_id, timestamp FROM matches WHERE post_processed = FALSE ORDER BY timestamp ASC")

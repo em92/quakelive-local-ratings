@@ -1079,13 +1079,15 @@ def get_scoreboard(match_id):
     query = '''
     SELECT
       json_build_object(
-        'gametype',    g.gametype_short,
+        'gt_short',    g.gametype_short,
+        'gt',          g.gametype_name,
         'factory',     f.factory_short,
         'map',         mm.map_name,
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
         'timestamp',   m.timestamp,
-        'duration',    m.duration
+        'datetime',    TO_CHAR(to_timestamp(m.timestamp), 'YYYY-MM-DD HH24:MI'),
+        'duration',    TO_CHAR((m.duration || ' second')::interval, 'MI:SS')
       )
     FROM
       matches m

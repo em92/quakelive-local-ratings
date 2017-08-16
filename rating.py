@@ -159,6 +159,7 @@ def get_list(gametype, page):
     }
 
   try:
+    db = db_connect()
     cu = db.cursor()
     query = SQL_TOP_PLAYERS_BY_GAMETYPE + '''
     LIMIT %s
@@ -220,6 +221,7 @@ def get_list(gametype, page):
     }
   finally:
     cu.close()
+    db.close()
 
   return result
 
@@ -254,6 +256,7 @@ def generate_user_ratings(gametype, formula):
     }
 
   try:
+    db = db_connect()
     cu = db.cursor()
 
     rows = cu.execute('''
@@ -313,6 +316,7 @@ FROM (
     }
   finally:
     cu.close()
+    db.close()
 
   return result
 
@@ -383,6 +387,7 @@ def export(gametype):
 def get_player_info(steam_id):
 
   try:
+    db = db_connect()
     cu = db.cursor()
     result = {}
     for gametype, gametype_id in GAMETYPE_IDS.items():
@@ -435,6 +440,7 @@ def get_player_info(steam_id):
     }
   finally:
     cu.close()
+    db.close()
 
   return result
 
@@ -444,6 +450,7 @@ def get_player_info2( steam_id ):
   result = {}
 
   try:
+    db = db_connect()
     cu = db.cursor()
 
     # player name, rating and games played
@@ -566,6 +573,7 @@ def get_player_info2( steam_id ):
     }
   finally:
     cu.close()
+    db.close()
 
   return {
     "response": result,
@@ -619,6 +627,7 @@ def get_for_balance_plugin( steam_ids ):
   result = []
   try:
 
+    db = db_connect()
     cu = db.cursor()
 
     query = '''
@@ -656,6 +665,9 @@ def get_for_balance_plugin( steam_ids ):
       "message": type(e).__name__ + ": " + str(e)
     }
 
+  cu.close()
+  db.close()
+
   return result
 
 
@@ -686,6 +698,7 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
   result = []
   try:
 
+    db = db_connect()
     cu = db.cursor()
     
     try:
@@ -761,6 +774,9 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
     }
+
+  cu.close()
+  db.close()
 
   return result
 
@@ -1007,6 +1023,7 @@ def submit_match(data):
         "match_id": match_id
       }
 
+    db = db.connect()
     cu = db.cursor()
 
     team_scores = [None, None]
@@ -1123,12 +1140,16 @@ def submit_match(data):
       "match_id": match_id
     }
 
+  cu.close()
+  db.close()
+
   return result
 
 
 def get_scoreboard(match_id):
 
   try:
+    db = db_connect()
     cu = db.cursor()
 
     query = '''
@@ -1344,6 +1365,7 @@ def get_scoreboard(match_id):
     }
   finally:
     cu.close()
+    db.close()
 
   return result
 
@@ -1372,6 +1394,7 @@ def get_last_matches( gametype = None, page = 0 ):
     }
 
   try:
+    db = db_connect()
     cu = db.cursor()
 
     query = '''
@@ -1425,6 +1448,9 @@ def get_last_matches( gametype = None, page = 0 ):
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
     }
+
+  cu.close()
+  db.close()
 
   return result
 
@@ -1514,6 +1540,7 @@ def reset_gametype_ratings( gametype ):
     db.rollback()
     traceback.print_exc(file=sys.stderr)
   finally:
+    cu.close()
     db.close()
 
   return result
@@ -1548,4 +1575,4 @@ for _, gametype_id in GAMETYPE_IDS.items():
     LAST_GAME_TIMESTAMPS[ gametype_id ] = row[0]
 
 cu.close()
-
+db.close()

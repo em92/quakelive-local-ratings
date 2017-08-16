@@ -2,7 +2,7 @@
   {% if i == current_page %}
     [{{ i + 1 }}] &nbsp;
   {% else %}
-    <a href="{{ page_prefix }}/{{ i }}">[{{ i+1 }}]</a> &nbsp;
+    <a href="{{ page_prefix }}/{{ i }}/{{ page_suffix }}">[{{ i+1 }}]</a> &nbsp;
   {% endif %}
 {% endfor %}</span>
 

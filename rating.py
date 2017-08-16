@@ -148,7 +148,7 @@ def is_tdm2v2(data):
   return data["game_meta"]["G"] == "tdm" and len(data["players"]) == 4
 
 
-def get_list(gametype, page):
+def get_list(gametype, page, show_inactive = False):
 
   try:
     gametype_id = GAMETYPE_IDS[ gametype ];
@@ -164,7 +164,7 @@ def get_list(gametype, page):
     query = SQL_TOP_PLAYERS_BY_GAMETYPE + '''
     LIMIT %s
     OFFSET %s'''
-    cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
+    cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME if show_inactive is False else 0, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
 
     result = []
     player_count = 0

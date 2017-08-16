@@ -42,9 +42,12 @@ def http_root(gametype = None, page = 0):
 def http_rating_gametype_page(gametype, page = 0):
   if type(gametype) is str:
     gametype = gametype.lower()
-  return render_template("ratings_list.html", **rating.get_list( gametype, page ),
+  show_inactive = request.args.get("show_inactive", False, type=bool)
+  return render_template("ratings_list.html", **rating.get_list( gametype, page, show_inactive ),
     gametype = gametype,
     current_page = page,
+    show_inactive = show_inactive,
+    page_suffix = ("?show_inactive=yes" if show_inactive else ""),
     page_prefix = "/ratings/" + gametype
   )
 

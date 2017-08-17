@@ -1023,7 +1023,7 @@ def submit_match(data):
         "match_id": match_id
       }
 
-    db = db.connect()
+    db = db_connect()
     cu = db.cursor()
 
     team_scores = [None, None]

@@ -1250,6 +1250,7 @@ def get_scoreboard(match_id):
         json_build_object(
           'steam_id', t.steam_id::text,
           'team', t.team::text,
+          'name', p.name,
           'stats', json_build_object(
             'score',        t.score,
             'frags',        t.frags,
@@ -1261,6 +1262,7 @@ def get_scoreboard(match_id):
         ) AS item
       FROM
         scoreboards t
+      LEFT JOIN players p ON p.steam_id = t.steam_id
       WHERE
         t.match_id = %s
       ORDER BY t.score DESC

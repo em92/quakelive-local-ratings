@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% macro team_scoreboard(team, players, gametype) -%}
+<table class="table">
+  <thead><tr>
+    <th>Nick</th>
+    <th>Time</th>
+    <th>Score</th>
+    <th>Frags</th>
+    <th>Deaths</th>
+    <th>Damage Dealt</th>
+    <th>Damage Taken</th>
+  </tr></thead>
+  <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr>
+    <td><a href="/player/{{ player['steam_id'] }}">{{ player['name'] | ql_nickname | safe }}</a></td>
+    <td>{{ player['stats']['alive_time'] }}</td>
+    <td>{{ player['stats']['score'] }}</td>
+    <td>{{ player['stats']['frags'] }}</td>
+    <td>{{ player['stats']['deaths'] }}</td>
+    <td>{{ player['stats']['damage_dealt'] }}</td>
+    <td>{{ player['stats']['damage_taken'] }}</td>
+  </tr>{% endfor %}</tbody>
+</table>
+
+{%- endmacro %}
+{% block body %}
+<div id="match-info-wrapper">
+<h1 class="title">Match Information</h2>
+
+<div class="row">
+  <div class="col-sm-4">
+    <h3>Match Detail</h3>
+    <ul>
+    <li>Played: {{ summary['datetime'] }}</li>
+    <li>Gametype: {{ summary['gt'] }}</li>
+    <li>Arena: {{ summary['map'] }}</li>
+    <li>Duration: {{ summary['duration'] }}
+    </ul>
+  </div>
+</div>
+
+<div class="row">
+{{ team_scoreboard("1", team_stats['overall'], summary['gt']) }}
+{{ team_scoreboard("2", team_stats['overall'], summary['gt']) }}
+</div>
+
+</div>
+{% endblock %}
+

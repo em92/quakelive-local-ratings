@@ -19,7 +19,7 @@ If not - edit cfg.json to change "db_url" key.
 sudo -u postgres psql
 ```
 
-* in postgresql shell:
+in postgresql shell:
 ```
 CREATE DATABASE qllr;
 CREATE USER eugene WITH password 'bebebe';
@@ -27,12 +27,12 @@ GRANT ALL ON DATABASE qllr TO eugene;
 \q
 ```
 
-* deploying database
+* deploying database (if you have database backup to restore - ignore this step and do [this](README.md#import-database) instead)
 ```
 psql -h localhost qllr eugene
 ```
 
-* in postgresql shell:
+in postgresql shell:
 ```
 \i sql/init.sql
 \q

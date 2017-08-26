@@ -7,7 +7,10 @@ import sys
 import traceback
 import psycopg2
 import trueskill
+import humanize
+from functools import reduce
 from urllib.parse import urlparse
+from datetime import datetime
 from config import cfg
 from sqlalchemy.exc import ProgrammingError
 from math import ceil
@@ -147,7 +150,7 @@ def is_tdm2v2(data):
   return data["game_meta"]["G"] == "tdm" and len(data["players"]) == 4
 
 
-def get_list(gametype, page):
+def get_list(gametype, page, show_inactive = False):
 
   try:
     gametype_id = GAMETYPE_IDS[ gametype ];
@@ -158,11 +161,12 @@ def get_list(gametype, page):
     }
 
   try:
+    db = db_connect()
     cu = db.cursor()
     query = SQL_TOP_PLAYERS_BY_GAMETYPE + '''
     LIMIT %s
     OFFSET %s'''
-    cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
+    cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME if show_inactive is False else 0, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
 
     result = []
     player_count = 0
@@ -219,6 +223,7 @@ def get_list(gametype, page):
     }
   finally:
     cu.close()
+    db.close()
 
   return result
 
@@ -253,6 +258,7 @@ def generate_user_ratings(gametype, formula):
     }
 
   try:
+    db = db_connect()
     cu = db.cursor()
 
     rows = cu.execute('''
@@ -312,6 +318,7 @@ FROM (
     }
   finally:
     cu.close()
+    db.close()
 
   return result
 
@@ -382,6 +389,7 @@ def export(gametype):
 def get_player_info(steam_id):
 
   try:
+    db = db_connect()
     cu = db.cursor()
     result = {}
     for gametype, gametype_id in GAMETYPE_IDS.items():
@@ -434,32 +442,28 @@ def get_player_info(steam_id):
     }
   finally:
     cu.close()
+    db.close()
 
   return result
 
 
-def get_player_info2( steam_id, gametype ):
+def get_player_info2( steam_id ):
 
-  result = {"ok": True, "player": {}}
-
-  try:
-    gametype_id = GAMETYPE_IDS[ gametype ];
-  except KeyError:
-    return {
-      "ok": False,
-      "message": "gametype is not supported: " + gametype
-    }
+  result = {}
 
   try:
+    db = db_connect()
     cu = db.cursor()
 
     # player name, rating and games played
     cu.execute('''
-      SELECT json_build_object('name', p.name, 'rating', round(cast(gr.mean as numeric), 2), 'n', gr.n)
+      SELECT p.name, gr.mean, gr.n, g.gametype_short, g.gametype_name
       FROM players p
       LEFT JOIN gametype_ratings gr ON p.steam_id = gr.steam_id
-      WHERE p.steam_id = %s AND gr.gametype_id = %s
-    ''', [steam_id, gametype_id])
+      LEFT JOIN gametypes g ON g.gametype_id = gr.gametype_id
+      WHERE p.steam_id = %s
+      ORDER BY gr.n DESC
+    ''', [steam_id])
 
     if cu.rowcount == 0:
       cu.close()
@@ -468,45 +472,100 @@ def get_player_info2( steam_id, gametype ):
         "message": "player not found in database"
       }
 
-    result["player"] = cu.fetchone()[0]
+    result['ratings'] = []
+
+    for row in cu.fetchall():
+      result['name'] = row[0]
+      result['ratings'].append({
+        "rating": round(row[1], 2),
+        "n": row[2],
+        "gametype_short": row[3],
+        "gametype": row[4]
+      })
 
     # weapon stats (frags + acc)
-    # ToDo: accuracy for last 50 matches
     cu.execute('''
-      SELECT json_build_object('name', w.weapon_name, 'short', w.weapon_short, 'frags', t.frags, 'acc', t.accuracy)
+      SELECT json_build_object('name', w.weapon_name, 'short', w.weapon_short, 'frags', t2.frags, 'acc', t.accuracy)
       FROM (
         SELECT
           weapon_id,
-          SUM(frags) AS frags,
           CASE WHEN SUM(shots) = 0 THEN 0
             ELSE CAST(100. * SUM(hits) / SUM(shots) AS INT)
           END AS accuracy
-        FROM scoreboards_weapons sw
-        LEFT JOIN matches m ON sw.match_id = m.match_id
-        WHERE steam_id = %s AND m.gametype_id = %s
+        FROM (SELECT weapon_id, frags, hits, shots FROM scoreboards_weapons sw LEFT JOIN matches m ON m.match_id = sw.match_id WHERE sw.steam_id = %(steam_id)s ORDER BY timestamp DESC LIMIT 50) sw
         GROUP BY weapon_id
       ) t
       LEFT JOIN weapons w ON t.weapon_id = w.weapon_id
-      ORDER BY t.weapon_id DESC
-    ''', [steam_id, gametype_id])
+      LEFT JOIN (
+        SELECT
+          weapon_id,
+          SUM(frags) AS frags
+        FROM scoreboards_weapons sw
+        WHERE steam_id = %(steam_id)s
+        GROUP BY weapon_id
+      ) t2 ON t2.weapon_id = t.weapon_id
+      ORDER BY t.weapon_id ASC
+    ''', {"steam_id": steam_id})
 
-    result['player']['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
+    result['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
+
+    # fav map
+    cu.execute('''
+      SELECT map_name
+      FROM (
+        SELECT map_id, COUNT(*) AS n
+        FROM matches m
+        WHERE match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = %(steam_id)s)
+        GROUP BY map_id
+      ) t
+      LEFT JOIN maps ON maps.map_id = t.map_id
+      ORDER BY n DESC
+      LIMIT 1
+    ''', {"steam_id": steam_id})
+
+    if cu.rowcount == 0:
+      fav_map = "None"
+    else:
+      fav_map = cu.fetchone()[0]
+
+    result['fav'] = {
+      "map": fav_map,
+      "gt": "None" if len(result["ratings"]) == 0 else result["ratings"][0]["gametype"],
+      "wpn": reduce(lambda sum, x: sum if sum['frags'] > x['frags'] else x, result['weapon_stats'], {"frags": 0, "name": "None"})["name"]
+    }
 
     # 10 last matches
-    '''
-        SELECT
-          m.match_id, mm.map_name, m.timestamp, s.old_rating
-        FROM
-          matches m
-        LEFT JOIN scoreboards s ON s.match_id = m.match_id
-        LEFT JOIN maps mm ON m.map_id = mm.map_id
-        WHERE
-          s.old_rating IS NOT NULL AND
-          s.steam_id = %s AND
-          m.gametype_id = %s
-        ORDER BY m.timestamp DESC
-        LIMIT 50
-    '''
+    cu.execute('''
+    SELECT
+      json_build_object(
+        'match_id', m.match_id,
+        'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
+        'timestamp', timestamp,
+        'gametype', g.gametype_short,
+        'result', CASE
+          WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 'Win'
+          WHEN m.team1_score < m.team2_score AND s.team = 2 THEN 'Win'
+          ELSE 'Loss'
+        END,
+        'team1_score', m.team1_score,
+        'team2_score', m.team2_score,
+        'map', mm.map_name
+      )
+    FROM
+      (SELECT * FROM scoreboards WHERE steam_id = %(steam_id)s) s
+    LEFT JOIN matches m ON s.match_id = m.match_id
+    LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
+    LEFT JOIN maps mm ON mm.map_id = m.map_id
+    ORDER BY timestamp DESC
+    LIMIT 10
+    ''', {"steam_id": steam_id})
+
+    result["matches"] = []
+    for row in cu:
+      item = dict(row[0])
+      item['timedelta'] = humanize.naturaltime( datetime.now() - datetime.fromtimestamp( item['timestamp'] ) )
+      result["matches"].append( item )
+
   except Exception as e:
     db.rollback()
     traceback.print_exc(file=sys.stderr)
@@ -516,6 +575,12 @@ def get_player_info2( steam_id, gametype ):
     }
   finally:
     cu.close()
+    db.close()
+
+  return {
+    "response": result,
+    "ok": True
+  }
 
 
 def get_factory_id( cu, factory ):
@@ -564,6 +629,7 @@ def get_for_balance_plugin( steam_ids ):
   result = []
   try:
 
+    db = db_connect()
     cu = db.cursor()
 
     query = '''
@@ -601,6 +667,9 @@ def get_for_balance_plugin( steam_ids ):
       "message": type(e).__name__ + ": " + str(e)
     }
 
+  cu.close()
+  db.close()
+
   return result
 
 
@@ -631,6 +700,7 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
   result = []
   try:
 
+    db = db_connect()
     cu = db.cursor()
     
     try:
@@ -706,6 +776,9 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
     }
+
+  cu.close()
+  db.close()
 
   return result
 
@@ -952,6 +1025,7 @@ def submit_match(data):
         "match_id": match_id
       }
 
+    db = db_connect()
     cu = db.cursor()
 
     team_scores = [None, None]
@@ -1068,12 +1142,16 @@ def submit_match(data):
       "match_id": match_id
     }
 
+  cu.close()
+  db.close()
+
   return result
 
 
 def get_scoreboard(match_id):
 
   try:
+    db = db_connect()
     cu = db.cursor()
 
     query = '''
@@ -1293,6 +1371,7 @@ def get_scoreboard(match_id):
     }
   finally:
     cu.close()
+    db.close()
 
   return result
 
@@ -1321,6 +1400,7 @@ def get_last_matches( gametype = None, page = 0 ):
     }
 
   try:
+    db = db_connect()
     cu = db.cursor()
 
     query = '''
@@ -1328,6 +1408,7 @@ def get_last_matches( gametype = None, page = 0 ):
       json_build_object(
         'match_id', m.match_id,
         'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
+        'timestamp', timestamp,
         'gametype', g.gametype_short,
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
@@ -1355,7 +1436,9 @@ def get_last_matches( gametype = None, page = 0 ):
     matches = []
     overall_match_count = 1
     for row in cu:
-      matches.append( row[0] )
+      item = dict(row[0])
+      item["timedelta"] = humanize.naturaltime( datetime.now() - datetime.fromtimestamp(item['timestamp'] ) )
+      matches.append( item )
       overall_match_count = row[1]
 
     result = {
@@ -1371,6 +1454,9 @@ def get_last_matches( gametype = None, page = 0 ):
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
     }
+
+  cu.close()
+  db.close()
 
   return result
 
@@ -1460,6 +1546,7 @@ def reset_gametype_ratings( gametype ):
     db.rollback()
     traceback.print_exc(file=sys.stderr)
   finally:
+    cu.close()
     db.close()
 
   return result
@@ -1496,4 +1583,4 @@ for _, gametype_id in GAMETYPE_IDS.items():
     LAST_GAME_TIMESTAMPS[ gametype_id ] = row[0]
 
 cu.close()
-
+db.close()

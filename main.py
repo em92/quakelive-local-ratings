@@ -28,6 +28,8 @@ def render_ql_nickname( nickname ):
 @app.route('/matches/<gametype>/')
 @app.route('/matches/<gametype>/<int:page>/')
 def http_root(gametype = None, page = 0):
+  if type(gametype) is str:
+    gametype = gametype.lower()
   return render_template("match_list.html", **rating.get_last_matches( gametype, page ),
     gametype = gametype,
     current_page = page,
@@ -38,9 +40,14 @@ def http_root(gametype = None, page = 0):
 @app.route("/ratings/<gametype>/")
 @app.route("/ratings/<gametype>/<int:page>/")
 def http_rating_gametype_page(gametype, page = 0):
-  return render_template("ratings_list.html", **rating.get_list( gametype, page ),
+  if type(gametype) is str:
+    gametype = gametype.lower()
+  show_inactive = request.args.get("show_inactive", False, type=bool)
+  return render_template("ratings_list.html", **rating.get_list( gametype, page, show_inactive ),
     gametype = gametype,
     current_page = page,
+    show_inactive = show_inactive,
+    page_suffix = ("?show_inactive=yes" if show_inactive else ""),
     page_prefix = "/ratings/" + gametype
   )
 
@@ -48,6 +55,16 @@ def http_rating_gametype_page(gametype, page = 0):
 @app.route("/ratings/<gametype>/<int:page>.json")
 def http_ratings_gametype_page_json(gametype, page):
   return jsonify( **rating.get_list( gametype, page ) )
+
+
+@app.route("/player/<int:steam_id>/")
+def http_player(steam_id):
+  return render_template("player_stats.html", **rating.get_player_info2(steam_id) )
+
+
+@app.route("/player/<int:steam_id>.json")
+def http_player_json(steam_id):
+  return jsonify( **rating.get_player_info(int(steam_id)) )
 
 
 @app.route("/elo/<ids>")
@@ -98,11 +115,6 @@ def http_steam_api_GetPlayerSummaries():
       return jsonify( ok = False, message = player_info["message"] ), 500
 
   return jsonify( ok = True, response = { "players": players } )
-
-
-@app.route("/player/<int:steam_id>")
-def http_player_id(steam_id):
-  return jsonify( **rating.get_player_info(int(steam_id)) )
 
 
 @app.route("/export_rating/<frmt>/<gametype>")
@@ -177,5 +189,6 @@ def http_stats_submit():
       return jsonify(**result), 200
 
 
+print(rating.get_player_info2("76561198260599288"))
 if __name__ == "__main__":
     app.run( host = "0.0.0.0", port = cfg['httpd_port'], threaded = True)

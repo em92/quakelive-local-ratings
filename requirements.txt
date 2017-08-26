@@ -5,3 +5,4 @@ beautifulsoup4
 pytz
 sqlalchemy
 trueskill
+humanize

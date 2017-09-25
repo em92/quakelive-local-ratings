@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% macro team_scoreboard(team, players, gametype) -%}
+{% macro team_scoreboard(team, players, gametype, team_score) -%}
 <table class="table table-hover table-borderless">
   <thead><tr>
     <th>Nick</th>
@@ -34,6 +34,7 @@
     <li>Gametype: {{ summary['gt'] }}</li>
     <li>Arena: {{ summary['map'] }}</li>
     <li>Duration: {{ summary['duration'] }}
+    <li>Scores: <span class="qc1">{{ summary['team1_score'] }}</span> : <span class="qc4">{{ summary['team2_score'] }}</span></li>
     </ul>
   </div>
 </div>

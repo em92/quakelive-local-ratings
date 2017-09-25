@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% macro team_scoreboard(team, players, gametype) -%}
-<table class="table">
+<table class="table table-hover table-borderless">
   <thead><tr>
     <th>Nick</th>
     <th>Time</th>
@@ -10,8 +10,8 @@
     <th>Damage Dealt</th>
     <th>Damage Taken</th>
   </tr></thead>
-  <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr>
-    <td><a href="/player/{{ player['steam_id'] }}">{{ player['name'] | ql_nickname | safe }}</a></td>
+  <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr class="{{ 'red' if team == '1' else 'blue' }}">
+    <td class="player-nick"><a href="/player/{{ player['steam_id'] }}">{{ player['name'] | ql_nickname | safe }}</a></td>
     <td>{{ player['stats']['alive_time'] }}</td>
     <td>{{ player['stats']['score'] }}</td>
     <td>{{ player['stats']['frags'] }}</td>

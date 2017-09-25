@@ -6,6 +6,10 @@ a {
   cursor: pointer;
 }
 
+a:hover {
+  text-decoration: none;
+}
+
 .pagination {
   background-color: white;
 }
@@ -147,6 +151,7 @@ li {
   text-align: center;
 }
 
+#match-info-wrapper,
 #player-stats-wrapper {
   background-color: #222;
   border-radius: 15px;
@@ -171,7 +176,28 @@ li {
   font-size: 12px;
 }
 
-
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
   background-color: #222;
 }
+
+.player-nick {
+  border-width: 0px;
+  width: 25%;
+}
+
+#match-info-wrapper tr.blue td {
+  background-color: #00004D;
+}
+
+#match-info-wrapper tr.blue:hover td {
+  background-color: #00005E;;
+}
+
+#match-info-wrapper tr.red td {
+  background-color: #4D0000;
+}
+
+#match-info-wrapper tr.red:hover td {
+  background-color: #5E0000;
+}
+

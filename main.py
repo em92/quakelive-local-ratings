@@ -22,6 +22,13 @@ def render_ql_nickname( nickname ):
   return '<span class="qc7">' + nickname + '</span>';
 
 
+@app.template_filter('seconds_to_mmss')
+def seconds_to_mmss( value ):
+  seconds = int(escape(value))
+  m, s = divmod(seconds, 60)
+  return "%02d:%02d" % (m, s)
+
+
 @app.route('/')
 @app.route('/matches/')
 @app.route('/matches/<int:page>/')

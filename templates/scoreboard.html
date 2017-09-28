@@ -6,9 +6,11 @@
     <th>Score</th>
     <th>Frags</th>
     <th>Deaths</th>
-    {% if gametype == "ctf" %}
+    {% if gametype in ("ctf", "ad") %}
     <th>Captures</th>
+    {% if gametype != "ad" %}
     <th>Assists</th>
+    {% endif %}
     <th>Defends</th>
     {% endif %}
     <th>Damage Dealt</th>
@@ -24,17 +26,19 @@
     <td>{{ player['stats']['score'] }}</td>
     <td>{{ player['stats']['frags'] }}</td>
     <td>{{ player['stats']['deaths'] }}</td>
-    {% if gametype == "ctf" %}
-    <td>{{ medals[team][player['steam_id']]['captures'] }}</td>
-    <td>{{ medals[team][player['steam_id']]['assists'] }}</td>
-    <td>{{ medals[team][player['steam_id']]['defends'] }}</td>
+    {% if gametype in ("ctf", "ad") %}
+    <td>{{ medals[team][player['steam_id']]['captures'] | zero_to_minus }}</td>
+    {% if gametype != "ad" %}
+    <td>{{ medals[team][player['steam_id']]['assists']  | zero_to_minus }}</td>
+    {% endif %}
+    <td>{{ medals[team][player['steam_id']]['defends']  | zero_to_minus }}</td>
     {% endif %}
     <td>{{ player['stats']['damage_dealt'] }}</td>
     <td>{{ player['stats']['damage_taken'] }}</td>
     <td>{{ player['stats']['alive_time'] | seconds_to_mmss }}</td>
     {% if gametype == "tdm" %}
-    <td>{{ medals[team][player['steam_id']]['excellent'] }}</td>
-    <td>{{ medals[team][player['steam_id']]['impressive'] }}</td>
+    <td>{{ medals[team][player['steam_id']]['excellent']  | zero_to_minus }}</td>
+    <td>{{ medals[team][player['steam_id']]['impressive'] | zero_to_minus }}</td>
     {% endif %}
   </tr>{% endfor %}</tbody>
 </table>

@@ -161,7 +161,7 @@ def http_scoreboard_match_id_json(match_id):
 
 @app.route("/scoreboard/<match_id>")
 def http_scoreboard_match_id(match_id):
-  return render_template("scoreboard.html", **rating.get_scoreboard( match_id ))
+  return render_template("scoreboard.html", match_id = match_id, **rating.get_scoreboard( match_id ))
 
 
 @app.route("/generate_user_ratings/<gametype>.json")

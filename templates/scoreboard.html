@@ -14,6 +14,10 @@
     <th>Damage Dealt</th>
     <th>Damage Taken</th>
     <th>Time</th>
+    {% if gametype == "tdm" %}
+    <th>Excellent</th>
+    <th>Impressive</th>
+    {% endif %}
   </tr></thead>
   <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr class="{{ 'red' if team == '1' else 'blue' }}">
     <td class="player-nick"><a href="/player/{{ player['steam_id'] }}">{{ player['name'] | ql_nickname | safe }}</a></td>
@@ -28,6 +32,10 @@
     <td>{{ player['stats']['damage_dealt'] }}</td>
     <td>{{ player['stats']['damage_taken'] }}</td>
     <td>{{ player['stats']['alive_time'] | seconds_to_mmss }}</td>
+    {% if gametype == "tdm" %}
+    <td>{{ medals[team][player['steam_id']]['excellent'] }}</td>
+    <td>{{ medals[team][player['steam_id']]['impressive'] }}</td>
+    {% endif %}
   </tr>{% endfor %}</tbody>
 </table>
 

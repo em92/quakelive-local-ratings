@@ -1240,36 +1240,6 @@ def get_scoreboard(match_id):
 
     query = '''
     SELECT 
-      json_object_agg(t.team, t.player_medal_stats)
-    FROM (
-      SELECT
-        t.team,
-        json_object_agg(t.steam_id, t.medal_stats) as player_medal_stats
-      FROM (
-        SELECT
-          t.steam_id, t.team, 
-          json_object_agg(t.medal_short, t.count) AS medal_stats
-        FROM
-          (
-          SELECT
-            s.steam_id::text, s.team, m.medal_short, sm.count
-          FROM
-            scoreboards s
-          LEFT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
-          LEFT JOIN medals m ON m.medal_id = sm.medal_id
-          WHERE
-            s.match_id = %s
-          ) t
-        GROUP BY t.steam_id, t.team
-      ) t
-      GROUP BY t.team
-    ) t;
-    '''
-    cu.execute(query, [match_id])
-    team_medal_stats = cu.fetchone()[0]
-
-    query = '''
-    SELECT 
       json_object_agg(t.team, t.player_rating_history)
     FROM (
       SELECT
@@ -1307,6 +1277,7 @@ def get_scoreboard(match_id):
             'damage_taken', t.damage_taken,
             'alive_time',   t.alive_time
           ),
+          'medal_stats', ms.medal_stats,
           'weapon_stats', ws.weapon_stats
         ) AS item
       FROM
@@ -1332,6 +1303,22 @@ def get_scoreboard(match_id):
           ) t
           GROUP BY t.steam_id, t.team
       ) ws ON ws.steam_id = t.steam_id AND ws.team = t.team
+      LEFT JOIN (
+        SELECT
+          t.steam_id, t.team,
+          json_object_agg(t.medal_short, t.count) AS medal_stats
+        FROM (
+          SELECT
+            s.steam_id, s.team, m.medal_short, sm.count
+          FROM
+            scoreboards s
+          LEFT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
+          LEFT JOIN medals m ON m.medal_id = sm.medal_id
+          WHERE
+            s.match_id = %(match_id)s
+        ) t
+        GROUP BY t.steam_id, t.team
+      ) ms ON ms.steam_id = t.steam_id AND ms.team = t.team
       WHERE
         t.match_id = %(match_id)s
       ORDER BY t.score DESC
@@ -1344,7 +1331,6 @@ def get_scoreboard(match_id):
       "summary": summary,
       "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
       "team_stats": {
-        "medals":         team_medal_stats,
         "rating_history": rating_history,
         "overall":        overall_stats
       },

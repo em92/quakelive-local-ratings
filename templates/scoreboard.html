@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% macro team_scoreboard(team, players, gametype, medals) -%}
+{% macro team_scoreboard(team, players, gametype) -%}
 <table class="table table-hover table-borderless">
   <thead><tr>
     <th>Nick</th>
@@ -27,18 +27,18 @@
     <td>{{ player['stats']['frags'] }}</td>
     <td>{{ player['stats']['deaths'] }}</td>
     {% if gametype in ("ctf", "ad") %}
-    <td>{{ medals[team][player['steam_id']]['captures'] | zero_to_minus }}</td>
+    <td>{{ player['medal_stats']['captures'] | zero_to_minus }}</td>
     {% if gametype != "ad" %}
-    <td>{{ medals[team][player['steam_id']]['assists']  | zero_to_minus }}</td>
+    <td>{{ player['medal_stats']['assists']  | zero_to_minus }}</td>
     {% endif %}
-    <td>{{ medals[team][player['steam_id']]['defends']  | zero_to_minus }}</td>
+    <td>{{ player['medal_stats']['defends']  | zero_to_minus }}</td>
     {% endif %}
     <td>{{ player['stats']['damage_dealt'] }}</td>
     <td>{{ player['stats']['damage_taken'] }}</td>
     <td>{{ player['stats']['alive_time'] | seconds_to_mmss }}</td>
     {% if gametype == "tdm" %}
-    <td>{{ medals[team][player['steam_id']]['excellent']  | zero_to_minus }}</td>
-    <td>{{ medals[team][player['steam_id']]['impressive'] | zero_to_minus }}</td>
+    <td>{{ player['medal_stats']['excellent']  | zero_to_minus }}</td>
+    <td>{{ player['medal_stats']['impressive'] | zero_to_minus }}</td>
     {% endif %}
   </tr>{% endfor %}</tbody>
 </table>
@@ -62,8 +62,8 @@
 </div>
 
 <div class="row">
-{{ team_scoreboard("1", team_stats['overall'], summary['gt_short'], team_stats['medals']) }}
-{{ team_scoreboard("2", team_stats['overall'], summary['gt_short'], team_stats['medals']) }}
+{{ team_scoreboard("1", team_stats['overall'], summary['gt_short']) }}
+{{ team_scoreboard("2", team_stats['overall'], summary['gt_short']) }}
 </div>
 
 <p><a href="http://qlstats.net/game/{{ match_id }}">View scoreboard in QLStats.net</a></p>

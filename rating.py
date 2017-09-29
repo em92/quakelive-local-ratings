@@ -1240,36 +1240,6 @@ def get_scoreboard(match_id):
 
     query = '''
     SELECT 
-      json_object_agg(t.team, t.player_weapon_stats)
-    FROM (
-      SELECT
-        t.team,
-        json_object_agg(t.steam_id, t.weapon_stats) as player_weapon_stats
-      FROM (
-        SELECT
-          t.steam_id, t.team, 
-          json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots]) AS weapon_stats
-        FROM
-          (
-          SELECT
-            s.steam_id::text, s.team, w.weapon_short, sw.frags, sw.hits, sw.shots
-          FROM
-            scoreboards s
-          LEFT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
-          LEFT JOIN weapons w ON w.weapon_id = sw.weapon_id
-          WHERE
-            s.match_id = %s
-          ) t
-        GROUP BY t.steam_id, t.team
-      ) t
-      GROUP BY t.team
-    ) t;
-    '''
-    cu.execute(query, [match_id])
-    team_weapon_stats = cu.fetchone()[0]
-
-    query = '''
-    SELECT 
       json_object_agg(t.team, t.player_medal_stats)
     FROM (
       SELECT
@@ -1336,24 +1306,44 @@ def get_scoreboard(match_id):
             'damage_dealt', t.damage_dealt,
             'damage_taken', t.damage_taken,
             'alive_time',   t.alive_time
-          )
+          ),
+          'weapon_stats', ws.weapon_stats
         ) AS item
       FROM
         scoreboards t
       LEFT JOIN players p ON p.steam_id = t.steam_id
+      LEFT JOIN (
+        SELECT
+          t.steam_id, t.team,
+          json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots, t.accuracy]) AS weapon_stats
+        FROM
+          (
+          SELECT
+            s.steam_id, s.team, w.weapon_short, sw.frags, sw.hits, sw.shots,
+            CASE WHEN sw.shots = 0 THEN 0
+              ELSE CAST(100. * sw.hits / sw.shots AS INT)
+            END AS accuracy
+          FROM
+            scoreboards s
+          LEFT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
+          LEFT JOIN weapons w ON w.weapon_id = sw.weapon_id
+          WHERE
+            s.match_id = %(match_id)s
+          ) t
+          GROUP BY t.steam_id, t.team
+      ) ws ON ws.steam_id = t.steam_id AND ws.team = t.team
       WHERE
-        t.match_id = %s
+        t.match_id = %(match_id)s
       ORDER BY t.score DESC
     ) t
     '''
-    cu.execute(query, [match_id])
+    cu.execute(query, {"match_id": match_id})
     overall_stats = cu.fetchone()[0]
 
     result = {
       "summary": summary,
       "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
       "team_stats": {
-        "weapons":        team_weapon_stats,
         "medals":         team_medal_stats,
         "rating_history": rating_history,
         "overall":        overall_stats

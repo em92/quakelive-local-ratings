@@ -23,6 +23,9 @@
     {% for w in wa %}
     <th class="s sw" style="display: none">{{ w }}</th>
     {% endfor %}
+    {% for m in ma %}
+    <th class="s sm" style="display: none">{{ m }}</th>
+    {% endfor %}
   </tr></thead>
   <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr class="{{ 'red' if team == '1' else 'blue' }}">
     <td class="player-nick"><a href="/player/{{ player['steam_id'] }}">{{ player['name'] | ql_nickname | safe }}</a></td>
@@ -45,6 +48,9 @@
     {% endif %}
     {% for w in wa %}
     <td class="s sw" style="display: none">{{ player['weapon_stats'][w][0] | zero_to_minus }}</td>
+    {% endfor %}
+    {% for m in ma %}
+    <td class="s sm" style="display: none">{{ player['medal_stats'][m] | zero_to_minus }}</td>
     {% endfor %}
   </tr>{% endfor %}</tbody>
 </table>

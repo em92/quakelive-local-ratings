@@ -3,42 +3,42 @@
 <table class="table table-hover table-borderless">
   <thead><tr>
     <th>Nick</th>
-    <th>Score</th>
-    <th>Frags</th>
-    <th>Deaths</th>
+    <th class="s s1">Score</th>
+    <th class="s s1">Frags</th>
+    <th class="s s1">Deaths</th>
     {% if gametype in ("ctf", "ad") %}
-    <th>Captures</th>
+    <th class="s s1">Captures</th>
     {% if gametype != "ad" %}
-    <th>Assists</th>
+    <th class="s s1">Assists</th>
     {% endif %}
-    <th>Defends</th>
+    <th class="s s1">Defends</th>
     {% endif %}
-    <th>Damage Dealt</th>
-    <th>Damage Taken</th>
-    <th>Time</th>
+    <th class="s s1">Damage Dealt</th>
+    <th class="s s1">Damage Taken</th>
+    <th class="s s1">Time</th>
     {% if gametype == "tdm" %}
-    <th>Excellent</th>
-    <th>Impressive</th>
+    <th class="s s1">Excellent</th>
+    <th class="s s1">Impressive</th>
     {% endif %}
   </tr></thead>
   <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr class="{{ 'red' if team == '1' else 'blue' }}">
     <td class="player-nick"><a href="/player/{{ player['steam_id'] }}">{{ player['name'] | ql_nickname | safe }}</a></td>
-    <td>{{ player['stats']['score'] }}</td>
-    <td>{{ player['stats']['frags'] }}</td>
-    <td>{{ player['stats']['deaths'] }}</td>
+    <td class="s s1">{{ player['stats']['score'] }}</td>
+    <td class="s s1">{{ player['stats']['frags'] }}</td>
+    <td class="s s1">{{ player['stats']['deaths'] }}</td>
     {% if gametype in ("ctf", "ad") %}
-    <td>{{ player['medal_stats']['captures'] | zero_to_minus }}</td>
+    <td class="s s1">{{ player['medal_stats']['captures'] | zero_to_minus }}</td>
     {% if gametype != "ad" %}
-    <td>{{ player['medal_stats']['assists']  | zero_to_minus }}</td>
+    <td class="s s1">{{ player['medal_stats']['assists']  | zero_to_minus }}</td>
     {% endif %}
-    <td>{{ player['medal_stats']['defends']  | zero_to_minus }}</td>
+    <td class="s s1">{{ player['medal_stats']['defends']  | zero_to_minus }}</td>
     {% endif %}
-    <td>{{ player['stats']['damage_dealt'] }}</td>
-    <td>{{ player['stats']['damage_taken'] }}</td>
-    <td>{{ player['stats']['alive_time'] | seconds_to_mmss }}</td>
+    <td class="s s1">{{ player['stats']['damage_dealt'] }}</td>
+    <td class="s s1">{{ player['stats']['damage_taken'] }}</td>
+    <td class="s s1">{{ player['stats']['alive_time'] | seconds_to_mmss }}</td>
     {% if gametype == "tdm" %}
-    <td>{{ player['medal_stats']['excellent']  | zero_to_minus }}</td>
-    <td>{{ player['medal_stats']['impressive'] | zero_to_minus }}</td>
+    <td class="s s1">{{ player['medal_stats']['excellent']  | zero_to_minus }}</td>
+    <td class="s s1">{{ player['medal_stats']['impressive'] | zero_to_minus }}</td>
     {% endif %}
   </tr>{% endfor %}</tbody>
 </table>
@@ -68,5 +68,20 @@
 
 <p><a href="http://qlstats.net/game/{{ match_id }}">View scoreboard in QLStats.net</a></p>
 </div>
+
+<script>
+
+function toggle_table( cat ) {
+  var els = document.getElementsByClassName("s");
+  for (var i=0; i < els.length; i++) {
+    if (els[i].className == "s " + cat) {
+      els[i].style.display = "table-cell";
+    } else {
+      els[i].style.display = "none";
+    }
+  }
+}
+
+</script>
 {% endblock %}
 

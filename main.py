@@ -22,6 +22,22 @@ def render_ql_nickname( nickname ):
   return '<span class="qc7">' + nickname + '</span>';
 
 
+@app.template_filter('seconds_to_mmss')
+def seconds_to_mmss( value ):
+  seconds = int(escape(value))
+  m, s = divmod(seconds, 60)
+  return "%02d:%02d" % (m, s)
+
+
+@app.template_filter('zero_to_minus')
+def zero_to_minus( value ):
+  value = int(escape(value))
+  if value:
+    return value
+  else:
+    return "-"
+
+
 @app.route('/')
 @app.route('/matches/')
 @app.route('/matches/<int:page>/')
@@ -140,8 +156,8 @@ def http_export_rating_format_gametype(frmt, gametype):
     return "Error: invalid format: " + frmt, 400
 
 
-@app.route("/scoreboard/<match_id>")
-def http_scoreboard_match_id(match_id):
+@app.route("/scoreboard/<match_id>.json")
+def http_scoreboard_match_id_json(match_id):
   try:
     if len(match_id) != len('12345678-1234-5678-1234-567812345678'):
       raise ValueError()
@@ -150,6 +166,11 @@ def http_scoreboard_match_id(match_id):
     return jsonify(ok=False, message="invalid match_id")
 
   return jsonify(**rating.get_scoreboard(match_id))
+
+
+@app.route("/scoreboard/<match_id>")
+def http_scoreboard_match_id(match_id):
+  return render_template("scoreboard.html", match_id = match_id, **rating.get_scoreboard( match_id ))
 
 
 @app.route("/generate_user_ratings/<gametype>.json")

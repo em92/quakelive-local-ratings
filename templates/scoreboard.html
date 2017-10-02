@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% macro team_scoreboard(team, players, gametype, wa, ma) -%}
+<table class="table table-hover table-borderless">
+  <thead><tr>
+    <th>Nick</th>
+    <th class="s s1">Score</th>
+    <th class="s s1">Frags</th>
+    <th class="s s1">Deaths</th>
+    {% if gametype in ("ctf", "ad") %}
+    <th class="s s1">Captures</th>
+    {% if gametype != "ad" %}
+    <th class="s s1">Assists</th>
+    {% endif %}
+    <th class="s s1">Defends</th>
+    {% endif %}
+    <th class="s s1">Damage Dealt</th>
+    <th class="s s1">Damage Taken</th>
+    <th class="s s1">Time</th>
+    {% if gametype == "tdm" %}
+    <th class="s s1">Excellent</th>
+    <th class="s s1">Impressive</th>
+    {% endif %}
+    {% for w in wa %}
+    <th class="s sw" style="display: none"><div class="w-{{ w }}"></div></th>
+    {% endfor %}
+    {% for m in ma %}
+    <th class="s sm" style="display: none"><div class="m-{{ m }}"></div></th>
+    {% endfor %}
+  </tr></thead>
+  <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr class="{{ 'red' if team == '1' else 'blue' }}">
+    <td class="player-nick"><a href="/player/{{ player['steam_id'] }}">{{ player['name'] | ql_nickname | safe }}</a></td>
+    <td class="s s1">{{ player['stats']['score'] }}</td>
+    <td class="s s1">{{ player['stats']['frags'] }}</td>
+    <td class="s s1">{{ player['stats']['deaths'] }}</td>
+    {% if gametype in ("ctf", "ad") %}
+    <td class="s s1">{{ player['medal_stats']['captures'] | zero_to_minus }}</td>
+    {% if gametype != "ad" %}
+    <td class="s s1">{{ player['medal_stats']['assists']  | zero_to_minus }}</td>
+    {% endif %}
+    <td class="s s1">{{ player['medal_stats']['defends']  | zero_to_minus }}</td>
+    {% endif %}
+    <td class="s s1">{{ player['stats']['damage_dealt'] }}</td>
+    <td class="s s1">{{ player['stats']['damage_taken'] }}</td>
+    <td class="s s1">{{ player['stats']['alive_time'] | seconds_to_mmss }}</td>
+    {% if gametype == "tdm" %}
+    <td class="s s1">{{ player['medal_stats']['excellent']  | zero_to_minus }}</td>
+    <td class="s s1">{{ player['medal_stats']['impressive'] | zero_to_minus }}</td>
+    {% endif %}
+    {% for w in wa %}
+    <td class="s sw" style="display: none">{{ player['weapon_stats'][w][0] | zero_to_minus }}</td>
+    {% endfor %}
+    {% for m in ma %}
+    <td class="s sm" style="display: none">{{ player['medal_stats'][m] | zero_to_minus }}</td>
+    {% endfor %}
+  </tr>{% endfor %}</tbody>
+</table>
+
+{%- endmacro %}
+{% block body %}
+<div id="match-info-wrapper">
+<h1 class="title">Match Information</h2>
+
+<div class="row">
+  <div class="col-sm-4">
+    <h3>Match Detail</h3>
+    <ul>
+    <li>Played: {{ summary['datetime'] }}</li>
+    <li>Gametype: {{ summary['gt'] }}</li>
+    <li>Arena: {{ summary['map'] }}</li>
+    <li>Duration: {{ summary['duration'] }}
+    <li>Scores: <span class="qc1">{{ summary['team1_score'] }}</span> : <span class="qc4">{{ summary['team2_score'] }}</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="row">
+{{ team_scoreboard("1" if summary['team1_score'] > summary['team2_score'] else "2", team_stats['overall'], summary['gt_short'], weapons_available, medals_available) }}
+{{ team_scoreboard("2" if summary['team1_score'] > summary['team2_score'] else "1", team_stats['overall'], summary['gt_short'], weapons_available, medals_available) }}
+</div>
+
+<p><a href="http://qlstats.net/game/{{ match_id }}">View scoreboard in QLStats.net</a></p>
+</div>
+
+<script>
+
+function toggle_table( cat ) {
+  var els = document.getElementsByClassName("s");
+  for (var i=0; i < els.length; i++) {
+    if (els[i].className == "s " + cat) {
+      els[i].style.display = "table-cell";
+    } else {
+      els[i].style.display = "none";
+    }
+  }
+}
+
+</script>
+{% endblock %}
+

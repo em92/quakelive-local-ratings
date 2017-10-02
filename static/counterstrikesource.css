@@ -201,3 +201,16 @@ li {
   background-color: #5E0000;
 }
 
+.w-gl, .w-gt, .w-hmg, .w-lg, .w-mg, .w-pg, .w-rg, .w-rl, .w-sg
+{ background: url('/static/images/wpns.png') no-repeat; overflow: hidden; text-indent: -9999px; text-align: left; }
+
+.w-gl { background-position: -0px -0px; width: 21px; height: 21px; }
+.w-gt { background-position: -21px -0px; width: 21px; height: 21px; }
+.w-hmg { background-position: -42px -0px; width: 21px; height: 21px; }
+.w-lg { background-position: -0px -21px; width: 21px; height: 21px; }
+.w-mg { background-position: -21px -21px; width: 21px; height: 21px; }
+.w-pg { background-position: -42px -21px; width: 21px; height: 21px; }
+.w-rg { background-position: -0px -42px; width: 21px; height: 21px; }
+.w-rl { background-position: -21px -42px; width: 21px; height: 21px; }
+.w-sg { background-position: -42px -42px; width: 21px; height: 21px; }
+

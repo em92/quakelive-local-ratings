@@ -28,7 +28,7 @@
         <th>Finish</th>
         <th>Played</th>
       </tr></thead>
-      <tbody>{% for item in response['matches'] %}<tr onClick='window.location="http://qlstats.net/game/{{ item['match_id'] }}"'>
+      <tbody>{% for item in response['matches'] %}<tr onClick='window.location="/scoreboard/{{ item['match_id'] }}"'>
         <td class="col-md-6">{{ item['gametype'] }} / {{ item['map'] }}</td>
         <td class="col-md-3">{{ item['result'] }}</td>
         <td class="col-md-3">{{ item['timedelta'] }}</td>

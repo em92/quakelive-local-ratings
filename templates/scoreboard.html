@@ -24,7 +24,7 @@
     <th class="s sw" style="display: none"><div class="w-{{ w }}"></div></th>
     {% endfor %}
     {% for m in ma %}
-    <th class="s sm" style="display: none">{{ m }}</th>
+    <th class="s sm" style="display: none"><div class="m-{{ m }}"></div></th>
     {% endfor %}
   </tr></thead>
   <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr class="{{ 'red' if team == '1' else 'blue' }}">

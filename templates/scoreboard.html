@@ -73,6 +73,12 @@
   </div>
 </div>
 
+<div id="table_btns" class="row">
+  <a class="s1 active" onClick="toggle_table('s1', this)">Summary</a>
+  <a class="sw" onClick="toggle_table('sw', this)">Frags</a>
+  <a class="sm" onClick="toggle_table('sm', this)">Medals</a>
+</div>
+
 <div class="row">
 {{ team_scoreboard("1" if summary['team1_score'] > summary['team2_score'] else "2", team_stats['overall'], summary['gt_short'], weapons_available, medals_available) }}
 {{ team_scoreboard("2" if summary['team1_score'] > summary['team2_score'] else "1", team_stats['overall'], summary['gt_short'], weapons_available, medals_available) }}
@@ -83,7 +89,13 @@
 
 <script>
 
-function toggle_table( cat ) {
+function toggle_table( cat, btn ) {
+
+  var active_toggle = document.querySelector("#table_btns .active");
+  active_toggle.className = active_toggle.className.replace(" active", "");
+
+  btn.className = cat + " active";
+
   var els = document.getElementsByClassName("s");
   for (var i=0; i < els.length; i++) {
     if (els[i].className == "s " + cat) {

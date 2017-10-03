@@ -38,6 +38,15 @@ def zero_to_minus( value ):
     return "-"
 
 
+@app.template_filter('zero_to_minus_with_percent')
+def zero_to_minus( value ):
+  value = int(escape(value))
+  if value:
+    return str(value) + "%"
+  else:
+    return "-"
+
+
 @app.route('/')
 @app.route('/matches/')
 @app.route('/matches/<int:page>/')

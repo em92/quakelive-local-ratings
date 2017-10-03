@@ -22,6 +22,7 @@
     {% endif %}
     {% for w in wa %}
     <th class="s sw" style="display: none"><div class="w-{{ w }}"></div></th>
+    <th class="s sa" style="display: none"><div class="w-{{ w }}"></div></th>
     {% endfor %}
     {% for m in ma %}
     <th class="s sm" style="display: none"><div class="m-{{ m }}"></div></th>
@@ -48,6 +49,7 @@
     {% endif %}
     {% for w in wa %}
     <td class="s sw" style="display: none">{{ player['weapon_stats'][w][0] | zero_to_minus }}</td>
+    <td class="s sa" style="display: none">{{ player['weapon_stats'][w][3] | zero_to_minus_with_percent }}</td>
     {% endfor %}
     {% for m in ma %}
     <td class="s sm" style="display: none">{{ player['medal_stats'][m] | zero_to_minus }}</td>
@@ -76,6 +78,7 @@
 <div id="table_btns" class="row">
   <a class="s1 active" onClick="toggle_table('s1', this)">Summary</a>
   <a class="sw" onClick="toggle_table('sw', this)">Frags</a>
+  <a class="sw" onClick="toggle_table('sa', this)">Accuracy</a>
   <a class="sm" onClick="toggle_table('sm', this)">Medals</a>
 </div>
 

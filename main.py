@@ -82,9 +82,9 @@ def http_ratings_gametype_page_json(gametype, page):
   return jsonify( **rating.get_list( gametype, page ) )
 
 
-@app.route("/player/<int:steam_id>/")
+@app.route("/player/<int:steam_id>")
 def http_player(steam_id):
-  return render_template("player_stats.html", **rating.get_player_info2(steam_id) )
+  return render_template("player_stats.html", **rating.get_player_info2(steam_id), steam_id = str(steam_id) )
 
 
 @app.route("/player/<int:steam_id>.json")

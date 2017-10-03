@@ -236,3 +236,16 @@ li {
 .m-quadgod { background-position: -21px -63px; width: 21px; height: 21px; }
 .m-rampage { background-position: -42px -63px; width: 21px; height: 21px; }
 .m-revenge { background-position: -63px -63px; width: 21px; height: 21px; }
+
+#table_btns {
+  text-align: center;
+  line-height: 32px;
+}
+
+#table_btns a {
+  padding: 5px;
+}
+
+#table_btns a.active {
+  text-decoration: underline;
+}

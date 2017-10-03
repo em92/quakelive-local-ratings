@@ -22,6 +22,7 @@
     {% endif %}
     {% for w in wa %}
     <th class="s sw" style="display: none"><div class="w-{{ w }}"></div></th>
+    <th class="s sa" style="display: none"><div class="w-{{ w }}"></div></th>
     {% endfor %}
     {% for m in ma %}
     <th class="s sm" style="display: none"><div class="m-{{ m }}"></div></th>
@@ -48,6 +49,7 @@
     {% endif %}
     {% for w in wa %}
     <td class="s sw" style="display: none">{{ player['weapon_stats'][w][0] | zero_to_minus }}</td>
+    <td class="s sa" style="display: none"><span title="{{ player['weapon_stats'][w][1] }} / {{ player['weapon_stats'][w][2] }}">{{ player['weapon_stats'][w][3] | zero_to_minus_with_percent }}</span></td>
     {% endfor %}
     {% for m in ma %}
     <td class="s sm" style="display: none">{{ player['medal_stats'][m] | zero_to_minus }}</td>
@@ -73,17 +75,30 @@
   </div>
 </div>
 
+<div id="table_btns" class="row">
+  <a class="s1 active" onClick="toggle_table('s1', this)">Summary</a>
+  <a class="sw" onClick="toggle_table('sw', this)">Frags</a>
+  <a class="sw" onClick="toggle_table('sa', this)">Accuracy</a>
+  <a class="sm" onClick="toggle_table('sm', this)">Medals</a>
+</div>
+
 <div class="row">
 {{ team_scoreboard("1" if summary['team1_score'] > summary['team2_score'] else "2", team_stats['overall'], summary['gt_short'], weapons_available, medals_available) }}
 {{ team_scoreboard("2" if summary['team1_score'] > summary['team2_score'] else "1", team_stats['overall'], summary['gt_short'], weapons_available, medals_available) }}
 </div>
 
-<p><a href="http://qlstats.net/game/{{ match_id }}">View scoreboard in QLStats.net</a></p>
+<p><a href="https://qlstats.net/game/{{ match_id }}">View scoreboard in QLStats.net</a></p>
 </div>
 
 <script>
 
-function toggle_table( cat ) {
+function toggle_table( cat, btn ) {
+
+  var active_toggle = document.querySelector("#table_btns .active");
+  active_toggle.className = active_toggle.className.replace(" active", "");
+
+  btn.className = cat + " active";
+
   var els = document.getElementsByClassName("s");
   for (var i=0; i < els.length; i++) {
     if (els[i].className == "s " + cat) {

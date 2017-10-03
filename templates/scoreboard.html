@@ -49,7 +49,7 @@
     {% endif %}
     {% for w in wa %}
     <td class="s sw" style="display: none">{{ player['weapon_stats'][w][0] | zero_to_minus }}</td>
-    <td class="s sa" style="display: none">{{ player['weapon_stats'][w][3] | zero_to_minus_with_percent }}</td>
+    <td class="s sa" style="display: none"><span title="{{ player['weapon_stats'][w][1] }} / {{ player['weapon_stats'][w][2] }}">{{ player['weapon_stats'][w][3] | zero_to_minus_with_percent }}</span></td>
     {% endfor %}
     {% for m in ma %}
     <td class="s sm" style="display: none">{{ player['medal_stats'][m] | zero_to_minus }}</td>

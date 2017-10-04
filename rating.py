@@ -38,6 +38,7 @@ USE_AVG_PERF = {
 MAX_RATING = 1000
 KEEPING_TIME = 60*60*24*30
 MATCH_LIST_ITEM_COUNT = 25
+MOVING_AVG_COUNT = cfg['moving_average_count']
 
 SQL_TOP_PLAYERS_BY_GAMETYPE = '''
   SELECT
@@ -293,8 +294,8 @@ FROM (
   LEFT JOIN scoreboards s on s.match_id = m.match_id
   LEFT JOIN players p ON p.steam_id = s.steam_id
   WHERE m.gametype_id = 2 and s.alive_time > 60 order by m.timestamp desc
-) t WHERE rank <= 50 GROUP BY steam_id HAVING MAX(rank) > 10 ORDER by rating DESC;
-  ''')
+) t WHERE rank <= %s GROUP BY steam_id HAVING MAX(rank) > 10 ORDER by rating DESC;
+  ''', MOVING_AVG_COUNT)
 
     result = []
     for row in cu.fetchall():
@@ -492,7 +493,7 @@ def get_player_info2( steam_id ):
           CASE WHEN SUM(shots) = 0 THEN 0
             ELSE CAST(100. * SUM(hits) / SUM(shots) AS INT)
           END AS accuracy
-        FROM (SELECT weapon_id, frags, hits, shots FROM scoreboards_weapons sw LEFT JOIN matches m ON m.match_id = sw.match_id WHERE sw.steam_id = %(steam_id)s ORDER BY timestamp DESC LIMIT 50) sw
+        FROM (SELECT weapon_id, frags, hits, shots FROM scoreboards_weapons sw LEFT JOIN matches m ON m.match_id = sw.match_id WHERE sw.steam_id = %(steam_id)s ORDER BY timestamp DESC LIMIT %(MOVING_AVG_COUNT)s) sw
         GROUP BY weapon_id
       ) t
       LEFT JOIN weapons w ON t.weapon_id = w.weapon_id
@@ -505,7 +506,7 @@ def get_player_info2( steam_id ):
         GROUP BY weapon_id
       ) t2 ON t2.weapon_id = t.weapon_id
       ORDER BY t.weapon_id ASC
-    ''', {"steam_id": steam_id})
+    ''', {"MOVING_AVG_COUNT": MOVING_AVG_COUNT, "steam_id": steam_id})
 
     result['weapon_stats'] = list( map( lambda row: row[0], cu.fetchall() ) )
 
@@ -719,7 +720,7 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
         LEFT JOIN matches m ON m.match_id = s.match_id
         WHERE s.steam_id = %s AND m.gametype_id = %s {CLAUSE}
         ORDER BY m.timestamp DESC
-        LIMIT 50
+        LIMIT %s
       ) t;'''
 
     query_common = query_template.replace("{CLAUSE}", "")
@@ -727,7 +728,7 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
 
     # getting common perfomance
     for steam_id in steam_ids:
-      cu.execute( query_common, [steam_id, gametype_id] )
+      cu.execute( query_common, [steam_id, gametype_id, MOVING_AVG_COUNT] )
       row = cu.fetchone()
       if row[0] == None:
         continue
@@ -744,7 +745,7 @@ def get_for_balance_plugin_for_certain_map( steam_ids, gametype, mapname ):
 
     # getting map perfomance
     for steam_id in steam_ids:
-      cu.execute( query_by_map, [steam_id, gametype_id, map_id] )
+      cu.execute( query_by_map, [steam_id, gametype_id, map_id, MOVING_AVG_COUNT] )
       row = cu.fetchone()
       if row[0] == None:
         continue
@@ -868,9 +869,9 @@ def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
           (m.post_processed = TRUE OR m.match_id = %s) AND
           s.match_perf IS NOT NULL
         ORDER BY m.timestamp DESC
-        LIMIT 50
+        LIMIT %s
       ) t'''
-      cu.execute(query_string, [steam_id, gametype_id, match_id])
+      cu.execute(query_string, [steam_id, gametype_id, match_id, MOVING_AVG_COUNT])
       new_rating = cu.fetchone()[0]
       assert new_rating != None
 

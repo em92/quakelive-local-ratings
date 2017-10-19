@@ -214,6 +214,5 @@ def http_stats_submit():
       return jsonify(**result), 200
 
 
-print(rating.get_player_info2("76561198260599288"))
 if __name__ == "__main__":
     app.run( host = "0.0.0.0", port = cfg['httpd_port'], threaded = True)

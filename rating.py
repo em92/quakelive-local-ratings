@@ -293,9 +293,9 @@ FROM (
   FROM matches m
   LEFT JOIN scoreboards s on s.match_id = m.match_id
   LEFT JOIN players p ON p.steam_id = s.steam_id
-  WHERE m.gametype_id = 2 and s.alive_time > 60 order by m.timestamp desc
+  WHERE m.gametype_id = %s and s.match_perf IS NOT NULL order by m.timestamp desc
 ) t WHERE rank <= %s GROUP BY steam_id HAVING MAX(rank) > 10 ORDER by rating DESC;
-  ''', MOVING_AVG_COUNT)
+  ''', [gametype_id, MOVING_AVG_COUNT])
 
     result = []
     for row in cu.fetchall():

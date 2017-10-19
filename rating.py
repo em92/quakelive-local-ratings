@@ -458,31 +458,31 @@ def get_player_info2( steam_id ):
 
     # player name, rating and games played
     cu.execute('''
-      SELECT p.name, gr.mean, gr.n, g.gametype_short, g.gametype_name
+      SELECT p.name, COALESCE(t.ratings, '{ }') AS ratings
       FROM players p
-      LEFT JOIN gametype_ratings gr ON p.steam_id = gr.steam_id
-      LEFT JOIN gametypes g ON g.gametype_id = gr.gametype_id
-      WHERE p.steam_id = %s
-      ORDER BY gr.n DESC
-    ''', [steam_id])
+      LEFT JOIN (
+        SELECT gr.steam_id, array_agg( json_build_object(
+          'rating', gr.mean,
+          'n', gr.n,
+          'gametype_short', g.gametype_short,
+          'gametype', g.gametype_name
+        ) ORDER by gr.n DESC ) AS ratings
+        FROM gametype_ratings gr
+        LEFT JOIN gametypes g ON g.gametype_id = gr.gametype_id
+        WHERE gr.steam_id = %(steam_id)s
+        GROUP BY gr.steam_id
+      ) t ON p.steam_id = t.steam_id
+      WHERE p.steam_id = %(steam_id)s
+    ''', {"steam_id": steam_id})
 
     if cu.rowcount == 0:
-      cu.close()
-      return {
-        "ok": False,
-        "message": "player not found in database"
-      }
+      raise AssertionError("player not found in database")
 
-    result['ratings'] = []
-
-    for row in cu.fetchall():
-      result['name'] = row[0]
-      result['ratings'].append({
-        "rating": round(row[1], 2),
-        "n": row[2],
-        "gametype_short": row[3],
-        "gametype": row[4]
-      })
+    row = cu.fetchall()[0]
+    result = {
+      "name": row[0],
+      "ratings": row[1]
+    }
 
     # weapon stats (frags + acc)
     cu.execute('''
@@ -572,6 +572,11 @@ def get_player_info2( steam_id ):
       "ok": True
     }
 
+  except AssertionError as e:
+    result = {
+      "ok": False,
+      "message": str(e)
+    }
   except Exception as e:
     db.rollback()
     traceback.print_exc(file=sys.stderr)

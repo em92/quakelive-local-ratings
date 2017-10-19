@@ -11,6 +11,9 @@
     {% for item in response['ratings'] %}
       <li>{{ item['gametype'] }}: {{ item['rating']}} ({{ item['n'] }} games played)</li>
     {% endfor %}
+    {% if response['ratings'] | length == 0 %}
+      <li>No ratings info available</li>
+    {% endif %}
     </ul>
     <h3>Favorites</h3>
     <ul>

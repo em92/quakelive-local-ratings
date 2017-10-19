@@ -567,6 +567,11 @@ def get_player_info2( steam_id ):
       item['timedelta'] = humanize.naturaltime( datetime.now() - datetime.fromtimestamp( item['timestamp'] ) )
       result["matches"].append( item )
 
+    result = {
+      "response": result,
+      "ok": True
+    }
+
   except Exception as e:
     db.rollback()
     traceback.print_exc(file=sys.stderr)
@@ -578,10 +583,7 @@ def get_player_info2( steam_id ):
     cu.close()
     db.close()
 
-  return {
-    "response": result,
-    "ok": True
-  }
+  return result
 
 
 def get_factory_id( cu, factory ):

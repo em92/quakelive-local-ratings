@@ -1,0 +1,23 @@
+<div id="summary-table-wrapper">
+  <table id="summary-table" table="table table-borderless">
+    <thead><tr>
+      <th>Time</th>
+      <th>Gametype</th>
+      <th>Map</th>
+      <th>Link</th>
+      <th>Scores</th>
+    </tr></thead>
+    <tbody>{% for item in matches %}<tr>
+      <td class="col-md-2">{{ item['timedelta'] }}</td>
+      <td class="col-md-1">
+        <a href="/matches/{{ item['gametype'] }}/">{{ item['gametype'] }}</a>
+      </td>
+      <td class="col-md-3">{{ item['map'] }}</td>
+      <td class="col-md-1">
+        <a href="/scoreboard/{{ item['match_id'] }}">link</a>
+      </td>
+      <td class="col-md-1">{{ item['team1_score'] }} : {{ item['team2_score'] }}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  {% include 'paginator.html' %}
+</div>

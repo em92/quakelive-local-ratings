@@ -2,20 +2,94 @@
 # -*- coding: utf-8 -*-
 
 from config import cfg
-from flask import Flask, request, jsonify, redirect, url_for, make_response
+from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template, escape
+from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
 import rating
 import sys
 from uuid import UUID
 
 RUN_POST_PROCESS = cfg['run_post_process']
-app = Flask(__name__, static_url_path='')
+app = Flask(__name__, static_url_path='/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
+@app.template_filter('ql_nickname')
+def render_ql_nickname( nickname ):
+  nickname = str(escape(nickname))
+  for i in range(8):
+    nickname = nickname.replace("^" + str(i), '</span><span class="qc' + str(i) + '">')
+  return '<span class="qc7">' + nickname + '</span>';
+
+
+@app.template_filter('seconds_to_mmss')
+def seconds_to_mmss( value ):
+  seconds = int(escape(value))
+  m, s = divmod(seconds, 60)
+  return "%02d:%02d" % (m, s)
+
+
+@app.template_filter('zero_to_minus')
+def zero_to_minus( value ):
+  value = int(escape(value))
+  if value:
+    return value
+  else:
+    return "-"
+
+
+@app.template_filter('zero_to_minus_with_percent')
+def zero_to_minus( value ):
+  value = int(escape(value))
+  if value:
+    return str(value) + "%"
+  else:
+    return "-"
+
+
 @app.route('/')
-def http_root():
-  return app.send_static_file('index.html')
+@app.route('/matches/')
+@app.route('/matches/<int:page>/')
+@app.route('/matches/<gametype>/')
+@app.route('/matches/<gametype>/<int:page>/')
+def http_root(gametype = None, page = 0):
+  if type(gametype) is str:
+    gametype = gametype.lower()
+  return render_template("match_list.html", **rating.get_last_matches( gametype, page ),
+    gametype = gametype,
+    current_page = page,
+    page_prefix = "/matches" if gametype is None else "/matches/" + gametype
+  )
+
+
+@app.route("/ratings/<gametype>/")
+@app.route("/ratings/<gametype>/<int:page>/")
+def http_rating_gametype_page(gametype, page = 0):
+  if type(gametype) is str:
+    gametype = gametype.lower()
+  show_inactive = request.args.get("show_inactive", False, type=bool)
+  return render_template("ratings_list.html", **rating.get_list( gametype, page, show_inactive ),
+    gametype = gametype,
+    current_page = page,
+    show_inactive = show_inactive,
+    page_suffix = ("?show_inactive=yes" if show_inactive else ""),
+    page_prefix = "/ratings/" + gametype
+  )
+
+
+@app.route("/ratings/<gametype>/<int:page>.json")
+def http_ratings_gametype_page_json(gametype, page):
+  return jsonify( **rating.get_list( gametype, page ) )
+
+
+@app.route("/player/<int:steam_id>")
+def http_player(steam_id):
+  return render_template("player_stats.html", **rating.get_player_info2(steam_id), steam_id = str(steam_id) )
+
+
+@app.route("/player/<int:steam_id>.json")
+def http_player_json(steam_id):
+  return jsonify( **rating.get_player_info(int(steam_id)) )
 
 
 @app.route("/elo/<ids>")
@@ -68,21 +142,6 @@ def http_steam_api_GetPlayerSummaries():
   return jsonify( ok = True, response = { "players": players } )
 
 
-@app.route("/player/<int:steam_id>")
-def http_player_id(steam_id):
-  return jsonify( **rating.get_player_info(int(steam_id)) )
-
-
-@app.route("/rating/<gametype>/<int:page>")
-def http_rating_gametype_page(gametype, page):
-  return jsonify( **rating.get_list( gametype, page ) )
-
-
-@app.route("/rating/<gametype>")
-def http_rating_gametype(gametype):
-  return http_rating_gametype_page( gametype, 0 )
-
-
 @app.route("/export_rating/<frmt>/<gametype>")
 def http_export_rating_format_gametype(frmt, gametype):
   frmt = frmt.lower()
@@ -106,8 +165,8 @@ def http_export_rating_format_gametype(frmt, gametype):
     return "Error: invalid format: " + frmt, 400
 
 
-@app.route("/scoreboard/<match_id>")
-def http_scoreboard_match_id(match_id):
+@app.route("/scoreboard/<match_id>.json")
+def http_scoreboard_match_id_json(match_id):
   try:
     if len(match_id) != len('12345678-1234-5678-1234-567812345678'):
       raise ValueError()
@@ -118,11 +177,14 @@ def http_scoreboard_match_id(match_id):
   return jsonify(**rating.get_scoreboard(match_id))
 
 
-@app.route("/last_matches.json")
-@app.route("/last_matches/<gametype>.json")
-@app.route("/last_matches/<gametype>/<int:page>.json")
-def http_last_matches(gametype = None, page = 0):
-  return jsonify(**rating.get_last_matches( gametype, page ))
+@app.route("/scoreboard/<match_id>")
+def http_scoreboard_match_id(match_id):
+  return render_template("scoreboard.html", match_id = match_id, **rating.get_scoreboard( match_id ))
+
+
+@app.route("/generate_user_ratings/<gametype>.json")
+def http_generate_ratings(gametype):
+  return jsonify(**rating.generate_user_ratings(gametype, unquote(request.query_string.decode("utf-8"))))
 
 
 @app.route("/stats/submit", methods=["POST"])

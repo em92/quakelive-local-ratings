@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block body %}
+<div id="player-stats-wrapper">
+<h1 class="title">Player Information</h1>
+<h2>{{ response['name'] | ql_nickname | safe }}</h2>
+
+<div class="row">
+  <div class="col-sm-4">
+    <h3>Ratings</h3>
+    <ul>
+    {% for item in response['ratings'] %}
+      <li>{{ item['gametype'] }}: {{ item['rating']}} ({{ item['n'] }} games played)</li>
+    {% endfor %}
+    {% if response['ratings'] | length == 0 %}
+      <li>No ratings info available</li>
+    {% endif %}
+    </ul>
+    <h3>Favorites</h3>
+    <ul>
+    <li>Arena: {{ response['fav']['map'] }}</li>
+    <li>Gametype: {{ response['fav']['gt'] }}</li>
+    <li>Weapon: {{ response['fav']['wpn'] }}</li>
+    </ul>
+  </div>
+
+  <div class="col-sm-4">
+    <h3>Last 10 Matches</h3>
+    <table id="player-matches-table" class="table table-hover table-borderless">
+      <thead><tr>
+        <th>Gametype / Arena</th>
+        <th>Finish</th>
+        <th>Played</th>
+      </tr></thead>
+      <tbody>{% for item in response['matches'] %}<tr onClick='window.location="/scoreboard/{{ item['match_id'] }}"'>
+        <td class="col-md-6">{{ item['gametype'] }} / {{ item['map'] }}</td>
+        <td class="col-md-3">{{ item['result'] }}</td>
+        <td class="col-md-3">{{ item['timedelta'] }}</td>
+      </tr>{% endfor %}</tbody>
+    </table>
+  </div>
+
+  <div id="weapon-stats-table-wrapper" class="col-sm-4">
+    <h3>Weapons</h3>
+    <table id="weapon-stats-table" class="table table-hover table-borderless">
+      <thead><tr>
+        <th>Weapon</th>
+        <th>Frags</th>
+        <th>Accuracy</th>
+      </tr></thead>
+      <tbody>{% for item in response['weapon_stats'] %}<tr>
+        <td class="col-md-6">{{ item['name'] }}</td>
+        <td class="col-md-3">{{ item['frags'] }}</td>
+        <td class="col-md-3">{{ item['acc'] }}</td>
+      </tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+
+<p><a href="https://qlstats.net/player/{{ steam_id }}">View player page in QLStats.net</a></p>
+</div>
+{% endblock %}
+

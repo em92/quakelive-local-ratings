@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block body %}
+<div id="summary-table-wrapper">
+  <table id="summary-table" table="table table-borderless">
+    <thead><tr>
+      <th>Rank</th>
+      <th>Nickname</th>
+      <th>Rating</th>
+      <th>Match Count</th>
+      <th>Win Ratio</th>
+    </tr></thead>
+    <tbody>{% for item in response %}<tr>
+      <td class="col-md-1">{{ item['rank'] }}</td>
+      <td class="col-md-3">
+        <a href="/player/{{ item['_id'] }}">
+          <img class="player_icon" src="/static/images/players/{{ item['model'].replace('/', '/icon_') }}.png" />&nbsp;
+          {{ item['name'] | ql_nickname | safe }}
+        </a>
+      </td>
+      <td class="col-md-1">{{ item['rating'] }}{% if item['rd'] != 0 %}
+         &plusmn; {{ item['rd'] }}
+      {% else %}
+        {{ "" }}
+      {% endif %}</td>
+      <td class="col-md-1">{{ item['n'] }}</td>
+      <td class="col-md-1">{{ item['win_ratio'] }}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  {% include "paginator.html" %}
+  <br>
+  <span>{% if show_inactive %}
+    <a href="{{ page_prefix }}">Hide inactive players</a>
+  {% else %}
+    <a href="{{ page_prefix }}/?show_inactive=yes">Show inactive players</a>
+  {% endif %}
+</div>
+{% endblock %}
+

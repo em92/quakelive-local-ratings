@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<style type="text/css">
+#content {
+  background-color: white;
+  padding: 5px;
+}
+
+#info {
+  border: 1px solid red;
+  padding: 2px;
+}
+
+#rating_tables {
+  display: table;
+}
+
+.rating_table_wrapper input,
+.rating_table_wrapper table {
+  width: 100%;
+}
+
+#rating_tables .rating_table_wrapper td {
+  padding-left:  5px;
+  padding-right: 5px;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+#rating_tables .rating_table_wrapper {
+  display: table-cell;
+  width: 500px;
+}
+
+.rating_table_wrapper tr.selected td {
+  background-color: red;
+}
+
+.formula {
+  width: 100%;
+}
+
+</style>
+<meta charset="UTF-8" />
+<meta name="robots" content="noindex, nofollow"/>
+<title>Выбери себе рейтинг</title>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+</head>
+<body>
+<noscript>Товарищ! Включи яваскрипт!</noscript>
+<div id="content">
+  <div id="info">
+  <p>Здравствуйте, товарищи!</p>
+  <p>Продолжаем искать идеальную формулу для рейтинга.</p>
+  <p>На этот раз все немного по-другому. В данной странице есть возможность самому подобрать формулу для подсчета рейтинга игроков. Обозначения такие:</p>
+  <ul>
+    <li>s - scores</li>
+    <li>k - kills</li>
+    <li>d - deaths</li>
+    <li>dd - damage dealt (сколько раздал), он же damage given</li>
+    <li>dg - damage given (сколько раздал), он же damage dealt</li>
+    <li>dt - damage taken (сколько поглотил)</li>
+    <li>mc - captures</li>
+    <li>ma - assists</li>
+    <li>md - defends</li>
+    <li>w - победа</li>
+  </ul>
+  <p>Если не хочется самому подбирать - есть готовые</p>
+  <p>Напомню, что рейтинг игрока считается как средний рейтинг за матчи. Рейтинг за матч высчитывается по определенной формуле.</p>
+  <p>Предлагаемые формулы вычисления рейтинг игрока за матч обозначены номерами:</p>
+  <ol>
+    <li><img src="r1.png" /><br>
+      <input class="formula" type="text" value="1/2.35 * dg/dt * ( s + dg / 20 ) * 1200 / t + 1/2.35 * w * 300" readonly />
+    </li>
+    <li><img src="r2.png" />
+      <input class="formula" type="text" value="1/2.35 * dg/dt * ( s + dg / 20 ) * 1200 / t + w * 300" readonly />
+    </li>
+    <li><img src="r3.png" />
+      <input class="formula" type="text" value="1/2.35 * ( s + dg / 20 ) * 1200 / t + 1/2.35 * w * 300" readonly />
+    </li>
+    <li>Количество побед в процентном соотношении
+      <input class="formula" type="text" value="w * 100" readonly />
+    </li>
+    <li>Только по очкам (с учетом timefactor)
+      <input class="formula" type="text" value="s * 1200 / t" readonly />
+    </li>
+    <li>Своя. Вариант 1
+      <input class="formula" type="text" />
+    </li>
+    <li>Своя. Вариант 2
+      <input class="formula" type="text" />
+    </li>
+    <li>Своя. Вариант 3
+      <input class="formula" type="text" />
+    </li>
+  </ol>
+  <p>Для удобства сравнения можете</p>
+  <ol>
+    <li>добавить еще таблицы с помощью кнопки рядом</li>
+    <li>кликнуть на строку с игроком, чтобы он высвечивался во всех таблицах</li>
+  </ol>
+  <p>Спасибо за внимание,<br>eugene</p>
+  </div>
+
+  <button onclick="copy_table(this)">Давай еще таблицу</button>
+
+  <div id="rating_tables">
+
+  <div class="rating_table_wrapper">
+
+    <div class="formula_wrapper">
+      <button onClick="on_calculate_click(this)">Посчитать</button>
+    </div>
+
+    <select class="filename" onchange="switch_data(this)">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6 (своя)</option>
+      <option value="7">7 (своя)</option>
+      <option value="8">8 (своя)</option>
+    </select>
+  </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+var ref = {};
+
+var copy_table = function() {
+  var cloned = $(".rating_table_wrapper:last").clone();
+  cloned.find("tr").click( on_player_row_click );
+  $("#rating_tables").append( cloned );
+}
+
+var on_player_row_click = function(el) {
+  var player_id = $(el.target).parent().attr("data-player-id");
+  $(".rating_table_wrapper tr.selected").removeClass();
+  $(".rating_table_wrapper tr[data-player-id="+player_id+"]").addClass("selected");
+}
+
+var on_calculate_click = function( el ) {
+  var wrapper = $(el).parent().parent();
+  var filename = wrapper.find(".filename").val();
+  update_table(wrapper, filename);
+}
+
+var switch_data = function(el) {
+  var wrapper = $(el).parent();
+  update_table(wrapper, el.value);
+}
+
+var update_table = function(wrapper, formula_number) {
+  wrapper.find("table").remove();
+  var formula = $(".formula")[ formula_number - 1 ].value;
+
+  $.getJSON( "/generate_user_ratings/ctf.json?" + formula, function( data ) {
+    var tbody = $("<table></table>");
+    var counter = 1;
+
+    if (data.ok == false) {
+      alert("Че-то тут не так:\n" + data.message);
+      return;
+    }
+
+    data = data.message;
+
+    data = data.map( function( player ) {
+      return player;
+    });
+
+    data.forEach( function(player, i) {
+      $("<tr></tr>")
+        .attr( "data-player-id", player._id )
+        .click( on_player_row_click )
+        .append( $("<td></td>").html( counter++ ) )
+        .append( $("<td></td>").html( player.name ) )
+        .append( $("<td></td>").html( player.rating ) )
+        .append( $("<td></td>").html( player.n ) )
+        .appendTo( tbody.appendTo(wrapper) );
+    });
+  });
+} 
+
+$(document).ready( function() {
+  $.getJSON( "ref.json", function( data ) {
+    ref = data.response;
+    switch_data( $(".rating_table_wrapper select").get(0) );
+  });
+});
+</script>
+</body>
+</html>
+<!-- тебя зовут Витя или Максим. Ну или Егор. -->
+<!-- в этой странице больше не будет интересных паскалок. Уходи -->

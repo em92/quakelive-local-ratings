@@ -12,8 +12,8 @@ On quake live server side with minqlx [balance.py](https://github.com/MinoMino/m
 
 ### Differences between QLLR and [QLStats](http://qlstats.net/)
 
-* common player ratings support (based on TrueSkill)
-* player ratings per map support (based on average player perfomance for 50 last matches)
+* common player ratings support (based on TrueSkill or optinonally average player performance)
+* player ratings per map support (based on average player perfomance)
 * limited supported gametypes
 
 ### Requirements
@@ -47,4 +47,18 @@ If you want to used per-map ratings, make sure that you are using [modified bala
 
 ```
 seta qlx_balanceApi "elo_map"
+```
+
+### Import/export database
+
+#### Export database
+
+```
+./dump_backup.py [-c cfg.json]
+```
+It will generate .tar.gz file as database backup.
+
+#### Import database
+```
+./restore_backup.py [-c cfg.json] filename.tar.gz
 ```

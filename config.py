@@ -14,7 +14,11 @@ default_cfg = {
   "min_player_count_in_match_to_rate_ad": 6,
   "min_player_count_in_match_to_rate_ctf": 6,
   "min_player_count_in_match_to_rate_tdm": 6,
-  "moving_average_count": 50
+  "moving_average_count": 50,
+  "use_avg_perf_ad": False,
+  "use_avg_perf_ctf": False,
+  "use_avg_perf_tdm": False,
+  "use_avg_perf_tdm2v2": False
 }
 
 try:
@@ -100,6 +104,11 @@ def load():
   use_default_if_not_uint( 'min_player_count_in_match_to_rate_ctf' );
   use_default_if_not_uint( 'min_player_count_in_match_to_rate_tdm' );
   use_default_if_not_bool( 'run_post_process' );
+
+  use_default_if_not_bool( 'use_avg_perf_ad' );
+  use_default_if_not_bool( 'use_avg_perf_ctf' );
+  use_default_if_not_bool( 'use_avg_perf_tdm' );
+  use_default_if_not_bool( 'use_avg_perf_tdm2v2' );
 
 
 try:

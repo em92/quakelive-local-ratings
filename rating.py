@@ -844,6 +844,14 @@ def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
   Updates players' ratings after playing match_id (using avg. perfomance)
 
   """
+  def extra_factor( gametype, matches, wins, losses ):
+    try:
+      return {
+        "tdm": (1 + (0.15 * (wins / matches - losses / matches)))
+      }[gametype]
+    except KeyError:
+      return 1
+
   global LAST_GAME_TIMESTAMPS
   cu.execute("SELECT s.steam_id, team, match_perf, gr.mean FROM scoreboards s LEFT JOIN gametype_ratings gr ON gr.steam_id = s.steam_id AND gr.gametype_id = %s WHERE match_perf IS NOT NULL AND match_id = %s", [gametype_id, match_id])
 
@@ -862,9 +870,22 @@ def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
     else:
       query_string = '''
       SELECT
+        COUNT(1),
+        SUM(win) as wins,
+        SUM(loss) as losses,
         AVG(rating)
       FROM (
         SELECT
+          CASE
+            WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 1
+            WHEN m.team2_score > m.team1_score AND s.team = 2 THEN 1
+            ELSE 0
+          END as win,
+          CASE
+            WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 0
+            WHEN m.team2_score > m.team1_score AND s.team = 2 THEN 0
+            ELSE 1
+          END as loss,
           s.match_perf as rating
         FROM
           matches m
@@ -879,8 +900,9 @@ def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
         LIMIT %s
       ) t'''
       cu.execute(query_string, [steam_id, gametype_id, match_id, MOVING_AVG_COUNT])
-      new_rating = cu.fetchone()[0]
-      assert new_rating != None
+      row = cu.fetchone()
+      gametype = [k for k, v in GAMETYPE_IDS.items() if v == gametype_id][0]
+      new_rating = row[3] * extra_factor( gametype, row[0], row[1], row[2] )
 
     cu.execute("UPDATE scoreboards SET new_mean = %s, new_deviation = 0 WHERE match_id = %s AND steam_id = %s AND team = %s", [new_rating, match_id, steam_id, team])
     assert cu.rowcount == 1

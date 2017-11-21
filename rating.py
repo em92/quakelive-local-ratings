@@ -1382,7 +1382,7 @@ def get_scoreboard(match_id):
   return result
 
 
-def get_last_matches( gametype = None, page = 0 ):
+def get_last_matches( gametype = None, steam_id = None, page = 0 ):
   """
   Returns last matches
 
@@ -1409,6 +1409,21 @@ def get_last_matches( gametype = None, page = 0 ):
     db = db_connect()
     cu = db.cursor()
 
+    where_clauses = []
+    params        = {'offset': page * MATCH_LIST_ITEM_COUNT, 'limit': MATCH_LIST_ITEM_COUNT}
+
+    if gametype:
+      where_clauses.append("m.gametype_id = %(gametype_id)s")
+      params[ 'gametype_id' ] = GAMETYPE_IDS[ gametype ]
+
+    if steam_id:
+      cu.execute("SELECT name FROM players WHERE steam_id = %s", [ steam_id ])
+      if cu.rowcount == 0:
+        raise AssertionError("player not found in database")
+      # ToDo: get name of player to use it in title
+      where_clauses.append("m.match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = %(steam_id)s)")
+      params[ 'steam_id' ] = steam_id
+
     query = '''
     SELECT
       json_build_object(
@@ -1427,15 +1442,9 @@ def get_last_matches( gametype = None, page = 0 ):
     LEFT JOIN maps mm ON mm.map_id = m.map_id
     {WHERE_CLAUSE}
     ORDER BY timestamp DESC
-    OFFSET %s
-    LIMIT %s
-    '''.replace("{WHERE_CLAUSE}\n", "" if gametype == None else "WHERE m.gametype_id = %s")
-
-    params = [ ]
-    if gametype != None:
-      params.append( GAMETYPE_IDS[ gametype ] )
-    params.append( page * MATCH_LIST_ITEM_COUNT )
-    params.append( MATCH_LIST_ITEM_COUNT )
+    OFFSET %(offset)s
+    LIMIT %(limit)s
+    '''.replace("{WHERE_CLAUSE}\n", "" if len(where_clauses) == 0 else "WHERE " + "AND".join(where_clauses))
 
     cu.execute( query, params )
 

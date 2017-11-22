@@ -6,7 +6,11 @@
 <meta charset="UTF-8" />
 <meta name="robots" content="noindex, nofollow"/>
 <script type="text/javascript">if ( location.hash.substr(1, 1) == "/" ) { var path = location.hash.substr(1); location.hash = ""; location.pathname = path; } </script>
+{% if title %}
+<title>{{ title }} - Quake Live Local Ratings</title>
+{% else %}
 <title>Quake Live Local Ratings</title>
+{% endif %}
 </head>
 <body>
 <div id="content">

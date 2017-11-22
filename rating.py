@@ -1444,7 +1444,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
     ORDER BY timestamp DESC
     OFFSET %(offset)s
     LIMIT %(limit)s
-    '''.replace("{WHERE_CLAUSE}\n", "" if len(where_clauses) == 0 else "WHERE " + "AND".join(where_clauses))
+    '''.replace("{WHERE_CLAUSE}\n", "" if len(where_clauses) == 0 else "WHERE " + " AND ".join(where_clauses))
 
     cu.execute( query, params )
 

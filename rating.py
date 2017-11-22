@@ -19,6 +19,7 @@ GAMETYPE_IDS = {}
 MEDAL_IDS    = {}
 WEAPON_IDS   = {}
 LAST_GAME_TIMESTAMPS = {}
+GAMETYPE_NAMES = {}
 MEDALS_AVAILABLE  = []
 WEAPONS_AVAILABLE = []
 
@@ -1569,10 +1570,11 @@ def reset_gametype_ratings( gametype ):
 
 db = db_connect()
 cu = db.cursor()
-cu.execute("SELECT gametype_id, gametype_short FROM gametypes")
+cu.execute("SELECT gametype_id, gametype_short, gametype_name FROM gametypes")
 for row in cu.fetchall():
   GAMETYPE_IDS[ row[1] ] = row[0]
   USE_AVG_PERF[ row[0] ] = USE_AVG_PERF[ row[1] ]
+  GAMETYPE_NAMES[ row[1] ] = row[2]
 
 cu.execute("SELECT medal_id, medal_short FROM medals ORDER BY medal_id")
 for row in cu.fetchall():

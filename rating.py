@@ -1406,6 +1406,8 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
       "message": "gametype is not accepted: " + gametype
     }
 
+  title = "Recent games"
+
   try:
     db = db_connect()
     cu = db.cursor()
@@ -1415,13 +1417,15 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
 
     if gametype:
       where_clauses.append("m.gametype_id = %(gametype_id)s")
+      title = "Recent {} games".format( GAMETYPE_NAMES[ gametype ] )
       params[ 'gametype_id' ] = GAMETYPE_IDS[ gametype ]
 
     if steam_id:
       cu.execute("SELECT name FROM players WHERE steam_id = %s", [ steam_id ])
       if cu.rowcount == 0:
         raise AssertionError("player not found in database")
-      # ToDo: get name of player to use it in title
+      player_name = cu.fetchone()[0]
+      title = "Recent games with {}".format( player_name ) + (" (" + GAMETYPE_NAMES[ gametype ] + ")" if gametype else "")
       where_clauses.append("m.match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = %(steam_id)s)")
       params[ 'steam_id' ] = steam_id
 
@@ -1460,6 +1464,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
     result = {
       "ok": True,
       "page_count": ceil(overall_match_count / MATCH_LIST_ITEM_COUNT),
+      "title": title,
       "matches": matches
     }
 

@@ -54,6 +54,8 @@ def zero_to_minus( value ):
 @app.route('/matches/<gametype>/<int:page>/')
 @app.route("/player/<int:steam_id>/matches/")
 @app.route("/player/<int:steam_id>/matches/<int:page>/")
+@app.route("/player/<int:steam_id>/matches/<gametype>/")
+@app.route("/player/<int:steam_id>/matches/<gametype>/<int:page>/")
 def http_root(gametype = None, steam_id = None, page = 0):
   page_prefix = "/matches"
 

@@ -1194,6 +1194,7 @@ def get_scoreboard(match_id):
         'map',         mm.map_name,
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
+        'rating_diff', CAST( ROUND( CAST(t.diff AS NUMERIC), 2) AS REAL ),
         'timestamp',   m.timestamp,
         'datetime',    TO_CHAR(to_timestamp(m.timestamp), 'YYYY-MM-DD HH24:MI'),
         'duration',    TO_CHAR((m.duration || ' second')::interval, 'MI:SS')
@@ -1203,10 +1204,20 @@ def get_scoreboard(match_id):
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN factories f ON f.factory_id = m.factory_id
     LEFT JOIN maps mm ON m.map_id = mm.map_id
+    LEFT JOIN (
+      SELECT match_id, sum(rating) as diff
+      FROM (
+        SELECT match_id, team, avg(old_mean)*(case when team = 1 then 1 else -1 end) as rating
+        FROM scoreboards
+        WHERE match_perf is not NULL AND match_id = %(match_id)s
+        GROUP by match_id, team
+      ) t
+      GROUP by match_id
+    ) t ON t.match_id = m.match_id
     WHERE
-      match_id = %s;
+      m.match_id = %(match_id)s;
     '''
-    cu.execute(query, [match_id])
+    cu.execute(query, {'match_id': match_id})
     try:
       summary = cu.fetchone()[0]
     except TypeError:

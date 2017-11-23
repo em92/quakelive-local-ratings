@@ -1281,28 +1281,6 @@ def get_scoreboard(match_id):
     player_medal_stats = cu.fetchone()[0]
 
     query = '''
-    SELECT 
-      json_object_agg(t.team, t.player_rating_history)
-    FROM (
-      SELECT
-        t.team,
-        json_object_agg(t.steam_id, t.rating_history) as player_rating_history
-      FROM (
-        SELECT
-          t.steam_id, t.team, 
-          json_build_object('old_rating', t.old_mean, 'new_rating', t.new_mean, 'match_rating', t.match_perf) AS rating_history
-        FROM
-          scoreboards t
-        WHERE
-          t.match_id = %s
-      ) t
-      GROUP BY t.team
-    ) t;
-    '''
-    cu.execute(query, [match_id])
-    rating_history = cu.fetchone()[0]
-
-    query = '''
     SELECT
       array_agg(item)
     FROM (
@@ -1318,6 +1296,12 @@ def get_scoreboard(match_id):
             'damage_dealt', t.damage_dealt,
             'damage_taken', t.damage_taken,
             'alive_time',   t.alive_time
+          ),
+          'rating', json_build_object(
+            'old',   CAST( ROUND( CAST(t.old_mean      AS NUMERIC), 2) AS REAL ),
+            'old_d', CAST( ROUND( CAST(t.old_deviation AS NUMERIC), 2) AS REAL ),
+            'new',   CAST( ROUND( CAST(t.new_mean      AS NUMERIC), 2) AS REAL ),
+            'new_d', CAST( ROUND( CAST(t.new_deviation AS NUMERIC), 2) AS REAL )
           ),
           'medal_stats', ms.medal_stats,
           'weapon_stats', ws.weapon_stats
@@ -1373,7 +1357,6 @@ def get_scoreboard(match_id):
       "summary": summary,
       "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
       "team_stats": {
-        "rating_history": rating_history,
         "overall":        overall_stats
       },
       "weapons_available": WEAPONS_AVAILABLE,

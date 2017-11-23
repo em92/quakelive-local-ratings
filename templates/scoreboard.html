@@ -1,4 +1,27 @@
 {% extends "layout.html" %}
+
+{% macro rating(data, key) -%}
+  {% if data[ key ] %}
+    {{ data[key] }}
+    {% if data[ key + '_d' ] %}
+      &plusmn; {{ data[ key + '_d'] }}
+    {% endif %}
+  {% else %}
+  -
+  {% endif %}
+{%- endmacro %}
+
+{% macro rating_diff(data) -%}
+  {% if not data['old'] or not data['new'] %}
+  -
+  {% else %}
+    {{ ( data['new'] - data['old'] ) | round(2) }}
+    {% if data['old_d'] and data['new_d'] %}
+      &plusmn; {{ ( data['new_d'] - data['old_d'] ) | round(2) }}
+    {% endif %}
+  {% endif %}
+{%- endmacro %}
+
 {% macro team_scoreboard(team, players, gametype, wa, ma) -%}
 <table class="table table-hover table-borderless">
   <thead><tr>
@@ -20,6 +43,9 @@
     <th class="s s1">Excellent</th>
     <th class="s s1">Impressive</th>
     {% endif %}
+    <th class="s s1">Old rating</th>
+    <th class="s s1">New rating</th>
+    <th class="s s1">Diff</th>
     {% for w in wa %}
     <th class="s sw" style="display: none"><div class="w-{{ w }}"></div></th>
     <th class="s sa" style="display: none"><div class="w-{{ w }}"></div></th>
@@ -47,6 +73,9 @@
     <td class="s s1">{{ player['medal_stats']['excellent']  | zero_to_minus }}</td>
     <td class="s s1">{{ player['medal_stats']['impressive'] | zero_to_minus }}</td>
     {% endif %}
+    <td class="s s1">{{ rating( player['rating'], 'old' ) }}</td>
+    <td class="s s1">{{ rating( player['rating'], 'new' ) }}</td>
+    <td class="s s1">{{ rating_diff( player['rating'] ) }}</td>
     {% for w in wa %}
     <td class="s sw" style="display: none">{{ player['weapon_stats'][w][0] | zero_to_minus }}</td>
     <td class="s sa" style="display: none"><span title="{{ player['weapon_stats'][w][1] }} / {{ player['weapon_stats'][w][2] }}">{{ player['weapon_stats'][w][3] | zero_to_minus_with_percent }}</span></td>

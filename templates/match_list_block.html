@@ -11,7 +11,11 @@
     <tbody>{% for item in matches %}<tr>
       <td class="col-md-2">{{ item['timedelta'] }}</td>
       <td class="col-md-1">
-        <a href="{{ page_prefix }}/{{ item['gametype'] }}/">{{ item['gametype'] }}</a>
+        {% if gametype %}
+          {{ item['gametype'] }}
+        {% else %}
+          <a href="{{ page_prefix }}/{{ item['gametype'] }}/">{{ item['gametype'] }}</a>
+        {% endif %}
       </td>
       <td class="col-md-3">{{ item['map'] }}</td>
       <td class="col-md-1">

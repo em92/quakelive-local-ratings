@@ -151,6 +151,7 @@ li {
   text-align: center;
 }
 
+#summary-table-wrapper,
 #match-info-wrapper,
 #player-stats-wrapper {
   background-color: #222;

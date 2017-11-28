@@ -52,13 +52,25 @@ def zero_to_minus( value ):
 @app.route('/matches/<int:page>/')
 @app.route('/matches/<gametype>/')
 @app.route('/matches/<gametype>/<int:page>/')
-def http_root(gametype = None, page = 0):
+@app.route("/player/<int:steam_id>/matches/")
+@app.route("/player/<int:steam_id>/matches/<int:page>/")
+@app.route("/player/<int:steam_id>/matches/<gametype>/")
+@app.route("/player/<int:steam_id>/matches/<gametype>/<int:page>/")
+def http_root(gametype = None, steam_id = None, page = 0):
+  page_prefix = "/matches"
+
   if type(gametype) is str:
     gametype = gametype.lower()
-  return render_template("match_list.html", **rating.get_last_matches( gametype, page ),
+    page_prefix = page_prefix + "/" + gametype
+
+  if type(steam_id) is int:
+    steam_id = str(steam_id)
+    page_prefix = "/player/" + steam_id + page_prefix
+
+  return render_template("match_list.html", **rating.get_last_matches( gametype, steam_id, page ),
     gametype = gametype,
     current_page = page,
-    page_prefix = "/matches" if gametype is None else "/matches/" + gametype
+    page_prefix = page_prefix
   )
 
 

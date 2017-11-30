@@ -1418,7 +1418,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
       cu.execute("SELECT name FROM players WHERE steam_id = %s", [ steam_id ])
       if cu.rowcount == 0:
         raise AssertionError("player not found in database")
-      player_name = cu.fetchone()[0]
+      player_name = clean_name( cu.fetchone()[0] )
       title = "Recent games with {}".format( player_name ) + (" (" + GAMETYPE_NAMES[ gametype ] + ")" if gametype else "")
       where_clauses.append("m.match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = %(steam_id)s)")
       params[ 'steam_id' ] = steam_id

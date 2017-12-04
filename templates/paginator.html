@@ -1,3 +1,4 @@
+{% if page_count > 1 %}
 <span class="pagination">&nbsp; {% for i in range(page_count) %}
   {% if i == current_page %}
     [{{ i + 1 }}] &nbsp;
@@ -7,4 +8,5 @@
     ...
   {% endif %}
 {% endfor %}</span>
+{% endif %}
 

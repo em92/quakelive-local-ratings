@@ -11,7 +11,7 @@ import humanize
 from functools import reduce
 from urllib.parse import urlparse
 from datetime import datetime
-from config import cfg
+from conf import settings as cfg
 from sqlalchemy.exc import ProgrammingError
 from math import ceil
 

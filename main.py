@@ -1,7 +1,17 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from config import cfg
+import argparse
+import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", metavar="config.json", help="use the provided config file", default = "cfg.json")
+args = parser.parse_args()
+
+from conf import settings as cfg
+if not cfg.read_from_file( args.c ):
+  sys.exit(1)
+
 from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template, escape
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix

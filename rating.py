@@ -5,13 +5,12 @@
 import re
 import sys
 import traceback
-import psycopg2
 import trueskill
 import humanize
 from functools import reduce
-from urllib.parse import urlparse
 from datetime import datetime
 from conf import settings as cfg
+from db import db_connect
 from sqlalchemy.exc import ProgrammingError
 from math import ceil
 
@@ -54,15 +53,6 @@ SQL_TOP_PLAYERS_BY_GAMETYPE = '''
     gr.gametype_id = %s
   ORDER BY gr.mean DESC
 '''
-
-def db_connect():
-  result = urlparse( cfg["db_url"] )
-  username = result.username
-  password = result.password
-  database = result.path[1:]
-  hostname = result.hostname
-  port = result.port
-  return psycopg2.connect(database = database, user = username, password = password, host = hostname, port = port)
 
 # https://github.com/PredatH0r/XonStat/blob/380fbd4aeafb722c844f66920fb850a0ad6821d3/xonstat/views/submission.py#L19
 def parse_stats_submission(body):

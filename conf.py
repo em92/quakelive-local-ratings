@@ -26,12 +26,22 @@ class Settings:
     }
 
 
+  def _make_dict_by_prefix(self, data, prefix):
+    result = {}
+    for key, value in data.items():
+      if key.startswith( prefix ):
+        result[ key[ len(prefix): ] ] = value
+    return result
+
+
   @property
-  def USE_AVG_PERF(self, gametype):
-    try:
-      return self._conf[ "use_avg_perf_{}".format( gametype.lower() ) ]
-    except KeyError:
-      raise KeyError("invalid gametype: {}".format(gametype))
+  def USE_AVG_PERF(self):
+    return self._make_dict_by_prefix( self._conf, 'use_avg_perf_' )
+
+
+  @property
+  def MIN_PLAYER_COUNT_TO_RATE(self):
+    return self._make_dict_by_prefix( self._conf, 'min_player_count_in_match_to_rate_' )
 
 
   def __getitem__(self, index):

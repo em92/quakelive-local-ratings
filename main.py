@@ -19,6 +19,8 @@ import rating
 import sys
 from uuid import UUID
 
+from submission import submit_match
+
 RUN_POST_PROCESS = cfg['run_post_process']
 app = Flask(__name__, static_url_path='/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
@@ -220,7 +222,7 @@ def http_stats_submit():
     print(request.remote_addr + ": non-loopback requests are not allowed", file=sys.stderr)
     return jsonify(ok=False, message="non-loopback requests are not allowed"), 403
 
-  result = rating.submit_match(request.data.decode('utf-8'))
+  result = submit_match(request.data.decode('utf-8'))
   if result["ok"] == False:
     print(result["match_id"] + ": " + result["message"], file=sys.stderr)
     if "match_already_exists" in result:

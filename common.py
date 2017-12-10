@@ -2,6 +2,7 @@
 #
 
 import logging
+import traceback
 
 logger = logging.getLogger("qllr")
 logger.setLevel(logging.DEBUG)
@@ -13,6 +14,10 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', "%Y-%
 ch.setFormatter(formatter)
 
 logger.addHandler(ch)
+
+
+def log_exception(e):
+  logger.warn( traceback.format_exc() )
 
 
 def clean_name(name):

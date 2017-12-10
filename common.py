@@ -13,3 +13,13 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', "%Y-%
 ch.setFormatter(formatter)
 
 logger.addHandler(ch)
+
+
+def clean_name(name):
+  for s in ['0', '1', '2', '3', '4', '5', '6', '7']:
+    name = name.replace("^" + s, "")
+
+  if name == "":
+    name = "unnamed"
+
+  return name

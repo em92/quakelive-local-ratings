@@ -9,6 +9,7 @@ import trueskill
 import humanize
 from functools import reduce
 from datetime import datetime
+from common import clean_name
 from conf import settings as cfg
 from db import db_connect, cache
 from sqlalchemy.exc import ProgrammingError
@@ -218,16 +219,6 @@ def get_list(gametype, page, show_inactive = False):
     db.close()
 
   return result
-
-
-def clean_name(name):
-  for s in ['0', '1', '2', '3', '4', '5', '6', '7']:
-    name = name.replace("^" + s, "")
-
-  if name == "":
-    name = "unnamed"
-
-  return name
 
 
 def generate_user_ratings(gametype, formula):

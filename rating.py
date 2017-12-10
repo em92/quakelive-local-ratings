@@ -10,17 +10,17 @@ import humanize
 from functools import reduce
 from datetime import datetime
 from conf import settings as cfg
-from db import db_connect
+from db import db_connect, cache
 from sqlalchemy.exc import ProgrammingError
 from math import ceil
 
-GAMETYPE_IDS = {}
-MEDAL_IDS    = {}
-WEAPON_IDS   = {}
-LAST_GAME_TIMESTAMPS = {}
-GAMETYPE_NAMES = {}
-MEDALS_AVAILABLE  = []
-WEAPONS_AVAILABLE = []
+GAMETYPE_IDS = cache.GAMETYPE_IDS
+MEDAL_IDS    = cache.MEDAL_IDS
+WEAPON_IDS   = cache.WEAPON_IDS
+LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
+GAMETYPE_NAMES = cache.GAMETYPE_NAMES
+MEDALS_AVAILABLE  = cache.WEAPONS_AVAILABLE
+WEAPONS_AVAILABLE = cache.MEDALS_AVAILABLE
 
 MIN_ALIVE_TIME_TO_RATE = 60*10
 MIN_PLAYER_COUNT_TO_RATE = {
@@ -1559,21 +1559,6 @@ def reset_gametype_ratings( gametype ):
 
 db = db_connect()
 cu = db.cursor()
-cu.execute("SELECT gametype_id, gametype_short, gametype_name FROM gametypes")
-for row in cu.fetchall():
-  GAMETYPE_IDS[ row[1] ] = row[0]
-  USE_AVG_PERF[ row[0] ] = USE_AVG_PERF[ row[1] ]
-  GAMETYPE_NAMES[ row[1] ] = row[2]
-
-cu.execute("SELECT medal_id, medal_short FROM medals ORDER BY medal_id")
-for row in cu.fetchall():
-  MEDAL_IDS[ row[1] ] = row[0]
-  MEDALS_AVAILABLE.append( row[1] )
-
-cu.execute("SELECT weapon_id, weapon_short FROM weapons ORDER BY weapon_id")
-for row in cu.fetchall():
-  WEAPON_IDS[ row[1] ] = row[0]
-  WEAPONS_AVAILABLE.append( row[1] )
 
 if cfg["run_post_process"]:
   cu.execute("SELECT match_id, gametype_id, timestamp FROM matches WHERE post_processed = FALSE ORDER BY timestamp ASC")
@@ -1581,12 +1566,6 @@ if cfg["run_post_process"]:
     print("running post process: " + str(row[0]) + "\t" + str(row[2]))
     post_process(cu, row[0], row[1], row[2])
     db.commit()
-
-for _, gametype_id in GAMETYPE_IDS.items():
-  LAST_GAME_TIMESTAMPS[ gametype_id ] = 0
-  cu.execute("SELECT timestamp FROM matches WHERE gametype_id = %s ORDER BY timestamp DESC LIMIT 1", [gametype_id])
-  for row in cu.fetchall():
-    LAST_GAME_TIMESTAMPS[ gametype_id ] = row[0]
 
 cu.close()
 db.close()

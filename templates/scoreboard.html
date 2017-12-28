@@ -10,7 +10,7 @@
 
 
 {% macro wpn_frags(player, key) -%}
-  {% if player['weapon_stats'][key] %}
+  {% if player['weapon_stats'][key] and player['weapon_stats'][key][0] > 0 %}
     {{ player['weapon_stats'][key][0] }}
   {% else %}
     -

@@ -465,23 +465,32 @@ def submit_match(data):
       ])
 
       for weapon, weapon_id in WEAPON_IDS.items():
+        frags = int( player["acc-" + weapon + "-frags"] )
+        shots = int( player["acc-" + weapon + "-cnt-fired"] )
+        if frags + shots == 0:
+          continue
+
         cu.execute("INSERT INTO scoreboards_weapons (match_id, steam_id, team, weapon_id, frags, hits, shots) VALUES (%s, %s, %s, %s, %s, %s, %s)", [
           match_id,
           player["P"],
           team,
           weapon_id,
-          int( player["acc-" + weapon + "-frags"] ),
+          frags,
           int( player["acc-" + weapon + "-cnt-hit"] ),
-          int( player["acc-" + weapon + "-cnt-fired"] )
+          shots
         ])
 
       for medal, medal_id in MEDAL_IDS.items():
+        medal_count = int( player["medal-" + medal] )
+        if medal_count == 0:
+          continue
+
         cu.execute("INSERT INTO scoreboards_medals (match_id, steam_id, team, medal_id, count) VALUES (%s, %s, %s, %s, %s)", [
           match_id,
           player["P"],
           team,
           medal_id,
-          int( player["medal-" + medal] )
+          medal_count
         ])
 
     # post processing

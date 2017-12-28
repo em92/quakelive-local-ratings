@@ -712,7 +712,7 @@ def get_scoreboard(match_id):
           SUM(sw.shots) AS shots
         FROM
           scoreboards s
-        LEFT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
+        RIGHT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
         LEFT JOIN weapons w ON w.weapon_id = sw.weapon_id
         WHERE
           s.match_id = %s
@@ -792,7 +792,7 @@ def get_scoreboard(match_id):
             END AS accuracy
           FROM
             scoreboards s
-          LEFT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
+          RIGHT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team
           LEFT JOIN weapons w ON w.weapon_id = sw.weapon_id
           WHERE
             s.match_id = %(match_id)s

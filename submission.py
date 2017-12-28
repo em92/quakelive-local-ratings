@@ -11,6 +11,7 @@ LAST_GAME_TIMESTAMPS      = cache.LAST_GAME_TIMESTAMPS
 MEDAL_IDS                 = cache.MEDAL_IDS
 MIN_ALIVE_TIME_TO_RATE    = 60*10
 MIN_PLAYER_COUNT_TO_RATE  = cfg.MIN_PLAYER_COUNT_TO_RATE
+MOVING_AVG_COUNT          = cfg['moving_average_count']
 USE_AVG_PERF              = cfg.USE_AVG_PERF
 WEAPON_IDS                = cache.WEAPON_IDS
 

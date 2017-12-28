@@ -738,7 +738,7 @@ def get_scoreboard(match_id):
           SUM(sm.count) AS count
         FROM
           scoreboards s
-        LEFT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
+        RIGHT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
         LEFT JOIN medals m ON m.medal_id = sm.medal_id
         WHERE
           s.match_id = %s
@@ -808,7 +808,7 @@ def get_scoreboard(match_id):
             s.steam_id, s.team, m.medal_short, sm.count
           FROM
             scoreboards s
-          LEFT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
+          RIGHT JOIN scoreboards_medals sm ON sm.match_id = s.match_id AND sm.steam_id = s.steam_id AND sm.team = s.team
           LEFT JOIN medals m ON m.medal_id = sm.medal_id
           WHERE
             s.match_id = %(match_id)s

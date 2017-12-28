@@ -41,24 +41,6 @@ def seconds_to_mmss( value ):
   return "%02d:%02d" % (m, s)
 
 
-@app.template_filter('zero_to_minus')
-def zero_to_minus( value ):
-  value = int(escape(value))
-  if value:
-    return value
-  else:
-    return "-"
-
-
-@app.template_filter('zero_to_minus_with_percent')
-def zero_to_minus( value ):
-  value = int(escape(value))
-  if value:
-    return str(value) + "%"
-  else:
-    return "-"
-
-
 @app.route('/')
 @app.route('/matches/')
 @app.route('/matches/<int:page>/')

@@ -9,6 +9,24 @@
 {%- endmacro %}
 
 
+{% macro wpn_frags(player, key) -%}
+  {% if player['weapon_stats'][key] %}
+    {{ player['weapon_stats'][key][0] }}
+  {% else %}
+    -
+  {% endif %}
+{%- endmacro %}
+
+
+{% macro wpn_acc(player, key) -%}
+  {% if player['weapon_stats'][key] and player['weapon_stats'][key][3] %}
+    <span title="{{ player['weapon_stats'][key][1] }} / {{ player['weapon_stats'][key][2] }}">{{ player['weapon_stats'][key][3] }}%</span>
+  {% else %}
+    -
+  {% endif %}
+{%- endmacro %}
+
+
 {% macro rating(data, key) -%}
   {% if data[ key ] %}
     {{ data[key] }}
@@ -86,8 +104,8 @@
     <td class="s s1">{{ rating( player['rating'], 'new' ) }}</td>
     <td class="s s1">{{ rating_diff( player['rating'] ) }}</td>
     {% for w in wa %}
-    <td class="s sw" style="display: none">{{ player['weapon_stats'][w][0] | zero_to_minus }}</td>
-    <td class="s sa" style="display: none"><span title="{{ player['weapon_stats'][w][1] }} / {{ player['weapon_stats'][w][2] }}">{{ player['weapon_stats'][w][3] | zero_to_minus_with_percent }}</span></td>
+    <td class="s sw" style="display: none">{{ wpn_frags( player, w ) }}</td>
+    <td class="s sa" style="display: none">{{ wpn_acc  ( player, w ) }}</span></td>
     {% endfor %}
     {% for m in ma %}
     <td class="s sm" style="display: none">{{ medal( player, m ) }}</td>

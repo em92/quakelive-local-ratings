@@ -420,6 +420,8 @@ def submit_match(data):
     player_match_ratings = count_multiple_players_match_perf( data["game_meta"]["G"], data["players"] )
     for player in data["players"]:
       player["P"] = int(player["P"])
+      if 'playermodel' not in player:
+        player['playermodel'] = "sarge/default"
       team = int(player["t"]) if "t" in player else 0
 
       cu.execute( '''INSERT INTO players (

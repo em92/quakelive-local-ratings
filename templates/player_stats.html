@@ -9,7 +9,10 @@
     <h3>Ratings</h3>
     <ul>
     {% for item in response['ratings'] %}
-      <li>{{ item['gametype'] }}: {{ item['rating']}} ({{ item['n'] }} games played)</li>
+      <li>{{ item['gametype'] }}:
+        <a href="/ratings/{{ item['gametype_short'] }}/">{{ item['rating']}}</a>
+        (<a href="/player/{{ steam_id }}/matches/{{ item['gametype_short'] }}/">{{ item['n'] }} games</a> played)
+      </li>
     {% endfor %}
     {% if response['ratings'] | length == 0 %}
       <li>No ratings info available</li>

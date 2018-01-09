@@ -1,13 +1,25 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from config import cfg
+import argparse
+import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", metavar="config.json", help="use the provided config file", default = "cfg.json")
+args = parser.parse_args()
+
+from conf import settings as cfg
+if not cfg.read_from_file( args.c ):
+  sys.exit(1)
+
 from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template, escape
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
 import rating
 import sys
 from uuid import UUID
+
+from submission import submit_match
 
 RUN_POST_PROCESS = cfg['run_post_process']
 app = Flask(__name__, static_url_path='/static')
@@ -27,24 +39,6 @@ def seconds_to_mmss( value ):
   seconds = int(escape(value))
   m, s = divmod(seconds, 60)
   return "%02d:%02d" % (m, s)
-
-
-@app.template_filter('zero_to_minus')
-def zero_to_minus( value ):
-  value = int(escape(value))
-  if value:
-    return value
-  else:
-    return "-"
-
-
-@app.template_filter('zero_to_minus_with_percent')
-def zero_to_minus( value ):
-  value = int(escape(value))
-  if value:
-    return str(value) + "%"
-  else:
-    return "-"
 
 
 @app.route('/')
@@ -210,7 +204,7 @@ def http_stats_submit():
     print(request.remote_addr + ": non-loopback requests are not allowed", file=sys.stderr)
     return jsonify(ok=False, message="non-loopback requests are not allowed"), 403
 
-  result = rating.submit_match(request.data.decode('utf-8'))
+  result = submit_match(request.data.decode('utf-8'))
   if result["ok"] == False:
     print(result["match_id"] + ": " + result["message"], file=sys.stderr)
     if "match_already_exists" in result:

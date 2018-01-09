@@ -1,9 +1,17 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from config import cfg
+import argparse
 import os
 import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", metavar="config.json", help="use the provided config file", default = "cfg.json")
+args = parser.parse_args()
+
+from conf import settings as cfg
+if not cfg.read_from_file( args.c ):
+  sys.exit(1)
 
 if __name__ == "__main__":
   sys.exit( os.system("pg_dump {0} --no-owner -F t -f {1}_`date +%Y-%m-%d_%H-%M`.tar.gz -v".format(

@@ -1,5 +1,32 @@
 {% extends "layout.html" %}
 
+{% macro medal(player, key) -%}
+  {% if player['medal_stats'][key] %}
+    {{ player['medal_stats'][key] }}
+  {% else %}
+    -
+  {% endif %}
+{%- endmacro %}
+
+
+{% macro wpn_frags(player, key) -%}
+  {% if player['weapon_stats'][key] and player['weapon_stats'][key][0] > 0 %}
+    {{ player['weapon_stats'][key][0] }}
+  {% else %}
+    -
+  {% endif %}
+{%- endmacro %}
+
+
+{% macro wpn_acc(player, key) -%}
+  {% if player['weapon_stats'][key] and player['weapon_stats'][key][3] %}
+    <span title="{{ player['weapon_stats'][key][1] }} / {{ player['weapon_stats'][key][2] }}">{{ player['weapon_stats'][key][3] }}%</span>
+  {% else %}
+    -
+  {% endif %}
+{%- endmacro %}
+
+
 {% macro rating(data, key) -%}
   {% if data[ key ] %}
     {{ data[key] }}
@@ -60,28 +87,28 @@
     <td class="s s1">{{ player['stats']['frags'] }}</td>
     <td class="s s1">{{ player['stats']['deaths'] }}</td>
     {% if gametype in ("ctf", "ad") %}
-    <td class="s s1">{{ player['medal_stats']['captures'] | zero_to_minus }}</td>
+    <td class="s s1">{{ medal( player, 'captures' ) }}</td>
     {% if gametype != "ad" %}
-    <td class="s s1">{{ player['medal_stats']['assists']  | zero_to_minus }}</td>
+    <td class="s s1">{{ medal( player, 'assists' ) }}</td>
     {% endif %}
-    <td class="s s1">{{ player['medal_stats']['defends']  | zero_to_minus }}</td>
+    <td class="s s1">{{ medal( player, 'defends' ) }}</td>
     {% endif %}
     <td class="s s1">{{ player['stats']['damage_dealt'] }}</td>
     <td class="s s1">{{ player['stats']['damage_taken'] }}</td>
     <td class="s s1">{{ player['stats']['alive_time'] | seconds_to_mmss }}</td>
     {% if gametype == "tdm" %}
-    <td class="s s1">{{ player['medal_stats']['excellent']  | zero_to_minus }}</td>
-    <td class="s s1">{{ player['medal_stats']['impressive'] | zero_to_minus }}</td>
+    <td class="s s1">{{ medal( player, 'excellent' ) }}</td>
+    <td class="s s1">{{ medal( player, 'impressive' ) }}</td>
     {% endif %}
     <td class="s s1">{{ rating( player['rating'], 'old' ) }}</td>
     <td class="s s1">{{ rating( player['rating'], 'new' ) }}</td>
     <td class="s s1">{{ rating_diff( player['rating'] ) }}</td>
     {% for w in wa %}
-    <td class="s sw" style="display: none">{{ player['weapon_stats'][w][0] | zero_to_minus }}</td>
-    <td class="s sa" style="display: none"><span title="{{ player['weapon_stats'][w][1] }} / {{ player['weapon_stats'][w][2] }}">{{ player['weapon_stats'][w][3] | zero_to_minus_with_percent }}</span></td>
+    <td class="s sw" style="display: none">{{ wpn_frags( player, w ) }}</td>
+    <td class="s sa" style="display: none">{{ wpn_acc  ( player, w ) }}</span></td>
     {% endfor %}
     {% for m in ma %}
-    <td class="s sm" style="display: none">{{ player['medal_stats'][m] | zero_to_minus }}</td>
+    <td class="s sm" style="display: none">{{ medal( player, m ) }}</td>
     {% endfor %}
   </tr>{% endfor %}</tbody>
 </table>

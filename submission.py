@@ -362,6 +362,13 @@ def post_process(cu, match_id, gametype_id, match_timestamp):
     return post_process_trueskill(cu, match_id, gametype_id, match_timestamp)
 
 
+def filter_insignificant_players( players ):
+  return list( filter(
+    lambda player: int( player['scoreboard-destroyed'] ) > 0,
+    players
+  ))
+
+
 def submit_match(data):
   """
   Match report handler
@@ -380,6 +387,8 @@ def submit_match(data):
 
     if type(data).__name__ == 'str':
       data = parse_stats_submission( data )
+
+    data['players'] = filter_insignificant_players( data['players'] )
 
     if is_instagib(data):
       data["game_meta"]["G"] = "i" + data["game_meta"]["G"]

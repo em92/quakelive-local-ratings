@@ -9,7 +9,7 @@ from db import db_connect, cache
 GAMETYPE_IDS              = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS      = cache.LAST_GAME_TIMESTAMPS
 MEDAL_IDS                 = cache.MEDAL_IDS
-MIN_ALIVE_TIME_TO_RATE    = 60*10
+MIN_DURATION_TO_ADD       = 60*5
 MIN_PLAYER_COUNT_TO_RATE  = cfg.MIN_PLAYER_COUNT_TO_RATE
 MOVING_AVG_COUNT          = cfg['moving_average_count']
 USE_AVG_PERF              = cfg.USE_AVG_PERF
@@ -128,7 +128,7 @@ def get_map_id( cu, map_name, dont_create = False ):
     return cu.fetchone()[0]
 
 
-def count_player_match_perf( gametype, player_data ):
+def count_player_match_perf( gametype, player_data, match_duration ):
   alive_time    = int( player_data["alivetime"] )
   score         = int( player_data["scoreboard-score"] )
   damage_dealt  = int( player_data["scoreboard-pushes"] )
@@ -140,7 +140,7 @@ def count_player_match_perf( gametype, player_data ):
   assists_count = int( player_data["medal-assists"] )
   win           = 1 if "win" in player_data else 0
 
-  if alive_time < MIN_ALIVE_TIME_TO_RATE:
+  if alive_time < match_duration / 2:
     return None
   else:
     time_factor   = 1200./alive_time
@@ -153,7 +153,7 @@ def count_player_match_perf( gametype, player_data ):
   }[gametype]
 
 
-def count_multiple_players_match_perf( gametype, all_players_data ):
+def count_multiple_players_match_perf( gametype, all_players_data, match_duration ):
 
   result = {}
   temp = []
@@ -161,7 +161,7 @@ def count_multiple_players_match_perf( gametype, all_players_data ):
   for player in all_players_data:
     team     = int(player["t"]) if "t" in player else 0
     steam_id = int(player["P"])
-    perf     = count_player_match_perf( gametype, player ) if MIN_PLAYER_COUNT_TO_RATE[ gametype ] <= len(all_players_data) else None
+    perf     = count_player_match_perf( gametype, player, match_duration ) if MIN_PLAYER_COUNT_TO_RATE[ gametype ] <= len(all_players_data) else None
     if perf != None:
       temp.append({
         "team":     team,
@@ -392,6 +392,14 @@ def submit_match(data):
         "match_id": match_id
       }
 
+    match_duration = int( data["game_meta"]["D"] )
+    if match_duration < MIN_DURATION_TO_ADD:
+      return {
+        "ok": False,
+        "message": "not enough match duration: given - {}, required - {}".format(match_duration, MIN_DURATION_TO_ADD),
+        "match_id": match_id
+      }
+
     db = db_connect()
     cu = db.cursor()
 
@@ -411,13 +419,13 @@ def submit_match(data):
       get_factory_id( cu, data["game_meta"]["O"] ),
       get_map_id( cu, data["game_meta"]["M"] ),
       match_timestamp,
-      int( data["game_meta"]["D"] ),
+      match_duration,
       team1_score,
       team2_score,
       cfg["run_post_process"]
     ])
 
-    player_match_ratings = count_multiple_players_match_perf( data["game_meta"]["G"], data["players"] )
+    player_match_ratings = count_multiple_players_match_perf( data["game_meta"]["G"], data["players"], match_duration )
     for player in data["players"]:
       player["P"] = int(player["P"])
       if 'playermodel' not in player:
@@ -560,7 +568,8 @@ def reset_gametype_ratings( gametype ):
         'medal-captures',       mm.medals->'captures',
         'medal-defends',        mm.medals->'defends',
         'medal-assists',        mm.medals->'assists'
-      ))
+      )),
+      MIN(m.duration)
     FROM
       scoreboards s
     LEFT JOIN matches m ON m.match_id = s.match_id
@@ -583,6 +592,7 @@ def reset_gametype_ratings( gametype ):
       match_id = row[0]
       team1_score = row[1]
       team2_score = row[2]
+      match_duration = row[4]
       all_players_data = []
       for player in row[3]:
         if player['t'] == 1 and team1_score > team2_score:
@@ -591,7 +601,7 @@ def reset_gametype_ratings( gametype ):
           player['win'] = 1
         all_players_data.append(player.copy())
       print(match_id)
-      player_match_ratings = count_multiple_players_match_perf( gametype, all_players_data )
+      player_match_ratings = count_multiple_players_match_perf( gametype, all_players_data, match_duration )
 
       for player in all_players_data:
         player["P"] = int(player["P"])

@@ -90,12 +90,17 @@ def http_ratings_gametype_page_json(gametype, page):
 
 @app.route("/player/<int:steam_id>")
 def http_player(steam_id):
-  return render_template("player_stats.html", **rating.get_player_info2(steam_id), steam_id = str(steam_id) )
+  return render_template("player_stats.html", **rating.get_player_info(steam_id), steam_id = str(steam_id) )
 
 
 @app.route("/player/<int:steam_id>.json")
 def http_player_json(steam_id):
   return jsonify( **rating.get_player_info(int(steam_id)) )
+
+
+@app.route("/deprecated/player/<int:steam_id>.json")
+def http_deprected_player_json(steam_id):
+  return jsonify( **rating.get_player_info_old(int(steam_id)) )
 
 
 @app.route("/elo/<ids>")

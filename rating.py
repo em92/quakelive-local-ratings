@@ -271,7 +271,7 @@ def export(gametype):
   return result
 
 
-def get_player_info(steam_id):
+def get_player_info_old(steam_id):
 
   try:
     db = db_connect()
@@ -332,7 +332,7 @@ def get_player_info(steam_id):
   return result
 
 
-def get_player_info2( steam_id ):
+def get_player_info( steam_id ):
 
   result = {}
 

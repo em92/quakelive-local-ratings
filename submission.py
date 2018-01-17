@@ -129,6 +129,10 @@ def get_map_id( cu, map_name, dont_create = False ):
 
 
 def count_player_match_perf( gametype, player_data, match_duration ):
+  for k, v in player_data.items():
+    if player_data[k] is None:
+      player_data[k] = 0
+
   alive_time    = int( player_data["alivetime"] )
   score         = int( player_data["scoreboard-score"] )
   damage_dealt  = int( player_data["scoreboard-pushes"] )

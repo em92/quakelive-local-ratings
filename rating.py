@@ -292,7 +292,6 @@ def get_player_info_old(steam_id):
           matches m
         LEFT JOIN scoreboards s ON s.match_id = m.match_id
         WHERE
-          s.old_mean IS NOT NULL AND
           s.steam_id = %(steam_id)s AND
           m.gametype_id = %(gametype_id)s
         ORDER BY m.timestamp DESC
@@ -305,14 +304,24 @@ def get_player_info_old(steam_id):
       ORDER BY m.timestamp ASC
       '''
       cu.execute(query, {'steam_id': steam_id, 'gametype_id': gametype_id, 'start_timestamp': LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME})
+      last_ratings = {}
       for row in cu.fetchall():
         result[ "_id" ] = str(row[0])
         result[ "name" ] = row[1]
         result[ "model" ] = row[2]
-        if gametype not in result and row[4] != None:
-          result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": [], "rank": row[9], "max_rank": row[10]}
-        if row[8] != None:
-          result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})
+        rating = round(row[8], 2) if row[8] is not None else None
+
+        if gametype not in last_ratings:
+          last_ratings[ gametype ] = rating if rating is not None else 1
+
+        if rating is None:
+          rating = last_ratings[ gametype ]
+        else:
+          last_ratings[ gametype ] = rating
+
+        if gametype not in result:
+          result[ gametype ] = {"rating": round(row[4], 2) if row[4] is not None else 0, "n": row[5], "history": [], "rank": row[9], "max_rank": row[10]}
+        result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": rating})
 
     result = {
       "ok": True,

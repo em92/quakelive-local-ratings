@@ -35,10 +35,10 @@ SQL_TOP_PLAYERS_BY_GAMETYPE = '''
     gr.steam_id = p.steam_id
   WHERE
     gr.n >= 10 AND
-    gr.last_played_timestamp > %(start_timestamp)s AND
+    gr.last_played_timestamp > LEAST( %(start_timestamp)s, (SELECT timestamp FROM matches WHERE gametype_id = %(gametype_id)s ORDER BY timestamp DESC LIMIT 1 OFFSET {} ) ) AND
     gr.gametype_id = %(gametype_id)s
   ORDER BY gr.mean DESC
-'''
+'''.format( MATCH_LIST_ITEM_COUNT )
 
 def get_list(gametype, page, show_inactive = False):
 

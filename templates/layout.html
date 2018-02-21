@@ -2,7 +2,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-<link rel="stylesheet" href="/static/counterstrikesource.css?20171122"> <!-- :D -->
+<link rel="stylesheet" href="/static/counterstrikesource.css?20180221"> <!-- :D -->
 <meta charset="UTF-8" />
 <meta name="robots" content="noindex, nofollow"/>
 <script type="text/javascript">if ( location.hash.substr(1, 1) == "/" ) { var path = location.hash.substr(1); location.hash = ""; location.pathname = path; } </script>
@@ -13,6 +13,7 @@
 {% endif %}
 </head>
 <body>
+{% include "nav.html" %}
 <div id="content">
 {% if ok %}
 {% block body %}{% endblock %}

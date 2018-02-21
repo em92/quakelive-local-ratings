@@ -1,0 +1,28 @@
+<nav class="navbar navbar-inverse" role="navigation">
+  <div class="container-fluid">
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li><a href="/">QLLR</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Matches<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li><a href="/matches/">All</a></li>
+            <li class="divider"></li>
+            {% for short, name in gametype_names.items() %}
+            <li><a href="/matches/{{ short }}/">{{ name }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Ratings<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            {% for short, name in gametype_names.items() %}
+            <li><a href="/ratings/{{ short }}/">{{ name }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>

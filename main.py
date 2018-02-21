@@ -12,18 +12,24 @@ from conf import settings as cfg
 if not cfg.read_from_file( args.c ):
   sys.exit(1)
 
-from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template, escape
+from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template as base_render_template, escape
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
 import rating
 import sys
 from uuid import UUID
 
+from db import cache
 from submission import submit_match
 
 RUN_POST_PROCESS = cfg['run_post_process']
 app = Flask(__name__, static_url_path='/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
+
+
+def render_template(template, **context):
+  context['gametype_names'] = cache.GAMETYPE_NAMES
+  return base_render_template(template, **context)
 
 
 @app.template_filter('ql_nickname')

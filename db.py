@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
+from collections import OrderedDict
 from urllib.parse import urlparse
 
 import psycopg2
@@ -20,7 +21,7 @@ def db_connect():
 class Cache:
   def __init__(self):
     self._gametype_ids   = {}
-    self._gametype_names = {}
+    self._gametype_names = OrderedDict()
     self._medal_ids      = {}
     self._medals         = []
     self._weapon_ids     = {}

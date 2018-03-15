@@ -35,10 +35,10 @@ SQL_TOP_PLAYERS_BY_GAMETYPE = '''
     gr.steam_id = p.steam_id
   WHERE
     gr.n >= 10 AND
-    gr.last_played_timestamp > %s AND
-    gr.gametype_id = %s
+    gr.last_played_timestamp > LEAST( %(start_timestamp)s, (SELECT timestamp FROM matches WHERE gametype_id = %(gametype_id)s ORDER BY timestamp DESC LIMIT 1 OFFSET {} ) ) AND
+    gr.gametype_id = %(gametype_id)s
   ORDER BY gr.mean DESC
-'''
+'''.format( MATCH_LIST_ITEM_COUNT )
 
 def get_list(gametype, page, show_inactive = False):
 
@@ -54,9 +54,14 @@ def get_list(gametype, page, show_inactive = False):
     db = db_connect()
     cu = db.cursor()
     query = SQL_TOP_PLAYERS_BY_GAMETYPE + '''
-    LIMIT %s
-    OFFSET %s'''
-    cu.execute(query, [LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME if show_inactive is False else 0, gametype_id, cfg["player_count_per_page"], cfg["player_count_per_page"]*page])
+    LIMIT %(limit)s
+    OFFSET %(offset)s'''
+    cu.execute(query, {
+      'gametype_id': gametype_id,
+      'start_timestamp': LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME if show_inactive is False else 0,
+      'limit': cfg["player_count_per_page"],
+      'offset': cfg["player_count_per_page"]*page
+    })
 
     result = []
     player_count = 0
@@ -266,7 +271,7 @@ def export(gametype):
   return result
 
 
-def get_player_info(steam_id):
+def get_player_info_old(steam_id):
 
   try:
     db = db_connect()
@@ -287,27 +292,36 @@ def get_player_info(steam_id):
           matches m
         LEFT JOIN scoreboards s ON s.match_id = m.match_id
         WHERE
-          s.old_mean IS NOT NULL AND
-          s.steam_id = %s AND
-          m.gametype_id = %s
+          s.steam_id = %(steam_id)s AND
+          m.gametype_id = %(gametype_id)s
         ORDER BY m.timestamp DESC
         LIMIT 50
       ) m ON m.gametype_id = g.gametype_id
       LEFT JOIN (''' + SQL_TOP_PLAYERS_BY_GAMETYPE + ''') rt ON rt.steam_id = p.steam_id
       WHERE
-        p.steam_id = %s AND
-        g.gametype_id = %s
+        p.steam_id = %(steam_id)s AND
+        g.gametype_id = %(gametype_id)s
       ORDER BY m.timestamp ASC
       '''
-      cu.execute(query, [steam_id, gametype_id, LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME, gametype_id, steam_id, gametype_id])
+      cu.execute(query, {'steam_id': steam_id, 'gametype_id': gametype_id, 'start_timestamp': LAST_GAME_TIMESTAMPS[ gametype_id ]-KEEPING_TIME})
+      last_ratings = {}
       for row in cu.fetchall():
         result[ "_id" ] = str(row[0])
         result[ "name" ] = row[1]
         result[ "model" ] = row[2]
-        if gametype not in result and row[4] != None:
-          result[ gametype ] = {"rating": round(row[4], 2), "n": row[5], "history": [], "rank": row[9], "max_rank": row[10]}
-        if row[8] != None:
-          result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": round(row[8], 2)})
+        rating = round(row[8], 2) if row[8] is not None else None
+
+        if gametype not in last_ratings:
+          last_ratings[ gametype ] = rating if rating is not None else 1
+
+        if rating is None:
+          rating = last_ratings[ gametype ]
+        else:
+          last_ratings[ gametype ] = rating
+
+        if gametype not in result:
+          result[ gametype ] = {"rating": round(row[4], 2) if row[4] is not None else 0, "n": row[5], "history": [], "rank": row[9], "max_rank": row[10]}
+        result[ gametype ][ "history" ].append({"match_id": row[6], "timestamp": row[7], "rating": rating})
 
     result = {
       "ok": True,
@@ -327,7 +341,7 @@ def get_player_info(steam_id):
   return result
 
 
-def get_player_info2( steam_id ):
+def get_player_info( steam_id ):
 
   result = {}
 
@@ -448,6 +462,7 @@ def get_player_info2( steam_id ):
 
     result = {
       "response": result,
+      "title": clean_name( result['name'] ),
       "ok": True
     }
 

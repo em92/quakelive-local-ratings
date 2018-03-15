@@ -250,3 +250,23 @@ li {
 #table_btns a.active {
   text-decoration: underline;
 }
+
+nav li {
+  width: auto;
+}
+
+.dropdown-menu {
+    background-color: #222;
+}
+
+.dropdown-menu > li > a {
+    color: #9D9D9D;
+}
+
+.dropdown-menu > li.divider {
+    background-color: black;
+}
+
+li.dropdown:hover > .dropdown-menu {
+    display: block;
+}

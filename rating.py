@@ -462,6 +462,7 @@ def get_player_info( steam_id ):
 
     result = {
       "response": result,
+      "title": clean_name( result['name'] ),
       "ok": True
     }
 

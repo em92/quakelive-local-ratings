@@ -17,7 +17,9 @@ INSERT INTO gametypes (gametype_id, gametype_name, gametype_short) VALUES
   (1, 'Attack & Defend',  'ad'),
   (2, 'Capture the Flag', 'ctf'),
   (3, 'Team Deathmatch',  'tdm'),
-  (4, 'Team Deathmatch (2v2)',  'tdm2v2');
+  (4, 'Team Deathmatch (2v2)',  'tdm2v2'),
+  (5, 'Freeze Tag', 'ft');
+
 
 
 CREATE TABLE weapons (

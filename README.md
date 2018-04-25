@@ -8,6 +8,7 @@ On quake live server side with minqlx [balance.py](https://github.com/MinoMino/m
 
 * Attack & Defend
 * Capture The Flag
+* Freeze Tag
 * Team Deathmatch
 
 ### Differences between QLLR and [QLStats](http://qlstats.net/)

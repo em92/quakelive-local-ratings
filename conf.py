@@ -16,11 +16,13 @@ class Settings:
       "run_post_process": True,
       "min_player_count_in_match_to_rate_ad": 6,
       "min_player_count_in_match_to_rate_ctf": 6,
+      "min_player_count_in_match_to_rate_ft": 6,
       "min_player_count_in_match_to_rate_tdm": 6,
       "min_player_count_in_match_to_rate_tdm2v2": 4,
       "moving_average_count": 50,
       "use_avg_perf_ad": False,
       "use_avg_perf_ctf": False,
+      "use_avg_perf_ft": False,
       "use_avg_perf_tdm": False,
       "use_avg_perf_tdm2v2": False
     }

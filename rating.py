@@ -18,7 +18,6 @@ from math import ceil
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
 GAMETYPE_NAMES = cache.GAMETYPE_NAMES
-MEDALS_AVAILABLE  = cache.MEDALS_AVAILABLE
 WEAPONS_AVAILABLE = cache.WEAPONS_AVAILABLE
 
 MAX_RATING = 1000
@@ -838,6 +837,19 @@ def get_scoreboard(match_id):
     cu.execute(query, {"match_id": match_id})
     overall_stats = cu.fetchone()[0]
 
+    query = '''
+    SELECT
+      array_agg(m.medal_short)
+    FROM (
+      SELECT DISTINCT medal_id
+      FROM scoreboards_medals
+      WHERE match_id = %(match_id)s
+    ) sm
+    LEFT JOIN medals m ON m.medal_id = sm.medal_id
+    '''
+    cu.execute(query, {"match_id": match_id})
+    medals_available = cu.fetchone()[0]
+
     result = {
       "summary": summary,
       "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
@@ -845,7 +857,7 @@ def get_scoreboard(match_id):
         "overall":        overall_stats
       },
       "weapons_available": WEAPONS_AVAILABLE,
-      "medals_available": MEDALS_AVAILABLE,
+      "medals_available": medals_available,
       "ok": True
     }
   except Exception as e:

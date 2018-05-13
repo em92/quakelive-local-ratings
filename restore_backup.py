@@ -15,7 +15,7 @@ if not cfg.read_from_file( args.c ):
   sys.exit(1)
 
 if __name__ == "__main__":
-  sys.exit( os.system("pg_restore -n public -d {0} {1} -v".format(
+  sys.exit( os.system("gunzip -c {1} | psql -d {0}".format(
     cfg['db_url'],
     args.filename
   )))

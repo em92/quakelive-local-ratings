@@ -57,6 +57,7 @@ sudo apt-get install npm
 sudo apt-get install libzmq3
 sudo apt-get install libzmq3-dev
 cd XonStat/feeder
+git checkout 49dab3e2883db9d8cc463f54e2611f76429f47db
 npm install
 mkdir ql-match-jsons
 mkdir ql-match-jsons/errors

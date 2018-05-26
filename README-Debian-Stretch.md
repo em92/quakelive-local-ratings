@@ -50,18 +50,17 @@ By default it is running on port 7081.
 ### Installing and configurating feeder
 
 ```
-git clone https://github.com/PredatH0r/XonStat.git
+git clone https://github.com/em92/qlstats-feeder-mini.git
 sudo apt-get install nodejs
 sudo ln -s /usr/bin/nodejs /usr/bin/node
 sudo apt-get install npm
 sudo apt-get install libzmq3
 sudo apt-get install libzmq3-dev
-cd XonStat/feeder
-git checkout 49dab3e2883db9d8cc463f54e2611f76429f47db
+mv qlstats-feeder-mini feeder
+cd feeder
 npm install
 mkdir ql-match-jsons
 mkdir ql-match-jsons/errors
-sed -i.bak '/database/d' cfg.json
 ```
 
 Edit cfg.json. *xonstatSubmissionUrl* value must point to our qllr (example http://YOUR-HOST-HERE:7081/stats/submit).

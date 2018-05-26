@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from warnings import warn
 import trueskill
 
 from common import log_exception
@@ -301,7 +302,13 @@ def post_process_trueskill(cu, match_id, gametype_id, match_timestamp):
     deviation    = row[4]
 
     try:
-      team_ratings_old[ team - 1 ].append( trueskill.Rating( mean, deviation ) )
+      ts_rating = trueskill.Rating( mean, deviation )
+    except ValueError as e:
+      warn("Cannot use trueskill rating: {}. Falling back to average perfomance rating...".format(e))
+      return post_process_avg_perf(cu, match_id, gametype_id, match_timestamp)
+
+    try:
+      team_ratings_old[ team - 1 ].append( ts_rating )
       team_steam_ids  [ team - 1 ].append( steam_id )
     except KeyError:
       continue

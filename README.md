@@ -1,7 +1,7 @@
 # quakelive-local-ratings (qllr)
 
 QLLR is quake live match stats database that can be used to generate ratings for players.
-Usually it is used with [feeder](https://github.com/PredatH0r/XonStat/tree/master/feeder) from [Predath0r's](https://github.com/PredatH0r) [QLStats](https://github.com/PredatH0r/XonStat) repository in order to collect match data from online quake live servers.
+Usually it is used with [feeder](https://github.com/em92/qlstats-feeder-mini) based on [Predath0r's](https://github.com/PredatH0r) [QLStats feeder](https://github.com/PredatH0r/XonStat/feeder) in order to collect match data from online quake live servers.
 On quake live server side with minqlx [balance.py](https://github.com/MinoMino/minqlx-plugins/blob/master/balance.py) plugin it can be used to generate balanced teams.
 
 ### Supported gametypes
@@ -17,6 +17,7 @@ On quake live server side with minqlx [balance.py](https://github.com/MinoMino/m
 * common player ratings support (based on TrueSkill or optinonally average player performance)
 * player ratings per map support (based on average player perfomance)
 * limited supported gametypes
+* [GDPR](http://eur-lex.europa.eu/eli/reg/2016/679/oj) incompatible
 
 ### Requirements
 

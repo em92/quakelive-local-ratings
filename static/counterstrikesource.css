@@ -270,3 +270,9 @@ nav li {
 li.dropdown:hover > .dropdown-menu {
     display: block;
 }
+
+.s.sw,
+.s.sa,
+.s.sm {
+  min-width: 56px;
+}

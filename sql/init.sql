@@ -17,7 +17,10 @@ INSERT INTO gametypes (gametype_id, gametype_name, gametype_short) VALUES
   (1, 'Attack & Defend',  'ad'),
   (2, 'Capture the Flag', 'ctf'),
   (3, 'Team Deathmatch',  'tdm'),
-  (4, 'Team Deathmatch (2v2)',  'tdm2v2');
+  (4, 'Team Deathmatch (2v2)',  'tdm2v2'),
+  (5, 'Freeze Tag', 'ft'),
+  (6, 'Clan Arena', 'ca');
+
 
 
 CREATE TABLE weapons (
@@ -122,7 +125,7 @@ CREATE TABLE scoreboards (
   old_deviation REAL DEFAULT NULL,
   new_mean REAL DEFAULT NULL,
   new_deviation REAL DEFAULT NULL,
-  FOREIGN KEY (match_id) REFERENCES matches(match_id),
+  FOREIGN KEY (match_id) REFERENCES matches(match_id) ON DELETE CASCADE,
   FOREIGN KEY (steam_id) REFERENCES players(steam_id),
   PRIMARY KEY (match_id, steam_id, team)
 );
@@ -135,7 +138,7 @@ CREATE TABLE scoreboards_weapons (
   frags SMALLINT,
   hits  INTEGER,
   shots INTEGER,
-  FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team),
+  FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team) ON DELETE CASCADE,
   FOREIGN KEY (weapon_id) REFERENCES weapons(weapon_id),
   PRIMARY KEY (match_id, steam_id, team, weapon_id)
 );
@@ -146,7 +149,7 @@ CREATE TABLE scoreboards_medals (
   team SMALLINT,
   medal_id SMALLINT,
   count SMALLINT,
-  FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team),
+  FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team) ON DELETE CASCADE,
   FOREIGN KEY (medal_id) REFERENCES medals(medal_id),
   PRIMARY KEY (match_id, steam_id, team, medal_id)
 );

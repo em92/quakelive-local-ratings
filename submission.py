@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from warnings import warn
 import trueskill
 
 from common import log_exception
@@ -151,7 +152,9 @@ def count_player_match_perf( gametype, player_data, match_duration ):
 
   return {
     "ad": ( damage_dealt/100 + frags_count + capture_count ) * time_factor,
+    "ca": ( damage_dealt/100 + 0.25 * frags_count ) * time_factor,
     "ctf": ( damage_dealt/damage_taken * ( score + damage_dealt/20 ) * time_factor ) / 2.35 + win*300,
+    "ft": ( damage_dealt/100 + 0.5 * (frags_count - deaths_count) + 2 * assists_count ) * time_factor,
     "tdm2v2": ( 0.5 * (frags_count - deaths_count) + 0.004 * (damage_dealt - damage_taken) + 0.003 * damage_dealt ) * time_factor,
     "tdm": ( 0.5 * (frags_count - deaths_count) + 0.004 * (damage_dealt - damage_taken) + 0.003 * damage_dealt ) * time_factor
   }[gametype]
@@ -300,7 +303,13 @@ def post_process_trueskill(cu, match_id, gametype_id, match_timestamp):
     deviation    = row[4]
 
     try:
-      team_ratings_old[ team - 1 ].append( trueskill.Rating( mean, deviation ) )
+      ts_rating = trueskill.Rating( mean, deviation )
+    except ValueError as e:
+      warn("Cannot use trueskill rating: {}. Falling back to average perfomance rating...".format(e))
+      return post_process_avg_perf(cu, match_id, gametype_id, match_timestamp)
+
+    try:
+      team_ratings_old[ team - 1 ].append( ts_rating )
       team_steam_ids  [ team - 1 ].append( steam_id )
     except KeyError:
       continue

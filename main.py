@@ -148,9 +148,9 @@ def http_steam_api_GetPlayerSummaries():
   for steam_id in ids:
     player_info = rating.get_player_info( steam_id )
     if player_info["ok"]:
-      if "name" in player_info["player"]:
+      if "name" in player_info["response"]:
         players.append({
-          "personaname": player_info["player"]["name"],
+          "personaname": player_info["response"]["name"],
           "steamid": str(steam_id)
         })
     else:

@@ -2,12 +2,10 @@
 #
 
 import re
-import sys
-import traceback
 import humanize
 from functools import reduce
 from datetime import datetime
-from common import clean_name
+from common import clean_name, log_exception
 from conf import settings as cfg
 from db import db_connect, cache
 from math import ceil
@@ -105,7 +103,7 @@ def get_list(gametype, page, show_inactive = False):
     }
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
@@ -190,7 +188,7 @@ FROM (
     }
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
@@ -215,7 +213,7 @@ def export(gametype):
   try:
     db = db_connect()
   except Exception as e:
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
@@ -253,7 +251,7 @@ def export(gametype):
     }
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
@@ -323,7 +321,7 @@ def get_player_info_old(steam_id):
     }
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
@@ -467,7 +465,7 @@ def get_player_info( steam_id ):
     }
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
@@ -691,7 +689,7 @@ def get_scoreboard(match_id):
     }
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
@@ -790,7 +788,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
 
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)

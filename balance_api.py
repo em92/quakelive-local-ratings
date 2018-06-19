@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-import sys
-import traceback
+from common import log_exception
 from conf import settings as cfg
 from db import db_connect, cache
 from submission import get_map_id
@@ -67,7 +66,7 @@ def simple( steam_ids ):
 
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)
@@ -169,7 +168,7 @@ def for_certain_map( steam_ids, gametype, mapname ):
 
   except KeyError as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": True,
       "players": list(players.values()),
@@ -177,7 +176,7 @@ def for_certain_map( steam_ids, gametype, mapname ):
     }
   except Exception as e:
     db.rollback()
-    traceback.print_exc(file=sys.stderr)
+    log_exception(e)
     result = {
       "ok": False,
       "message": type(e).__name__ + ": " + str(e)

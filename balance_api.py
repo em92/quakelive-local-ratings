@@ -109,7 +109,6 @@ def with_player_info_from_qlstats( steam_ids ):
 
   qlstats_data['players'] = result['players']
   for steam_id, info in result['playerinfo'].items():
-    print(qlstats_data['playerinfo'][steam_id])
     qlstats_data['playerinfo'][steam_id]['ratings'] = info['ratings']
 
   return qlstats_data

@@ -1,8 +1,7 @@
-Flask
-psycopg2
-requests
-beautifulsoup4
+Flask==0.12.2
+psycopg2-binary==2.7.5
+requests==2.18.4
+beautifulsoup4==4.6.0
 pytz
-sqlalchemy
-trueskill
-humanize
+trueskill==0.4.4
+humanize==0.5.1

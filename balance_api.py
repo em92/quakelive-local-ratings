@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
+import requests
 from common import log_exception
 from conf import settings as cfg
 from db import db_connect, cache
@@ -89,6 +90,29 @@ def simple( steam_ids ):
   db.close()
 
   return result
+
+
+def with_player_info_from_qlstats( steam_ids ):
+  result = simple(steam_ids)
+  if result['ok'] == False:
+    return result
+
+  r = requests.get("https://qlstats.net/elo/" + "+".join(map(lambda id_: str(id_), steam_ids)), timeout = 3)
+  if not r.ok:
+    return result
+
+  try:
+    qlstats_data = r.json()
+  except Exception as e:
+    log_exception(e)
+    return result
+
+  qlstats_data['players'] = result['players']
+  for steam_id, info in result['playerinfo'].items():
+    print(qlstats_data['playerinfo'][steam_id])
+    qlstats_data['playerinfo'][steam_id]['ratings'] = info['ratings']
+
+  return qlstats_data
 
 
 def for_certain_map( steam_ids, gametype, mapname ):

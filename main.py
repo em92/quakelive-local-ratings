@@ -133,6 +133,12 @@ def http_elo_map(gametype, mapname, ids):
   return jsonify( **balance_api.for_certain_map(ids, gametype, mapname) )
 
 
+@app.route("/elo_with_qlstats_playerinfo/<ids>")
+def http_elo_with_qlstats_playerinfo(ids):
+  ids = list( map(lambda id_: int(id_), ids.split("+")) )
+  return jsonify( **balance_api.with_player_info_from_qlstats(ids) )
+
+
 @app.route("/steam_api/GetPlayerSummaries/")
 def http_steam_api_GetPlayerSummaries():
   ids = request.args.get("steamids")

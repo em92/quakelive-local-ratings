@@ -9,6 +9,26 @@ from submission import get_map_id
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 MOVING_AVG_COUNT = cfg['moving_average_count']
 
+def prepare_result( players ):
+  playerinfo = {}
+
+  for steam_id, data in players.items():
+    playerinfo[ steam_id ] = {
+      'deactivated': False,
+      'ratings': data.copy(),
+      'allowRating': True,
+      'privacy': "public"
+    }
+
+  return {
+    "ok": True,
+    "playerinfo": playerinfo,
+    "players": list(players.values()),
+    "untracked": [],
+    "deactivated": []
+  }
+
+
 def simple( steam_ids ):
   """
   Outputs player ratings compatible with balance.py plugin from minqlx-plugins
@@ -31,7 +51,6 @@ def simple( steam_ids ):
     }
   """
   players = {}
-  result = []
   try:
 
     db = db_connect()
@@ -56,13 +75,7 @@ def simple( steam_ids ):
         players[ steam_id ] = {"steamid": steam_id}
       players[ steam_id ][ gametype ] = {"games": n, "elo": rating}
 
-    for steam_id, data in players.items():
-      result.append( data )
-    result = {
-      "ok": True,
-      "players": result,
-      "deactivated": []
-    }
+    result = prepare_result(players)
 
   except Exception as e:
     db.rollback()
@@ -102,7 +115,6 @@ def for_certain_map( steam_ids, gametype, mapname ):
     }
   """
   players = {}
-  result = []
   try:
 
     db = db_connect()
@@ -158,22 +170,13 @@ def for_certain_map( steam_ids, gametype, mapname ):
       n        = row[1]
       players[ steam_id ][ gametype ] = {"games": n, "elo": rating}
 
-    for steam_id, data in players.items():
-      result.append( data )
-    result = {
-      "ok": True,
-      "players": result,
-      "deactivated": []
-    }
+    result = prepare_result(players)
 
   except KeyError as e:
     db.rollback()
     log_exception(e)
-    result = {
-      "ok": True,
-      "players": list(players.values()),
-      "deactivated": []
-    }
+    result = prepare_result(players)
+
   except Exception as e:
     db.rollback()
     log_exception(e)

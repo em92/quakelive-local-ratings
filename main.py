@@ -15,6 +15,7 @@ if not cfg.read_from_file( args.c ):
 from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template as base_render_template, escape
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
+import balance_api
 import rating
 import sys
 from uuid import UUID
@@ -123,13 +124,13 @@ def http_elo(ids):
     )
   except KeyError:
     ids = list( map(lambda id_: int(id_), ids.split("+")) )
-    return jsonify( **rating.get_for_balance_plugin(ids) )
+    return jsonify( **balance_api.simple(ids) )
 
 
 @app.route("/elo_map/<gametype>/<mapname>/<ids>")
 def http_elo_map(gametype, mapname, ids):
   ids = list( map(lambda id_: int(id_), ids.split("+")) )
-  return jsonify( **rating.get_for_balance_plugin_for_certain_map(ids, gametype, mapname) )
+  return jsonify( **balance_api.for_certain_map(ids, gametype, mapname) )
 
 
 @app.route("/steam_api/GetPlayerSummaries/")

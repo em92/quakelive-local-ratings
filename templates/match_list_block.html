@@ -2,26 +2,26 @@
   <p>{{ title }}</p>
   <table id="summary-table" table="table table-borderless">
     <thead><tr>
-      <th>Time</th>
-      <th>Gametype</th>
-      <th>Map</th>
-      <th>Link</th>
-      <th>Scores</th>
+      <th class="col-xs-2">Time</th>
+      <th class="col-xs-1">Gametype</th>
+      <th class="col-xs-3">Map</th>
+      <th class="col-xs-1">Link</th>
+      <th class="col-xs-1">Scores</th>
     </tr></thead>
     <tbody>{% for item in matches %}<tr>
-      <td class="col-md-2" title="{{ item['datetime'] }}">{{ item['timedelta'] }}</td>
-      <td class="col-md-1">
+      <td class="col-xs-2" title="{{ item['datetime'] }}">{{ item['timedelta'] }}</td>
+      <td class="col-xs-1">
         {% if gametype %}
           {{ item['gametype'] }}
         {% else %}
           <a href="{{ page_prefix }}/{{ item['gametype'] }}/">{{ item['gametype'] }}</a>
         {% endif %}
       </td>
-      <td class="col-md-3">{{ item['map'] }}</td>
-      <td class="col-md-1">
+      <td class="col-xs-3">{{ item['map'] }}</td>
+      <td class="col-xs-1">
         <a href="/scoreboard/{{ item['match_id'] }}">link</a>
       </td>
-      <td class="col-md-1">{{ item['team1_score'] }} : {{ item['team2_score'] }}</td>
+      <td class="col-xs-1">{{ item['team1_score'] }} : {{ item['team2_score'] }}</td>
     </tr>{% endfor %}</tbody>
   </table>
   {% include 'paginator.html' %}

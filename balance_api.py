@@ -97,7 +97,11 @@ def with_player_info_from_qlstats( steam_ids ):
   if result['ok'] == False:
     return result
 
-  r = requests.get("https://qlstats.net/elo/" + "+".join(map(lambda id_: str(id_), steam_ids)), timeout = 3)
+  try:
+    r = requests.get("http://qlstats.net/elo/" + "+".join(map(lambda id_: str(id_), steam_ids)), timeout = 5)
+  except requests.exceptions.RequestException:
+    return result
+
   if not r.ok:
     return result
 

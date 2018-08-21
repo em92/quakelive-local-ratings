@@ -15,6 +15,7 @@ if not cfg.read_from_file( args.c ):
 from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template as base_render_template, escape
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.exceptions import NotFound
 import balance_api
 import rating
 import sys
@@ -32,6 +33,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 def before_request():
   if 'gametype' in request.view_args:
     request.view_args['gametype'] = request.view_args['gametype'].lower()
+    if request.view_args['gametype'] not in cache.GAMETYPE_IDS:
+      raise NotFound("invalid gametype")
 
 
 def render_template(template, **context):

@@ -28,6 +28,12 @@ app = Flask(__name__, static_url_path='/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
+@app.before_request
+def before_request():
+  if 'gametype' in request.view_args:
+    request.view_args['gametype'] = request.view_args['gametype'].lower()
+
+
 def render_template(template, **context):
   context['gametype_names'] = cache.GAMETYPE_NAMES
   return base_render_template(template, **context)
@@ -61,7 +67,6 @@ def http_root(gametype = None, steam_id = None, page = 0):
   page_prefix = "/matches"
 
   if type(gametype) is str:
-    gametype = gametype.lower()
     page_prefix = page_prefix + "/" + gametype
 
   if type(steam_id) is int:
@@ -78,8 +83,6 @@ def http_root(gametype = None, steam_id = None, page = 0):
 @app.route("/ratings/<gametype>/")
 @app.route("/ratings/<gametype>/<int:page>/")
 def http_rating_gametype_page(gametype, page = 0):
-  if type(gametype) is str:
-    gametype = gametype.lower()
   show_inactive = request.args.get("show_inactive", False, type=bool)
   return render_template("ratings_list.html", **rating.get_list( gametype, page, show_inactive ),
     gametype = gametype,

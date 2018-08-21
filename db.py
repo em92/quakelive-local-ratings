@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-from collections import OrderedDict
+from collections import OrderedDict, MutableMapping
 from urllib.parse import urlparse
 
 import psycopg2
@@ -18,6 +18,38 @@ def db_connect():
   return psycopg2.connect(database = database, user = username, password = password, host = hostname, port = port)
 
 
+class SurjectionDict(MutableMapping):
+  def __init__(self, surjection):
+    self.surjection = surjection
+    self.data = {}
+
+
+  def transform(self, key):
+    if key in self.surjection:
+      key = self.surjection[key]
+    return key
+
+
+  def __iter__(self):
+    return self.data.__iter__()
+
+
+  def __len__(self):
+    return self.data.__len__()
+
+
+  def __setitem__(self, key, value):
+    self.data[self.transform(key)] = value
+
+
+  def __getitem__(self, key):
+    return self.data[self.transform(key)]
+
+
+  def __delitem__(self, key):
+    return self.data.__delitem__(self.transform(key))
+
+
 class Cache:
   def __init__(self):
     self._gametype_ids   = {}
@@ -27,14 +59,14 @@ class Cache:
     self._weapon_ids     = {}
     self._weapons        = []
 
-    self.LAST_GAME_TIMESTAMPS = {}
-
     db = db_connect()
     cu = db.cursor()
     cu.execute("SELECT gametype_id, gametype_short, gametype_name FROM gametypes")
     for row in cu.fetchall():
       self._gametype_ids[ row[1] ] = row[0]
       self._gametype_names[ row[1] ] = row[2]
+
+    self.LAST_GAME_TIMESTAMPS = SurjectionDict(self._gametype_ids)
 
     cu.execute("SELECT medal_id, medal_short FROM medals ORDER BY medal_id")
     for row in cu.fetchall():
@@ -46,7 +78,7 @@ class Cache:
       self._weapon_ids[ row[1] ] = row[0]
       self._weapons.append( row[1] )
 
-    for _, gametype_id in self._gametype_ids.items():
+    for gametype_short, gametype_id in self._gametype_ids.items():
       self.LAST_GAME_TIMESTAMPS[ gametype_id ] = 0
       cu.execute("SELECT timestamp FROM matches WHERE gametype_id = %s ORDER BY timestamp DESC LIMIT 1", [gametype_id])
       for row in cu.fetchall():

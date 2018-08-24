@@ -12,6 +12,7 @@ from conf import settings as cfg
 if not cfg.read_from_file( args.c ):
   sys.exit(1)
 
+from datetime import datetime
 from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template as base_render_template, escape
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
@@ -27,6 +28,27 @@ from submission import submit_match
 RUN_POST_PROCESS = cfg['run_post_process']
 app = Flask(__name__, static_url_path='/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
+
+
+class try304(object):
+  def __init__(self, f):
+    self.f = f
+    self.__name__ = self.f.__name__
+
+  def __call__(self, *args, **kwargs):
+    if 'gametype' in kwargs and type(kwargs['gametype']) is str:
+      last_modified = cache.LAST_GAME_TIMESTAMPS[kwargs['gametype']]
+    else:
+      last_modified = max(cache.LAST_GAME_TIMESTAMPS.values())
+    last_modified = datetime.fromtimestamp(last_modified)
+
+    if request.if_modified_since is not None and request.if_modified_since <= last_modified:
+      return ('', 304)
+
+    response = make_response(self.f(*args, **kwargs))
+    response.last_modified = last_modified
+    return response
+
 
 
 @app.before_request
@@ -85,6 +107,7 @@ def http_root(gametype = None, steam_id = None, page = 0):
 
 @app.route("/ratings/<gametype>/")
 @app.route("/ratings/<gametype>/<int:page>/")
+@try304
 def http_rating_gametype_page(gametype, page = 0):
   show_inactive = request.args.get("show_inactive", False, type=bool)
   return render_template("ratings_list.html", **rating.get_list( gametype, page, show_inactive ),
@@ -97,6 +120,7 @@ def http_rating_gametype_page(gametype, page = 0):
 
 
 @app.route("/ratings/<gametype>/<int:page>.json")
+@try304
 def http_ratings_gametype_page_json(gametype, page):
   return jsonify( **rating.get_list( gametype, page ) )
 

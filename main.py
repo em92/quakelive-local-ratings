@@ -31,7 +31,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 
 @app.before_request
 def before_request():
-  if 'gametype' in request.view_args:
+  if request.view_args and 'gametype' in request.view_args:
     request.view_args['gametype'] = request.view_args['gametype'].lower()
     if request.view_args['gametype'] not in cache.GAMETYPE_IDS:
       raise NotFound("invalid gametype")

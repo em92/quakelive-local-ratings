@@ -745,9 +745,22 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
       where_clauses.append("m.match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = %(steam_id)s)")
       params[ 'steam_id' ] = steam_id
 
+    where_clause_str = "" if len(where_clauses) == 0 else "WHERE " + " AND ".join(where_clauses)
+
     query = '''
     SELECT
-      json_build_object(
+      count(m.match_id)
+    FROM
+      matches m
+    {WHERE_CLAUSE}
+    '''.replace("{WHERE_CLAUSE}\n", where_clause_str)
+
+    cu.execute( query, params )
+    overall_match_count = cu.fetchone()[0]
+
+    query = '''
+    SELECT
+      array_agg(json_build_object(
         'match_id', m.match_id,
         'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
         'timestamp', timestamp,
@@ -755,26 +768,21 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
         'map', mm.map_name
-      ),
-      count(*) OVER () AS count
-    FROM
-      matches m
+      ) ORDER BY timestamp DESC)
+    FROM (
+      SELECT *
+      FROM matches m
+      {WHERE_CLAUSE}
+      ORDER BY timestamp DESC
+      OFFSET %(offset)s
+      LIMIT %(limit)s
+    ) m
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN maps mm ON mm.map_id = m.map_id
-    {WHERE_CLAUSE}
-    ORDER BY timestamp DESC
-    OFFSET %(offset)s
-    LIMIT %(limit)s
-    '''.replace("{WHERE_CLAUSE}\n", "" if len(where_clauses) == 0 else "WHERE " + " AND ".join(where_clauses))
+    '''.replace("{WHERE_CLAUSE}\n", where_clause_str)
 
     cu.execute( query, params )
-
-    matches = []
-    overall_match_count = 1
-    for row in cu:
-      item = dict(row[0])
-      matches.append( item )
-      overall_match_count = row[1]
+    matches = cu.fetchone()[0]
 
     result = {
       "ok": True,

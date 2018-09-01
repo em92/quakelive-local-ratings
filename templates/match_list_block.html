@@ -9,7 +9,7 @@
       <th class="col-xs-1">Scores</th>
     </tr></thead>
     <tbody>{% for item in matches %}<tr>
-      <td class="col-xs-2" title="{{ item['datetime'] }}">{{ item['timedelta'] }}</td>
+      <td class="col-xs-2" title="{{ item['datetime'] }}" data-timestamp="{{ item['timestamp'] }}">{{ item['datetime'] }}</td>
       <td class="col-xs-1">
         {% if gametype %}
           {{ item['gametype'] }}

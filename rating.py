@@ -2,7 +2,6 @@
 #
 
 import re
-import humanize
 from functools import reduce
 from datetime import datetime
 from common import clean_name, log_exception
@@ -449,7 +448,6 @@ def get_player_info( steam_id ):
     result["matches"] = []
     for row in cu:
       item = dict(row[0])
-      item['timedelta'] = humanize.naturaltime( datetime.now() - datetime.fromtimestamp( item['timestamp'] ) )
       result["matches"].append( item )
 
     result = {
@@ -775,7 +773,6 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
     overall_match_count = 1
     for row in cu:
       item = dict(row[0])
-      item["timedelta"] = humanize.naturaltime( datetime.now() - datetime.fromtimestamp(item['timestamp'] ) )
       matches.append( item )
       overall_match_count = row[1]
 

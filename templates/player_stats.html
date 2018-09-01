@@ -37,7 +37,7 @@
       <tbody>{% for item in response['matches'] %}<tr onClick='window.location="/scoreboard/{{ item['match_id'] }}"'>
         <td class="col-md-6">{{ item['gametype'] }} / {{ item['map'] }}</td>
         <td class="col-md-3">{{ item['result'] }}</td>
-        <td class="col-md-3">{{ item['timedelta'] }}</td>
+        <td class="col-md-3" title="{{ item['datetime'] }}" data-timestamp="{{ item['timestamp'] }}">{{ item['datetime'] }}</td>
       </tr>{% endfor %}</tbody>
     </table>
     <p><a href="/player/{{ steam_id }}/matches">View all matches</a></p>

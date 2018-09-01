@@ -422,33 +422,33 @@ def get_player_info( steam_id ):
     # 10 last matches
     cu.execute('''
     SELECT
-      json_build_object(
+      array_agg(json_build_object(
         'match_id', m.match_id,
         'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
         'timestamp', timestamp,
         'gametype', g.gametype_short,
         'result', CASE
-          WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 'Win'
-          WHEN m.team1_score < m.team2_score AND s.team = 2 THEN 'Win'
+          WHEN m.team1_score > m.team2_score AND m.team = 1 THEN 'Win'
+          WHEN m.team1_score < m.team2_score AND m.team = 2 THEN 'Win'
           ELSE 'Loss'
         END,
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
         'map', mm.map_name
-      )
-    FROM
-      (SELECT * FROM scoreboards WHERE steam_id = %(steam_id)s) s
-    LEFT JOIN matches m ON s.match_id = m.match_id
+      ) ORDER BY timestamp DESC) AS matches
+    FROM(
+      SELECT s.steam_id, s.team, m.*
+      FROM scoreboards s
+      LEFT JOIN matches m ON s.match_id = m.match_id
+      WHERE s.steam_id = %(steam_id)s
+      ORDER BY timestamp DESC
+      LIMIT 10
+    ) m
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN maps mm ON mm.map_id = m.map_id
-    ORDER BY timestamp DESC
-    LIMIT 10
     ''', {"steam_id": steam_id})
 
-    result["matches"] = []
-    for row in cu:
-      item = dict(row[0])
-      result["matches"].append( item )
+    result['matches'] = cu.fetchone()[0]
 
     result = {
       "response": result,

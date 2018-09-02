@@ -88,6 +88,7 @@ def seconds_to_mmss( value ):
 @app.route("/player/<int:steam_id>/matches/<int:page>/")
 @app.route("/player/<int:steam_id>/matches/<gametype>/")
 @app.route("/player/<int:steam_id>/matches/<gametype>/<int:page>/")
+@try304
 def http_root(gametype = None, steam_id = None, page = 0):
   page_prefix = "/matches"
 
@@ -126,11 +127,13 @@ def http_ratings_gametype_page_json(gametype, page):
 
 
 @app.route("/player/<int:steam_id>")
+@try304
 def http_player(steam_id):
   return render_template("player_stats.html", **rating.get_player_info(steam_id), steam_id = str(steam_id) )
 
 
 @app.route("/player/<int:steam_id>.json")
+@try304
 def http_player_json(steam_id):
   return jsonify( **rating.get_player_info(int(steam_id)) )
 
@@ -197,6 +200,7 @@ def http_steam_api_GetPlayerSummaries():
 
 
 @app.route("/export_rating/<frmt>/<gametype>")
+@try304
 def http_export_rating_format_gametype(frmt, gametype):
   frmt = frmt.lower()
   if frmt == "json":
@@ -220,6 +224,7 @@ def http_export_rating_format_gametype(frmt, gametype):
 
 
 @app.route("/scoreboard/<match_id>.json")
+@try304
 def http_scoreboard_match_id_json(match_id):
   try:
     if len(match_id) != len('12345678-1234-5678-1234-567812345678'):
@@ -232,6 +237,7 @@ def http_scoreboard_match_id_json(match_id):
 
 
 @app.route("/scoreboard/<match_id>")
+@try304
 def http_scoreboard_match_id(match_id):
   return render_template("scoreboard.html", match_id = match_id, **rating.get_scoreboard( match_id ))
 

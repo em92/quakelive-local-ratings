@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "helpers.html" import rating with context %}
 {% block body %}
 <div id="player-stats-wrapper">
 <h1 class="title">Player Information</h1>
@@ -10,7 +11,7 @@
     <ul>
     {% for item in response['ratings'] %}
       <li>{{ item['gametype'] }}:
-        <a href="/ratings/{{ item['gametype_short'] }}/">{{ item['rating']}}</a>
+        <a href="/ratings/{{ item['gametype_short'] }}/">{{ rating(item, 'rating') }}</a>
         (<a href="/player/{{ steam_id }}/matches/{{ item['gametype_short'] }}/">{{ item['n'] }} games</a> played)
       </li>
     {% endfor %}

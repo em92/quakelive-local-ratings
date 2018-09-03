@@ -346,7 +346,8 @@ def get_player_info( steam_id ):
       FROM players p
       LEFT JOIN (
         SELECT gr.steam_id, array_agg( json_build_object(
-          'rating', CAST( ROUND( CAST(gr.mean AS NUMERIC), 2) AS REAL ),
+          'rating',   CAST( ROUND( CAST(gr.mean      AS NUMERIC), 2) AS REAL ),
+          'rating_d', CAST( ROUND( CAST(gr.deviation AS NUMERIC), 2) AS REAL ),
           'n', gr.n,
           'gametype_short', g.gametype_short,
           'gametype', g.gametype_name

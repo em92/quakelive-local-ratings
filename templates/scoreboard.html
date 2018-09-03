@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "helpers.html" import rating with context %}
 
 {% macro medal(player, key) -%}
   {% if player['medal_stats'][key] %}
@@ -26,17 +27,6 @@
   {% endif %}
 {%- endmacro %}
 
-
-{% macro rating(data, key) -%}
-  {% if data[ key ] %}
-    {{ data[key] }}
-    {% if data[ key + '_d' ] %}
-      &plusmn; {{ data[ key + '_d'] }}
-    {% endif %}
-  {% else %}
-  -
-  {% endif %}
-{%- endmacro %}
 
 {% macro rating_diff(data) -%}
   {% if not data['old'] or not data['new'] %}

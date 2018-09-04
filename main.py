@@ -42,7 +42,7 @@ class try304(object):
       last_modified = max(cache.LAST_GAME_TIMESTAMPS.values())
     last_modified = datetime.fromtimestamp(last_modified)
 
-    if request.if_modified_since is not None and request.if_modified_since <= last_modified:
+    if request.if_modified_since is not None and request.if_modified_since >= last_modified:
       return ('', 304)
 
     response = make_response(self.f(*args, **kwargs))

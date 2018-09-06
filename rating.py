@@ -15,6 +15,7 @@ GAMETYPE_NAMES = cache.GAMETYPE_NAMES
 
 KEEPING_TIME = 60*60*24*30
 MATCH_LIST_ITEM_COUNT = 25
+DATETIME_FORMAT = "YYYY-MM-DD HH24:MI TZ"
 MOVING_AVG_COUNT = cfg['moving_average_count']
 
 SQL_TOP_PLAYERS_BY_GAMETYPE = '''
@@ -425,7 +426,7 @@ def get_player_info( steam_id ):
     SELECT
       array_agg(json_build_object(
         'match_id', m.match_id,
-        'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
+        'datetime', to_char(to_timestamp(timestamp), '{DATETIME_FORMAT}'),
         'timestamp', timestamp,
         'gametype', g.gametype_short,
         'result', CASE
@@ -447,7 +448,7 @@ def get_player_info( steam_id ):
     ) m
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN maps mm ON mm.map_id = m.map_id
-    ''', {"steam_id": steam_id})
+    '''.format(DATETIME_FORMAT = DATETIME_FORMAT), {"steam_id": steam_id})
 
     result['matches'] = cu.fetchone()[0]
 
@@ -493,7 +494,7 @@ def get_scoreboard(match_id):
         'team2_score', m.team2_score,
         'rating_diff', CAST( ROUND( CAST(t.diff AS NUMERIC), 2) AS REAL ),
         'timestamp',   m.timestamp,
-        'datetime',    TO_CHAR(to_timestamp(m.timestamp), 'YYYY-MM-DD HH24:MI'),
+        'datetime',    TO_CHAR(to_timestamp(m.timestamp), '{DATETIME_FORMAT}'),
         'duration',    TO_CHAR((m.duration || ' second')::interval, 'MI:SS')
       )
     FROM
@@ -513,7 +514,7 @@ def get_scoreboard(match_id):
     ) t ON t.match_id = m.match_id
     WHERE
       m.match_id = %(match_id)s;
-    '''
+    '''.format(DATETIME_FORMAT = DATETIME_FORMAT)
     cu.execute(query, {'match_id': match_id})
     try:
       summary = cu.fetchone()[0]
@@ -763,7 +764,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
     SELECT
       array_agg(json_build_object(
         'match_id', m.match_id,
-        'datetime', to_char(to_timestamp(timestamp), 'YYYY-MM-DD HH24:MI'),
+        'datetime', to_char(to_timestamp(timestamp), '{DATETIME_FORMAT}'),
         'timestamp', timestamp,
         'gametype', g.gametype_short,
         'team1_score', m.team1_score,
@@ -780,7 +781,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
     ) m
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN maps mm ON mm.map_id = m.map_id
-    '''.replace("{WHERE_CLAUSE}\n", where_clause_str)
+    '''.format(WHERE_CLAUSE = where_clause_str, DATETIME_FORMAT = DATETIME_FORMAT)
 
     cu.execute( query, params )
     matches = cu.fetchone()[0]

@@ -18,6 +18,8 @@ function toggle_table( cat, btn ) {
 
 function relative_time_humanized(ts) {
   var diff = Math.floor(Date.now() / 1000) - ts;
+  if (diff < 0) return "Dr. Emmett Brown was here"; // happens if client has incorrect date or timezone
+
   var r = (
     (diff < 60      && "just now") ||
     (diff < 120     && "a minute ago") ||

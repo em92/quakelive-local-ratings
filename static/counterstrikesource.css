@@ -117,6 +117,10 @@ td {
 	width: 800px;
 }
 
+#summary-table-wrapper td {
+	vertical-align: middle;
+}
+
 img.player_icon {
   width: 32px;
   height: 32px;

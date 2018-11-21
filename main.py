@@ -143,6 +143,12 @@ def http_deprected_player_json(steam_id):
   return jsonify( **rating.get_player_info_old(int(steam_id)) )
 
 
+@app.route("/deprecated/last_24h_matches.json")
+def http_deprected_24h_matches():
+  from time import time
+  return jsonify( **rating.get_last_matches( from_ts = time() - 60*60*24 ) )
+
+
 @app.route("/elo/<ids>")
 @app.route("/elo_b/<ids>")
 def http_elo(ids):

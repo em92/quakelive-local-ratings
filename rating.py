@@ -701,7 +701,7 @@ def get_scoreboard(match_id):
   return result
 
 
-def get_last_matches( gametype = None, steam_id = None, page = 0 ):
+def get_last_matches( gametype = None, steam_id = None, page = 0, from_ts = None, to_ts = None ):
   """
   Returns last matches
 
@@ -732,6 +732,17 @@ def get_last_matches( gametype = None, steam_id = None, page = 0 ):
 
     where_clauses = []
     params        = {'offset': page * MATCH_LIST_ITEM_COUNT, 'limit': MATCH_LIST_ITEM_COUNT}
+    if from_ts is not None:
+      where_clauses.append("m.timestamp >= %(from_ts)s");
+      params[ 'from_ts' ] = from_ts
+
+    if to_ts is not None:
+      where_clauses.append("m.timestamp <= %(to_ts)s");
+      params[ 'to_ts' ] = to_ts
+
+    if to_ts is not None or from_ts is not None:
+      params['offset'] = 0
+      params['limit'] = 1000 # TODO: fix this
 
     if gametype:
       where_clauses.append("m.gametype_id = %(gametype_id)s")

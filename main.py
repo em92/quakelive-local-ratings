@@ -13,11 +13,10 @@ if not cfg.read_from_file( args.c ):
   sys.exit(1)
 
 from datetime import datetime
-from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template as base_render_template, escape
+# from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template as base_render_template, escape
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.exceptions import NotFound
-import balance_api
 import rating
 import sys
 from uuid import UUID
@@ -26,10 +25,24 @@ from db import cache
 from submission import submit_match
 
 RUN_POST_PROCESS = cfg['run_post_process']
-app = Flask(__name__, static_url_path='/static')
-app.wsgi_app = ProxyFix(app.wsgi_app)
+#app = Flask(__name__, static_url_path='/static')
+#app.wsgi_app = ProxyFix(app.wsgi_app)
+
+from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
+from starlette.staticfiles import StaticFiles
+
+app = Starlette()
+app.debug = True
+app.mount('/static', StaticFiles(directory="static"), name='static')
+
+import blueprints as bp
+app.mount('', bp.balance_api)
 
 
+
+
+'''
 class try304(object):
   def __init__(self, f):
     self.f = f
@@ -149,35 +162,6 @@ def http_deprected_24h_matches():
   return jsonify( **rating.get_last_matches( from_ts = time() - 60*60*24 ) )
 
 
-@app.route("/elo/<ids>")
-@app.route("/elo_b/<ids>")
-def http_elo(ids):
-  try:
-    return redirect(
-      url_for(
-        'http_elo_map',
-        gametype = request.headers['X-QuakeLive-Gametype'],
-        mapname  = request.headers['X-QuakeLive-Map'],
-        ids = ids
-      )
-    )
-  except KeyError:
-    ids = list( map(lambda id_: int(id_), ids.split("+")) )
-    return jsonify( **balance_api.simple(ids) )
-
-
-@app.route("/elo_map/<gametype>/<mapname>/<ids>")
-def http_elo_map(gametype, mapname, ids):
-  ids = list( map(lambda id_: int(id_), ids.split("+")) )
-  return jsonify( **balance_api.for_certain_map(ids, gametype, mapname) )
-
-
-@app.route("/elo_with_qlstats_playerinfo/<ids>")
-def http_elo_with_qlstats_playerinfo(ids):
-  ids = list( map(lambda id_: int(id_), ids.split("+")) )
-  return jsonify( **balance_api.with_player_info_from_qlstats(ids) )
-
-
 @app.route("/steam_api/GetPlayerSummaries/")
 def http_steam_api_GetPlayerSummaries():
   ids = request.args.get("steamids")
@@ -279,6 +263,7 @@ def http_stats_submit():
     else:
       return jsonify(**result), 200
 
-
+'''
 if __name__ == "__main__":
-    app.run( host = "0.0.0.0", port = cfg['httpd_port'], threaded = True)
+    import uvicorn
+    uvicorn.run(app, host='0.0.0.0', port=8000)

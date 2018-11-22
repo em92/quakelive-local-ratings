@@ -1,22 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from starlette.applications import Starlette
-from starlette.exceptions import HTTPException
+from app import App
 from starlette.responses import JSONResponse, RedirectResponse
 
 from .methods import simple, for_certain_map, with_player_info_from_qlstats
 
-bp = Starlette()
-
-
-@bp.exception_handler(HTTPException)
-async def http_exception_handler(request, e):
-    return JSONResponse({'ok': False, 'message': e.detail}, status_code=e.status_code)
-
-
-@bp.exception_handler(500)
-async def unhandled_exception_handler(request, e):
-    return JSONResponse({'ok': False, 'message': type(e).__name__ + ": " + str(e)}, status_code=500)
+bp = App()
 
 
 @bp.route("/elo/{ids:steam_ids}")

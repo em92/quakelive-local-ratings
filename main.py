@@ -32,7 +32,9 @@ from starlette.applications import Starlette
 from starlette.exceptions import HTTPException
 from starlette.staticfiles import StaticFiles
 
-app = Starlette()
+from app import App
+
+app = App()
 app.debug = True
 app.mount('/static', StaticFiles(directory="static"), name='static')
 

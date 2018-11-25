@@ -4,13 +4,13 @@
 import argparse
 import sys
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-c", metavar="config.json", help="use the provided config file", default = "cfg.json")
-args = parser.parse_args()
+#parser = argparse.ArgumentParser()
+#parser.add_argument("-c", metavar="config.json", help="use the provided config file", default = "cfg.json")
+#args = parser.parse_args()
 
 from conf import settings as cfg
-if not cfg.read_from_file( args.c ):
-  sys.exit(1)
+#if not cfg.read_from_file( args.c ):
+#  sys.exit(1)
 
 from datetime import datetime
 from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template as base_render_template, escape

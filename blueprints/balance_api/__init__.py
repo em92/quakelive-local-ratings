@@ -12,7 +12,6 @@ bp = App()
 @bp.route("/elo_b/{ids:steam_ids}")
 def http_elo(request):
     ids = request.path_params['ids']
-    print(ids)
     try:
         return RedirectResponse(bp.url_path_for(
             'http_elo_map',

@@ -10,6 +10,8 @@ class SteamIdsConvertor(cm.Convertor):
     regex = ".*"
 
     def convert(self, value: str) -> Any:
+        if not value:
+            raise HTTPException(422, "No steam ids given")
         ids = value.split("+")
         bad_ids = list(filter(lambda steam_id: not steam_id.isnumeric(), ids))
         if bad_ids:

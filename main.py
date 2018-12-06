@@ -9,8 +9,8 @@ import sys
 #args = parser.parse_args()
 
 from conf import settings as cfg
-#if not cfg.read_from_file( args.c ):
-#  sys.exit(1)
+if not cfg.read_from_file( "cfg.json" ):
+  sys.exit(1)
 
 from datetime import datetime
 from flask import Flask, request, jsonify, redirect, url_for, make_response, render_template as base_render_template, escape

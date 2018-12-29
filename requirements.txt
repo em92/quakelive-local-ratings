@@ -1,5 +1,5 @@
 Flask==1.0.2
-psycopg2==2.7.5
+psycopg2-binary==2.7.5
 requests==2.18.4
 beautifulsoup4==4.6.0
 pytz

@@ -1,5 +1,5 @@
 {
-  "db_url": "postgres://eugene:bebebe@db:5432/qllr",
+  "db_url": "postgres://eugene:bebebe@localhost:5432/qllr",
   "player_count_per_page": 10,
   "httpd_port": 7081,
   "run_post_process": true,

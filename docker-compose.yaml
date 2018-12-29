@@ -17,6 +17,7 @@ services:
       POSTGRES_USER: eugene
       POSTGRES_PASSWORD: bebebe
       POSTGRES_DB: qllr
+      ALLOW_IP_RANGE: '0.0.0.0/0'
     volumes:
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata:/var/lib/postgresql/data

@@ -773,7 +773,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0, from_ts = None
 
     query = '''
     SELECT
-      array_agg(json_build_object(
+      COALESCE(array_agg(json_build_object(
         'match_id', m.match_id,
         'datetime', to_char(to_timestamp(timestamp), '{DATETIME_FORMAT}'),
         'timestamp', timestamp,
@@ -781,7 +781,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0, from_ts = None
         'team1_score', m.team1_score,
         'team2_score', m.team2_score,
         'map', mm.map_name
-      ) ORDER BY timestamp DESC)
+      ) ORDER BY timestamp DESC), '{NOTHING}')
     FROM (
       SELECT *
       FROM matches m
@@ -792,7 +792,7 @@ def get_last_matches( gametype = None, steam_id = None, page = 0, from_ts = None
     ) m
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN maps mm ON mm.map_id = m.map_id
-    '''.format(WHERE_CLAUSE = where_clause_str, DATETIME_FORMAT = DATETIME_FORMAT)
+    '''.format(WHERE_CLAUSE = where_clause_str, DATETIME_FORMAT = DATETIME_FORMAT, NOTHING = "{}")
 
     cu.execute( query, params )
     matches = cu.fetchone()[0]

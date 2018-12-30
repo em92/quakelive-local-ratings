@@ -1,7 +1,7 @@
 from .fixture import AppTestCase
 
 
-class TestSimpleUpload(AppTestCase):
+class TestMatchUpload1(AppTestCase):
 
     def test_upload_no_signature(self):
         resp = self.upload_match_report(sample="something", headers={'Content-Type': "text/plain"})

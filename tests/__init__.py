@@ -2,14 +2,14 @@ import unittest
 
 from .test_app_common import TestAppCommon
 from .test_cache import TestCache
-from .test_simple_upload import TestSimpleUpload
+from .test_simple_upload import TestMatchUpload1
 
 
 def suite():
     r = unittest.TestSuite()
     r.addTest(TestAppCommon())
     r.addTest(TestCache())
-    r.addTest(TestSimpleUpload())
+    r.addTest(TestMatchUpload1())
     return r
 
 

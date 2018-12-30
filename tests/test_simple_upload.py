@@ -20,6 +20,9 @@ class TestSimpleUpload(AppTestCase):
     def test_upload_sample(self):
         resp = self.upload_match_report(sample_name="sample01")
         self.assertEqual(resp.status_code, 200)
+        resp = self.test_cli.get("/scoreboard/69770ca5-943c-491d-931e-720c5474d33b.json")
+        json = resp.get_json()
+        self.assertEqual(json['ok'], True)
 
     def test_upload_sample_again(self):
         resp = self.upload_match_report(sample_name="sample01")

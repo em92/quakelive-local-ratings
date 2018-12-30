@@ -53,3 +53,10 @@ class AppTestCase(unittest.TestCase):
             f.close()
 
         return self.test_cli.post("/stats/submit", headers=headers, data=sample)
+
+    def upload_match_report_and_assert_success(self, sample_name: str, uuid: str):
+        resp = self.upload_match_report(sample_name)
+        self.assertEqual(resp.status_code, 200)
+        resp = self.test_cli.get(f"/scoreboard/{uuid}.json")
+        json = resp.get_json()
+        self.assertEqual(json['ok'], True)

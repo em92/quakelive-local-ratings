@@ -18,11 +18,7 @@ class TestMatchUpload1(AppTestCase):
         self.assertEqual(resp.status_code, 500)  # TODO: change to 422 in future
 
     def test_upload_sample(self):
-        resp = self.upload_match_report(sample_name="sample01")
-        self.assertEqual(resp.status_code, 200)
-        resp = self.test_cli.get("/scoreboard/69770ca5-943c-491d-931e-720c5474d33b.json")
-        json = resp.get_json()
-        self.assertEqual(json['ok'], True)
+        self.upload_match_report_and_assert_success("sample01", "69770ca5-943c-491d-931e-720c5474d33b")
 
     def test_upload_sample_again(self):
         resp = self.upload_match_report(sample_name="sample01")

@@ -1,6 +1,8 @@
 import gzip
+import json
 import os
 import sys
+import typing
 import unittest
 import psycopg2
 
@@ -61,3 +63,8 @@ class AppTestCase(unittest.TestCase):
         resp = self.test_cli.get(f"/scoreboard/{uuid}.json")
         json = resp.get_json()
         self.assertEqual(json['ok'], True)
+
+    def read_scoreboard(self, filename: str) -> typing.Dict:
+        with gzip.open(self.module_path + "/match_samples/" + filename + ".gz") as f:
+            result = f.read()
+        return json.loads(result)

@@ -3,6 +3,7 @@ import unittest
 from .test_app_common import TestAppCommon
 from .test_cache import TestCache
 from .test_simple_upload import TestMatchUpload1
+from .test_more_samples_upload import TestMatchUpload2
 
 
 def suite():
@@ -10,6 +11,7 @@ def suite():
     r.addTest(TestAppCommon())
     r.addTest(TestCache())
     r.addTest(TestMatchUpload1())
+    r.addTest(TestMatchUpload2())
     return r
 
 

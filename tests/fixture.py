@@ -68,3 +68,8 @@ class AppTestCase(unittest.TestCase):
         with gzip.open(self.module_path + "/match_samples/" + filename + ".gz") as f:
             result = f.read()
         return json.loads(result)
+
+    def assert_scoreboard_equals_sample(self, match_id: str, sample_filename: str):
+        obj_defacto = self.test_cli.get(f"/scoreboard/{match_id}.json").get_json()
+        obj_expected = self.read_scoreboard(sample_filename)
+        self.assertDictEqual(obj_defacto, obj_expected)

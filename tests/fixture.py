@@ -33,6 +33,7 @@ from main import app  # noqa: E402
 
 class AppTestCase(unittest.TestCase):
     test_cli = app.test_client()
+    module_path = os.path.dirname(os.path.realpath(__file__))
 
     def upload_match_report(self, sample_name=None, sample=None, headers=None):
         if sample_name is None and sample is None:
@@ -48,7 +49,7 @@ class AppTestCase(unittest.TestCase):
             }
 
         if sample_name is not None:
-            f = gzip.open(os.path.dirname(os.path.realpath(__file__)) + "/match_samples/" + sample_name + ".gz")
+            f = gzip.open(self.module_path + "/match_samples/" + sample_name + ".gz")
             sample = f.read()
             f.close()
 

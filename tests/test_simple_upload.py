@@ -6,7 +6,7 @@ class TestMatchUpload1(AppTestCase):
     def test_upload_no_signature(self):
         resp = self.upload_match_report(sample="something", headers={'Content-Type': "text/plain"})
         self.assertEqual(resp.status_code, 403)
-        json = resp.get_json()
+        json = resp.json()
         self.assertTrue("signature" in json['message'].lower())
 
 # TODO:

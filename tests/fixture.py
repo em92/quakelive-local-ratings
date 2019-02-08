@@ -63,7 +63,7 @@ class AppTestCase(unittest.TestCase):
         resp = self.upload_match_report(sample_name)
         self.assertEqual(resp.status_code, 200)
         resp = self.test_cli.get(f"/scoreboard/{uuid}.json")
-        json = resp.get_json()
+        json = resp.json()
         self.assertEqual(json['ok'], True)
 
     def read_json_sample(self, sample_filename: str) -> typing.Dict:
@@ -77,6 +77,6 @@ class AppTestCase(unittest.TestCase):
         return json.loads(result)
 
     def assert_scoreboard_equals_sample(self, match_id: str, sample_filename: str):
-        obj_defacto = self.test_cli.get(f"/scoreboard/{match_id}.json").get_json()
+        obj_defacto = self.test_cli.get(f"/scoreboard/{match_id}.json").json()
         obj_expected = self.read_scoreboard(sample_filename)
         self.assertDictEqual(obj_defacto, obj_expected)

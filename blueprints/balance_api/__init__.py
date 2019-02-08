@@ -24,10 +24,14 @@ def http_elo(request):
 
 
 @bp.route("/elo_map/{gametype}/{mapname}/{ids:steam_ids}")
-def http_elo_map(request, gametype, mapname, ids):
+def http_elo_map(request):
+    ids = request.path_params['ids']
+    gametype = request.path_params['gametype']
+    mapname = request.path_params['mapname']
     return JSONResponse(for_certain_map(ids, gametype, mapname))
 
 
 @bp.route("/elo_with_qlstats_playerinfo/{ids:steam_ids}")
-async def http_elo_with_qlstats_playerinfo(request, ids):
+async def http_elo_with_qlstats_playerinfo(request):
+    ids = request.path_params['ids']
     return JSONResponse(with_player_info_from_qlstats(ids))

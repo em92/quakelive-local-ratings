@@ -52,6 +52,10 @@ class Settings:
     return self._conf[index]
 
 
+  def __setitem__(self, index, value):
+    return self._conf.__setitem__(index, value)
+
+
   def read_from_file(self, filename):
     with open(filename, "r") as f:
       cfg = json.load( f )

@@ -3,13 +3,14 @@
 
 from collections import OrderedDict, MutableMapping
 from urllib.parse import urlparse
+import os
 
 import psycopg2
 
 from conf import settings
 
 def db_connect():
-  result = urlparse( settings["db_url"] )
+  result = urlparse( os.environ.get("DATABASE_URL", settings["db_url"]) )
   username = result.username
   password = result.password
   database = result.path[1:]

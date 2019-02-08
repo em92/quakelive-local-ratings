@@ -4,12 +4,12 @@
 import argparse
 import sys
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-c", metavar="config.json", help="use the provided config file", default = "cfg.json")
-args = parser.parse_args()
+#parser = argparse.ArgumentParser()
+#parser.add_argument("-c", metavar="config.json", help="use the provided config file", default = "cfg.json")
+#args = parser.parse_args()
 
 from conf import settings as cfg
-if not cfg.read_from_file( args.c ):
+if not cfg.read_from_file( "cfg.json" ):
   sys.exit(1)
 
 from datetime import datetime

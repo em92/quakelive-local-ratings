@@ -25,8 +25,8 @@ app.debug = True
 app.mount('/static', StaticFiles(directory="static"), name='static')
 
 import blueprints as bp
+app.mount('/elo', bp.balance_api)
 app.mount('', WSGIMiddleware(old_app.wsgi_app))
-app.mount('', bp.balance_api)
 
 
 if __name__ == "__main__":

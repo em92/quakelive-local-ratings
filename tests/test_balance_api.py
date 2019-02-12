@@ -25,17 +25,17 @@ class TestBalanceApi(AppTestCase):
 
     def test_map_based1(self):
         self.assertDictEqual(
-            self.test_cli.get("/elo_map/ad/japanesecastles/" + self.steam_ids_as_string_with_plus()).json(),
+            self.test_cli.get("/elo/map_based/ad/japanesecastles/" + self.steam_ids_as_string_with_plus()).json(),
             self.read_json_sample("balance_api_ad_japanesecastles")
         )
         # TODO: add gametype check
 
     def test_map_based2(self):
-        response = self.test_cli.get("/elo/" + "+".join(self.steam_ids), headers={"X-QuakeLive-Gametype": "ad", "X-QuakeLive-Map": "japanesecastles"})
+        response = self.test_cli.get("/elo/" + "+".join(self.steam_ids), headers={"X-QuakeLive-Gametype": "ad", "X-QuakeLive-Map": "japanesecastles"}, allow_redirects=False)
         self.assertEqual(response.status_code, 302)
 
         new_url = response.headers["Location"]
         self.assertTrue(
-            new_url.endswith("/elo_map/ad/japanesecastles/" + self.steam_ids_as_string_with_plus())
+            new_url.endswith("/elo/map_based/ad/japanesecastles/" + self.steam_ids_as_string_with_plus())
         )
         # TODO: add gametype check

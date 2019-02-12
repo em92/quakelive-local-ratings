@@ -7,7 +7,7 @@ from starlette.exceptions import HTTPException
 
 
 class SteamIdsConvertor(cm.Convertor):
-    regex = ".*"
+    regex = r"[0-9+]+"
 
     def convert(self, value: str) -> Any:
         if not value:
@@ -19,7 +19,7 @@ class SteamIdsConvertor(cm.Convertor):
         return list(map(lambda steam_id: int(steam_id), ids))
 
     def to_string(self, value: Any) -> str:
-        return "+".join(value)
+        return "+".join(map(lambda item: str(item), value))
 
 
 cm.CONVERTOR_TYPES['steam_ids'] = SteamIdsConvertor()

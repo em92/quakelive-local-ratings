@@ -213,30 +213,3 @@ def http_scoreboard_match_id(match_id):
 @app.route("/generate_user_ratings/<gametype>.json")
 def http_generate_ratings(gametype):
   return jsonify(**rating.generate_user_ratings(gametype, unquote(request.query_string.decode("utf-8"))))
-
-
-@app.route("/stats/submit", methods=["POST"])
-def http_stats_submit():
-  # https://github.com/PredatH0r/XonStat/blob/cfeae1b0c35c48a9f14afa98717c39aa100cde59/feeder/feeder.node.js#L989
-  if request.headers.get("X-D0-Blind-Id-Detached-Signature") != "dummy":
-    print(request.remote_addr + ": signature header invalid or not found", file=sys.stderr)
-    return jsonify(ok=False, message="signature header invalid or not found"), 403
-
-  if request.remote_addr not in ['::ffff:127.0.0.1', '::1', '127.0.0.1', 'testclient']:
-    print(request.remote_addr + ": non-loopback requests are not allowed", file=sys.stderr)
-    return jsonify(ok=False, message="non-loopback requests are not allowed"), 403
-
-  result = submit_match(request.data.decode('utf-8'))
-  if result["ok"] == False:
-    print(result["match_id"] + ": " + result["message"], file=sys.stderr)
-    if "match_already_exists" in result:
-      return jsonify(**result), 409
-    else:
-      return jsonify(**result), 422
-  else:
-    print(result["match_id"] + ": " + result["message"])
-    if cfg['run_post_process'] == False:
-      result["ok"] = False
-      return jsonify(**result), 202
-    else:
-      return jsonify(**result), 200

@@ -25,3 +25,4 @@ class SteamIdsConvertor(cm.Convertor):
 cm.CONVERTOR_TYPES['steam_ids'] = SteamIdsConvertor()
 
 from .balance_api import bp as balance_api  # noqa: F401
+from .submission import bp as submission  # noqa: F401

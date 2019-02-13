@@ -80,3 +80,8 @@ class AppTestCase(unittest.TestCase):
         obj_defacto = self.test_cli.get("/scoreboard/{0}.json".format(match_id)).json()
         obj_expected = self.read_scoreboard(sample_filename)
         self.assertDictEqual(obj_defacto, obj_expected)
+
+    def assert_lists_have_same_elements(self, L1: list, L2: list):
+        self.assertEqual(len(L1), len(L2))
+        for item in L1:
+            self.assertIn(item, L2)

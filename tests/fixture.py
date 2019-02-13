@@ -36,7 +36,7 @@ from main import app  # noqa: E402
 
 
 class AppTestCase(unittest.TestCase):
-    test_cli = TestClient(app)
+    test_cli = TestClient(app, raise_server_exceptions=False)
     module_path = os.path.dirname(os.path.realpath(__file__))
 
     def upload_match_report(self, sample_name=None, sample=None, headers=None):

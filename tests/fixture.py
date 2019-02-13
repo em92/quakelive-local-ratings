@@ -62,21 +62,21 @@ class AppTestCase(unittest.TestCase):
     def upload_match_report_and_assert_success(self, sample_name: str, uuid: str):
         resp = self.upload_match_report(sample_name)
         self.assertEqual(resp.status_code, 200)
-        resp = self.test_cli.get(f"/scoreboard/{uuid}.json")
+        resp = self.test_cli.get("/scoreboard/{0}.json".format(uuid))
         json = resp.json()
         self.assertEqual(json['ok'], True)
 
     def read_json_sample(self, sample_filename: str) -> typing.Dict:
         with gzip.open(self.module_path + "/samples/" + sample_filename + ".json.gz") as f:
             result = f.read()
-        return json.loads(result)
+        return json.loads(result.decode('utf-8'))
 
     def read_scoreboard(self, filename: str) -> typing.Dict:
         with gzip.open(self.module_path + "/match_samples/" + filename + ".gz") as f:
             result = f.read()
-        return json.loads(result)
+        return json.loads(result.decode('utf-8'))
 
     def assert_scoreboard_equals_sample(self, match_id: str, sample_filename: str):
-        obj_defacto = self.test_cli.get(f"/scoreboard/{match_id}.json").json()
+        obj_defacto = self.test_cli.get("/scoreboard/{0}.json".format(match_id)).json()
         obj_expected = self.read_scoreboard(sample_filename)
         self.assertDictEqual(obj_defacto, obj_expected)

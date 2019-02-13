@@ -15,16 +15,33 @@ class TestBalanceApi(AppTestCase):
     ]
 
     def steam_ids_as_string_with_plus(self):
-        return "+".join(self.steam_ids);
+        return "+".join(self.steam_ids)
+
+    def assert_balance_api_data_equal(self, first: dict, second: dict):
+        self.assertIn("playerinfo", first)
+        self.assertIn("playerinfo", second)
+        self.assertDictEqual(first["playerinfo"], second["playerinfo"])
+
+        self.assertIn("players", first)
+        self.assertIn("players", second)
+        self.assert_lists_have_same_elements(first["players"], second["players"])
+
+        self.assertIn("deactivated", first)
+        self.assertIn("deactivated", second)
+        self.assert_lists_have_same_elements(first["deactivated"], second["deactivated"])
+
+        self.assertIn("untracked", first)
+        self.assertIn("untracked", second)
+        self.assert_lists_have_same_elements(first["untracked"], second["untracked"])
 
     def test_simple_ad_only_players(self):
-        self.assertDictEqual(
+        self.assert_balance_api_data_equal(
             self.test_cli.get("/elo/" + self.steam_ids_as_string_with_plus()).json(),
             self.read_json_sample("balance_api_ad_only_players")
         )
 
     def test_map_based1(self):
-        self.assertDictEqual(
+        self.assert_balance_api_data_equal(
             self.test_cli.get("/elo/map_based/ad/japanesecastles/" + self.steam_ids_as_string_with_plus()).json(),
             self.read_json_sample("balance_api_ad_japanesecastles")
         )

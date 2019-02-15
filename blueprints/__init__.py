@@ -3,6 +3,7 @@
 import starlette.convertors as cm
 
 from typing import Any
+from uuid import UUID
 from starlette.exceptions import HTTPException
 
 
@@ -22,7 +23,25 @@ class SteamIdsConvertor(cm.Convertor):
         return "+".join(map(lambda item: str(item), value))
 
 
+class MatchIdConvertor(cm.Convertor):
+    regex = r"[0-9A-F\-]/i"
+
+    def convert(self, value: str) -> Any:
+        try:
+            if len(value) != len('12345678-1234-5678-1234-567812345678'):
+                raise ValueError()
+            UUID(value)
+        except ValueError:
+            raise HTTPException(422, "Invalid match id")
+
+        return value
+
+    def to_string(self, value: Any) -> str:
+        return value
+
+
 cm.CONVERTOR_TYPES['steam_ids'] = SteamIdsConvertor()
+cm.CONVERTOR_TYPES['match_id'] = MatchIdConvertor()
 
 from .balance_api import bp as balance_api  # noqa: F401
 from .submission import bp as submission  # noqa: F401

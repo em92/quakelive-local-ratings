@@ -8,7 +8,14 @@ from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 
+from exceptions import MatchAlreadyExists
+
 bp = App()
+
+
+@bp.exception_handler(MatchAlreadyExists)
+def handle_match_already_exists_exception(request: Request, e: MatchAlreadyExists):
+    raise HTTPException(409, str(e))
 
 
 @bp.route("/submit", methods=["POST"])
@@ -23,10 +30,7 @@ async def http_stats_submit(request: Request):
     match_report = await request.body()
     result = submit_match(match_report.decode('utf-8'))
     if result["ok"] == False:
-        if "match_already_exists" in result:
-            raise HTTPException(409, result["message"])
-        else:
-            raise HTTPException(422, result["message"])
+        raise HTTPException(422, result["message"])
     else:
         if cfg['run_post_process'] == False:
             raise HTTPException(202, result["message"])

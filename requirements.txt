@@ -1,6 +1,10 @@
 Flask==1.0.2
 psycopg2-binary==2.7.5
-requests==2.18.4
 beautifulsoup4==4.6.0
 pytz
 trueskill==0.4.4
+
+git+https://github.com/em92/starlette; python_version ~= '3.5'
+starlette==0.10.2; python_version >= '3.6'
+aiofiles==0.4.0
+asyncpg==0.18.3

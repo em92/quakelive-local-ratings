@@ -21,9 +21,10 @@ async def match_already_exists_exception_handler(request: Request, e: MatchAlrea
 
 
 class App(Starlette):
-    def __init__(self):
-        super().__init__()
-        self.debug = True
+    dbpool = None
+
+    def __init__(self, debug: bool = False, template_directory: str = None):
+        super().__init__(debug, template_directory)
         self.add_exception_handler(HTTPException, http_exception_handler)
         self.add_exception_handler(MatchAlreadyExists, match_already_exists_exception_handler)
         self.add_exception_handler(Exception, unhandled_exception_handler)

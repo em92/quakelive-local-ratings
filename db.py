@@ -6,19 +6,19 @@ from urllib.parse import urlparse
 import os
 
 import psycopg2
-import asyncpg
+from asyncpg import pool, create_pool
 
 from conf import settings
 
 
-async def create_pool():
-    result = urlparse(os.environ.get("DATABASE_URL", cfg["db_url"]))
+async def create_pool() -> pool:
+    result = urlparse(os.environ.get("DATABASE_URL", settings["db_url"]))
     username = result.username
     password = result.password
     database = result.path[1:]
     hostname = result.hostname
     port = result.port
-    return asyncpg.create_pool(database=database, user=username, password=password, host=hostname, port=port)
+    return create_pool(database=database, user=username, password=password, host=hostname, port=port)
 
 
 def db_connect():

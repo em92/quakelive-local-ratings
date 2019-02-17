@@ -23,8 +23,8 @@ for gt, id in GAMETYPE_IDS.items():
 # https://github.com/PredatH0r/XonStat/blob/380fbd4aeafb722c844f66920fb850a0ad6821d3/xonstat/views/submission.py#L19
 def parse_stats_submission(body):
     """
-  Parses the POST request body for a stats submission
-  """
+    Parses the POST request body for a stats submission
+    """
     # storage vars for the request body
     game_meta = {}
     events = {}
@@ -90,8 +90,8 @@ def parse_stats_submission(body):
 
 def is_instagib(data):
     """
-  Checks if match is played with instagib mode
-  """
+    Checks if match is played with instagib mode
+    """
 
     def is_player_using_weapon(player, weapon):
         try:
@@ -230,9 +230,9 @@ def count_multiple_players_match_perf(gametype, all_players_data, match_duration
 
 def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
     """
-  Updates players' ratings after playing match_id (using avg. perfomance)
+    Updates players' ratings after playing match_id (using avg. perfomance)
 
-  """
+    """
 
     def extra_factor(gametype, matches, wins, losses):
         try:
@@ -327,9 +327,9 @@ def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
 
 def post_process_trueskill(cu, match_id, gametype_id, match_timestamp):
     """
-  Updates players' ratings after playing match_id (using trueskill)
+    Updates players' ratings after playing match_id (using trueskill)
 
-  """
+    """
     global LAST_GAME_TIMESTAMPS
     cu.execute(
         "SELECT team2_score > team1_score, team2_score < team1_score FROM matches WHERE match_id = %s",
@@ -483,17 +483,17 @@ def filter_insignificant_players(players):
 
 def submit_match(data):
     """
-  Match report handler
+      Match report handler
 
-  Args:
-    data (str): match report
+      Args:
+        data (str): match report
 
-  Returns: {
-      "ok: True/False - on success/fail
-      "message":      - operation result description
-      "match_id":     - match_id of match_report
-    }
-  """
+      Returns: {
+          "ok: True/False - on success/fail
+          "message":      - operation result description
+          "match_id":     - match_id of match_report
+        }
+      """
     try:
         match_id = None
 
@@ -678,8 +678,8 @@ def submit_match(data):
 
 def reset_gametype_ratings(gametype):
     """
-  Resets ratings for gametype
-  """
+    Resets ratings for gametype
+    """
     if gametype not in GAMETYPE_IDS:
         print("gametype is not accepted: " + gametype)
         return False

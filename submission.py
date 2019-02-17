@@ -5,7 +5,8 @@ import trueskill
 
 from common import log_exception
 from conf import settings as cfg
-from db import db_connect, cache
+from db import db_connect, cache, pool
+from exceptions import *
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
@@ -86,46 +87,6 @@ def parse_stats_submission(body):
         teams.append(events)
 
     return {"game_meta": game_meta, "players": players, "teams": teams}
-
-
-def is_instagib(data):
-    """
-    Checks if match is played with instagib mode
-    """
-
-    def is_player_using_weapon(player, weapon):
-        try:
-            return True if player["acc-" + weapon + "-cnt-fired"] == "0" else False
-        except KeyError:
-            return True
-
-    def is_player_using_railgun_and_gauntlet_only(player):
-        return all(
-            map(
-                lambda weapon: is_player_using_weapon(player, weapon),
-                [
-                    "mg",
-                    "sg",
-                    "gl",
-                    "rl",
-                    "lg",
-                    "pg",
-                    "hmg",
-                    "bfg",
-                    "cg",
-                    "ng",
-                    "pm",
-                    "gh",
-                ],
-            )
-        )
-
-    return all(
-        map(
-            lambda player: is_player_using_railgun_and_gauntlet_only(player),
-            data["players"],
-        )
-    )
 
 
 def is_tdm2v2(data):
@@ -481,52 +442,57 @@ def filter_insignificant_players(players):
     return list(filter(lambda player: int(player["scoreboard-destroyed"]) > 0, players))
 
 
-def submit_match(data):
+def submit_match(data, dbpool: pool):
     """
-      Match report handler
+    Match report handler
 
-      Args:
+    Args:
         data (str): match report
 
-      Returns: {
-          "ok: True/False - on success/fail
-          "message":      - operation result description
-          "match_id":     - match_id of match_report
-        }
-      """
+    Returns: {
+        "ok: True/False - on success/fail
+        "message":      - operation result description
+        "match_id":     - match_id of match_report
+    }
+    """
+    if type(data).__name__ == "str":
+        data = parse_stats_submission(data)
+    elif "players" not in data:
+        raise InvalidMatchReport("No player data")
+    elif "game_meta" not in data:
+        raise InvalidMatchReport("No game meta data")
+
+    data["players"] = filter_insignificant_players(data["players"])
+
     try:
-        match_id = None
-
-        if type(data).__name__ == "str":
-            data = parse_stats_submission(data)
-
-        data["players"] = filter_insignificant_players(data["players"])
-
-        if is_instagib(data):
-            data["game_meta"]["G"] = "i" + data["game_meta"]["G"]
-
-        if is_tdm2v2(data):
-            data["game_meta"]["G"] = "tdm2v2"
-
         match_id = data["game_meta"]["I"]
+    except KeyError:
+        raise InvalidMatchReport("Match id not given")
 
-        if data["game_meta"]["G"] not in GAMETYPE_IDS:
-            return {
-                "ok": False,
-                "message": "gametype is not accepted: " + data["game_meta"]["G"],
-                "match_id": match_id,
-            }
+    try:
+        gametype = data["game_meta"]["G"]
+    except KeyError:
+        raise InvalidMatchReport("Gametype not given")
 
+    if is_tdm2v2(data):
+        gametype = "tdm2v2"
+
+    if gametype not in GAMETYPE_IDS:
+        raise InvalidMatchReport("Gametype not accepted: {}".format(gametype))
+
+    try:
         match_duration = int(data["game_meta"]["D"])
-        if match_duration < MIN_DURATION_TO_ADD:
-            return {
-                "ok": False,
-                "message": "not enough match duration: given - {}, required - {}".format(
-                    match_duration, MIN_DURATION_TO_ADD
-                ),
-                "match_id": match_id,
-            }
+    except KeyError:
+        raise InvalidMatchReport("Match duration not given")
+    except ValueError:
+        raise InvalidMatchReport("Match duration is not integer: {}".format(data["game_meta"]["D"]))
 
+    if match_duration < MIN_DURATION_TO_ADD:
+        raise InvalidMatchReport("not enough match duration: given - {}, required - {}".format(
+            match_duration, MIN_DURATION_TO_ADD
+        ))
+
+    try:
         db = db_connect()
         cu = db.cursor()
 

@@ -3,3 +3,7 @@
 
 class MatchAlreadyExists(Exception):
     pass
+
+
+class InvalidMatchReport(Exception):
+    pass

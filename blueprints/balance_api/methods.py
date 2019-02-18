@@ -3,7 +3,7 @@
 import requests
 from common import log_exception
 from conf import settings as cfg
-from db import db_connect, cache
+from db import db_connect, cache, get_db_pool
 from submission import get_map_id
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
@@ -118,7 +118,7 @@ def with_player_info_from_qlstats(steam_ids):
     return qlstats_data
 
 
-def for_certain_map(steam_ids, gametype, mapname):
+async def for_certain_map(steam_ids, gametype, mapname):
     """
     Outputs player ratings compatible with balance.py plugin from miqlx-plugins
 
@@ -144,6 +144,8 @@ def for_certain_map(steam_ids, gametype, mapname):
     players = {}
     try:
 
+        dbpool = await get_db_pool()
+        con = await dbpool.acquire()
         db = db_connect()
         cu = db.cursor()
 
@@ -182,7 +184,7 @@ def for_certain_map(steam_ids, gametype, mapname):
             players[steam_id][gametype] = {"games": 0, "elo": rating}
 
         # checking, if map is played ever?
-        map_id = get_map_id(cu, mapname, dont_create=True)
+        map_id = await get_map_id(con, mapname, False)
         if map_id is None:
             raise KeyError("Unknown map: " + mapname)
 

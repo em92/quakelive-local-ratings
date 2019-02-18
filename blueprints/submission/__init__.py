@@ -21,7 +21,7 @@ async def http_stats_submit(request: Request):
         raise HTTPException(403, "non-loopback requests are not allowed")
 
     match_report = await request.body()
-    result = submit_match(match_report.decode('utf-8'), bp.__class__.dbpool)
+    result = submit_match(match_report.decode('utf-8'))
     if result["ok"] == False:
         raise HTTPException(422, result["message"])
     else:

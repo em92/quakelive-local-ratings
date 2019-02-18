@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from warnings import warn
+from typing import Optional
 import trueskill
 
 from common import log_exception
 from conf import settings as cfg
-from db import db_connect, cache, pool
+from db import db_connect, cache, get_db_pool
 from exceptions import *
+
+from asyncpg import Connection
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
@@ -105,19 +108,16 @@ def get_factory_id(cu, factory):
         return cu.fetchone()[0]
 
 
-def get_map_id(cu, map_name, dont_create=False):
+async def get_map_id(con: Connection, map_name: str, create_if_not_exists: bool = True) -> Optional[int]:
     map_name = map_name.lower()
-    cu.execute("SELECT map_id FROM maps WHERE map_name = %s", [map_name])
-    try:
-        return cu.fetchone()[0]
-    except TypeError:
-        if dont_create:
-            return None
-        cu.execute(
-            "INSERT INTO maps (map_id, map_name) VALUES (nextval('map_seq'), %s) RETURNING map_id",
-            [map_name],
-        )
-        return cu.fetchone()[0]
+
+    stmt = await con.prepare("SELECT map_id FROM maps WHERE map_name = $1")
+    result = await stmt.fetchval(map_name)
+    if result is None and create_if_not_exists is True:
+        stmt = await con.prepare("INSERT INTO maps (map_id, map_name) VALUES (nextval('map_seq'), $1) RETURNING map_id")
+        result = await stmt.fetchval(map_name)
+
+    return result
 
 
 def count_player_match_perf(gametype, player_data, match_duration):

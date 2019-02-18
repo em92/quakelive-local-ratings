@@ -442,7 +442,7 @@ def filter_insignificant_players(players):
     return list(filter(lambda player: int(player["scoreboard-destroyed"]) > 0, players))
 
 
-def submit_match(data, dbpool: pool):
+async def submit_match(data):
     """
     Match report handler
 
@@ -492,10 +492,12 @@ def submit_match(data, dbpool: pool):
             match_duration, MIN_DURATION_TO_ADD
         ))
 
-    try:
-        db = db_connect()
-        cu = db.cursor()
+    dbpool = await get_db_pool()
+    con = await dbpool.acquire()
+    tr = con.transaction()
+    await tr.start()
 
+    try:
         team_scores = [None, None]
         team_index = -1
         for team_data in data["teams"]:
@@ -506,26 +508,20 @@ def submit_match(data, dbpool: pool):
         team1_score, team2_score = team_scores
 
         match_timestamp = int(data["game_meta"]["1"])
-        from psycopg2 import IntegrityError
-        from exceptions import MatchAlreadyExists
-
-        try:
-            cu.execute(
-                "INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                [
-                    match_id,
-                    GAMETYPE_IDS[data["game_meta"]["G"]],
-                    get_factory_id(cu, data["game_meta"]["O"]),
-                    get_map_id(cu, data["game_meta"]["M"]),
-                    match_timestamp,
-                    match_duration,
-                    team1_score,
-                    team2_score,
-                    cfg["run_post_process"],
-                ],
-            )
-        except IntegrityError:
-            raise MatchAlreadyExists(match_id)
+        con.execute(
+            "INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            [
+                match_id,
+                GAMETYPE_IDS[data["game_meta"]["G"]],
+                None, #get_factory_id(cu, data["game_meta"]["O"]),
+                await get_map_id(con, data["game_meta"]["M"]),
+                match_timestamp,
+                match_duration,
+                team1_score,
+                team2_score,
+                cfg["run_post_process"],
+            ],
+        )
 
         player_match_ratings = count_multiple_players_match_perf(
             data["game_meta"]["G"], data["players"], match_duration
@@ -626,18 +622,13 @@ def submit_match(data, dbpool: pool):
                 "match_id": match_id,
             }
 
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        log_exception(e)
-        result = {
-            "ok": False,
-            "message": type(e).__name__ + ": " + str(e),
-            "match_id": match_id,
-        }
-
-    cu.close()
-    db.close()
+    except:
+        await tr.rollback()
+        raise
+    else:
+        await tr.commit()
+    finally:
+        await dbpool.release(con)
 
     return result
 

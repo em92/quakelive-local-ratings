@@ -11,14 +11,12 @@ from asyncpg import pool, create_pool
 from conf import settings
 
 
-async def create_pool() -> pool:
-    result = urlparse(os.environ.get("DATABASE_URL", settings["db_url"]))
-    username = result.username
-    password = result.password
-    database = result.path[1:]
-    hostname = result.hostname
-    port = result.port
-    return create_pool(database=database, user=username, password=password, host=hostname, port=port)
+async def get_db_pool() -> pool:
+    try:
+        return get_db_pool.cache
+    except AttributeError:
+        get_db_pool.cache = await create_pool(dsn=os.environ.get("DATABASE_URL", settings["db_url"]))
+        return get_db_pool.cache
 
 
 def db_connect():

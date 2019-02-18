@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-class MatchAlreadyExists(Exception):
+class InvalidMatchReport(Exception):
     pass
 
 
-class InvalidMatchReport(Exception):
+class MatchAlreadyExists(InvalidMatchReport):
     pass

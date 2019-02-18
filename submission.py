@@ -10,6 +10,7 @@ from db import db_connect, cache, get_db_pool
 from exceptions import *
 
 from asyncpg import Connection
+from asyncpg.exceptions import UniqueViolationError
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
@@ -286,45 +287,43 @@ def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
     LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
 
 
-def post_process_trueskill(cu, match_id, gametype_id, match_timestamp):
+async def post_process_trueskill(con: Connection, match_id: str, gametype_id: int, match_timestamp: int):
     """
     Updates players' ratings after playing match_id (using trueskill)
 
     """
     global LAST_GAME_TIMESTAMPS
-    cu.execute(
-        "SELECT team2_score > team1_score, team2_score < team1_score FROM matches WHERE match_id = %s",
-        [match_id],
+    row = await con.fetchrow(
+        "SELECT team2_score > team1_score, team2_score < team1_score FROM matches WHERE match_id = $1",
+        match_id,
     )
-    row = cu.fetchone()
     team_ranks = [row[0], row[1]]
 
-    cu.execute(
+    rows = await con.fetch(
         """
-    SELECT
-      s.steam_id,
-      team,
-      s.match_perf,
-      gr.mean,
-      gr.deviation
-    FROM
-      scoreboards s
-    LEFT JOIN (
-      SELECT steam_id, mean, deviation
-      FROM gametype_ratings
-      WHERE gametype_id = %s
-    ) gr ON gr.steam_id = s.steam_id
-    WHERE
-      match_perf IS NOT NULL AND
-      match_id = %s
-    """,
-        [gametype_id, match_id],
+        SELECT
+            s.steam_id,
+            team,
+            s.match_perf,
+            gr.mean,
+            gr.deviation
+        FROM
+            scoreboards s
+        LEFT JOIN (
+            SELECT steam_id, mean, deviation
+            FROM gametype_ratings
+            WHERE gametype_id = $1
+            ) gr ON gr.steam_id = s.steam_id
+        WHERE
+            match_perf IS NOT NULL AND
+            match_id = $2
+        """,
+        gametype_id, match_id,
     )
 
     team_ratings_old = [[], []]
     team_ratings_new = [[], []]
     team_steam_ids = [[], []]
-    rows = cu.fetchall()
     for row in rows:
         steam_id = row[0]
         team = row[1]
@@ -349,10 +348,10 @@ def post_process_trueskill(cu, match_id, gametype_id, match_timestamp):
             continue
 
     if len(team_ratings_old[0]) == 0 or len(team_ratings_old[1]) == 0:
-        cu.execute(
-            "UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id]
+        rowcount = await con.execute(
+            "UPDATE matches SET post_processed = TRUE WHERE match_id = $1", match_id
         )
-        assert cu.rowcount == 1
+        assert rowcount == 1
 
         LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
         return
@@ -380,62 +379,64 @@ def post_process_trueskill(cu, match_id, gametype_id, match_timestamp):
         }
 
     for steam_id, ratings in steam_ratings.items():
-        cu.execute(
+        r = await con.execute(
             """
-      UPDATE scoreboards
-      SET
-        old_mean = %s, old_deviation = %s,
-        new_mean = %s, new_deviation = %s
-      WHERE match_id = %s AND steam_id = %s AND team = %s
-    """,
-            [
-                ratings["old"].mu,
-                ratings["old"].sigma,
-                ratings["new"].mu,
-                ratings["new"].sigma,
-                match_id,
-                steam_id,
-                ratings["team"],
-            ],
+            UPDATE scoreboards
+            SET
+                old_mean = $1, old_deviation = $2,
+                new_mean = $3, new_deviation = $4
+            WHERE match_id = $5 AND steam_id = $6 AND team = $7
+            """,
+            ratings["old"].mu,
+            ratings["old"].sigma,
+            ratings["new"].mu,
+            ratings["new"].sigma,
+            match_id,
+            steam_id,
+            ratings["team"],
         )
-        assert cu.rowcount == 1
+        assert r == "UPDATE 1"
 
-        cu.execute(
-            "UPDATE gametype_ratings SET mean = %s, deviation = %s, n = n + 1, last_played_timestamp = %s WHERE steam_id = %s AND gametype_id = %s",
-            [
+        r = await con.execute(
+            """
+            UPDATE gametype_ratings
+            SET mean = $1, deviation = $2, n = n + 1, last_played_timestamp = $3
+            WHERE steam_id = $4 AND gametype_id = $5
+            """,
+            ratings["new"].mu,
+            ratings["new"].sigma,
+            match_timestamp,
+            steam_id,
+            gametype_id,
+        )
+
+        if r == "UPDATE 0":
+            r = await con.execute(
+                """
+                INSERT INTO gametype_ratings (steam_id, gametype_id, mean, deviation, last_played_timestamp, n)
+                VALUES ($1, $2, $3, $4, $5, 1)
+                """,
+                steam_id,
+                gametype_id,
                 ratings["new"].mu,
                 ratings["new"].sigma,
                 match_timestamp,
-                steam_id,
-                gametype_id,
-            ],
-        )
-        if cu.rowcount == 0:
-            cu.execute(
-                "INSERT INTO gametype_ratings (steam_id, gametype_id, mean, deviation, last_played_timestamp, n) VALUES (%s, %s, %s, %s, %s, 1)",
-                [
-                    steam_id,
-                    gametype_id,
-                    ratings["new"].mu,
-                    ratings["new"].sigma,
-                    match_timestamp,
-                ],
             )
-        assert cu.rowcount == 1
+        assert r == "UPDATE 1" or r == "INSERT 0 1"
 
-    cu.execute(
-        "UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id]
+    r = await con.execute(
+        "UPDATE matches SET post_processed = TRUE WHERE match_id = $1", match_id
     )
-    assert cu.rowcount == 1
+    assert r == "UPDATE 1"
 
     LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
 
 
-def post_process(cu, match_id, gametype_id, match_timestamp):
+async def post_process(con: Connection, match_id: str, gametype_id: int, match_timestamp: int):
     if USE_AVG_PERF[gametype_id]:
-        return post_process_avg_perf(cu, match_id, gametype_id, match_timestamp)
+        return await post_process_avg_perf(con, match_id, gametype_id, match_timestamp)  # TODO: протестировать
     else:
-        return post_process_trueskill(cu, match_id, gametype_id, match_timestamp)
+        return await post_process_trueskill(con, match_id, gametype_id, match_timestamp)
 
 
 def filter_insignificant_players(players):
@@ -508,9 +509,9 @@ async def submit_match(data):
         team1_score, team2_score = team_scores
 
         match_timestamp = int(data["game_meta"]["1"])
-        con.execute(
-            "INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            [
+        try:
+            await con.execute(
+                "INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
                 match_id,
                 GAMETYPE_IDS[data["game_meta"]["G"]],
                 None, #get_factory_id(cu, data["game_meta"]["O"]),
@@ -520,8 +521,9 @@ async def submit_match(data):
                 team1_score,
                 team2_score,
                 cfg["run_post_process"],
-            ],
-        )
+            )
+        except UniqueViolationError:
+            raise MatchAlreadyExists(match_id)
 
         player_match_ratings = count_multiple_players_match_perf(
             data["game_meta"]["G"], data["players"], match_duration
@@ -532,52 +534,48 @@ async def submit_match(data):
                 player["playermodel"] = "sarge/default"
             team = int(player["t"]) if "t" in player else 0
 
-            cu.execute(
-                """INSERT INTO players (
-        steam_id,
-        name,
-        model,
-        last_played_timestamp
-      ) VALUES (%s, %s, %s, %s)
-      ON CONFLICT (steam_id) DO UPDATE SET (name, model, last_played_timestamp) = (%s, %s, %s)
-      WHERE players.last_played_timestamp < %s""",
-                [
-                    player["P"],
-                    player["n"],
-                    player["playermodel"],
-                    match_timestamp,
-                    player["n"],
-                    player["playermodel"],
-                    match_timestamp,
-                    match_timestamp,
-                ],
+            await con.execute(
+                """
+                INSERT INTO players (
+                    steam_id,
+                    name,
+                    model,
+                    last_played_timestamp
+                ) VALUES ($1, $2, $3, $4)
+                ON CONFLICT (steam_id) DO UPDATE SET (name, model, last_played_timestamp) = ($2, $3, $4)
+                WHERE players.last_played_timestamp < $4
+                """,
+                player["P"],
+                player["n"],
+                player["playermodel"],
+                match_timestamp,
             )
 
-            cu.execute(
-                """INSERT INTO scoreboards (
-        match_id,
-        steam_id,
-        frags,
-        deaths,
-        damage_dealt,
-        damage_taken,
-        score,
-        match_perf,
-        alive_time,
-        team
-      ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                [
+            await con.execute(
+                """
+                INSERT INTO scoreboards (
                     match_id,
-                    player["P"],
-                    int(player["scoreboard-kills"]),
-                    int(player["scoreboard-deaths"]),
-                    int(player["scoreboard-pushes"]),
-                    int(player["scoreboard-destroyed"]),
-                    int(player["scoreboard-score"]),
-                    player_match_ratings[team][player["P"]]["perf"],
-                    int(player["alivetime"]),
-                    team,
-                ],
+                    steam_id,
+                    frags,
+                    deaths,
+                    damage_dealt,
+                    damage_taken,
+                    score,
+                    match_perf,
+                    alive_time,
+                    team
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                """,
+                match_id,
+                player["P"],
+                int(player["scoreboard-kills"]),
+                int(player["scoreboard-deaths"]),
+                int(player["scoreboard-pushes"]),
+                int(player["scoreboard-destroyed"]),
+                int(player["scoreboard-score"]),
+                player_match_ratings[team][player["P"]]["perf"],
+                int(player["alivetime"]),
+                team,
             )
 
             for weapon, weapon_id in WEAPON_IDS.items():
@@ -586,17 +584,18 @@ async def submit_match(data):
                 if frags + shots == 0:
                     continue
 
-                cu.execute(
-                    "INSERT INTO scoreboards_weapons (match_id, steam_id, team, weapon_id, frags, hits, shots) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                    [
-                        match_id,
-                        player["P"],
-                        team,
-                        weapon_id,
-                        frags,
-                        int(player["acc-" + weapon + "-cnt-hit"]),
-                        shots,
-                    ],
+                await con.execute(
+                    """
+                    INSERT INTO scoreboards_weapons (match_id, steam_id, team, weapon_id, frags, hits, shots)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    """,
+                    match_id,
+                    player["P"],
+                    team,
+                    weapon_id,
+                    frags,
+                    int(player["acc-" + weapon + "-cnt-hit"]),
+                    shots,
                 )
 
             for medal, medal_id in MEDAL_IDS.items():
@@ -604,15 +603,18 @@ async def submit_match(data):
                 if medal_count == 0:
                     continue
 
-                cu.execute(
-                    "INSERT INTO scoreboards_medals (match_id, steam_id, team, medal_id, count) VALUES (%s, %s, %s, %s, %s)",
-                    [match_id, player["P"], team, medal_id, medal_count],
+                await con.execute(
+                    """
+                    INSERT INTO scoreboards_medals (match_id, steam_id, team, medal_id, count)
+                    VALUES ($1, $2, $3, $4, $5)
+                    """,
+                    match_id, player["P"], team, medal_id, medal_count,
                 )
 
         # post processing
         if cfg["run_post_process"] == True:
-            post_process(
-                cu, match_id, GAMETYPE_IDS[data["game_meta"]["G"]], match_timestamp
+            await post_process(
+                con, match_id, GAMETYPE_IDS[data["game_meta"]["G"]], match_timestamp
             )
             result = {"ok": True, "message": "done", "match_id": match_id}
         else:

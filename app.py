@@ -17,7 +17,8 @@ async def unhandled_exception_handler(request: Request, e: Exception):
 
 
 async def match_already_exists_exception_handler(request: Request, e: MatchAlreadyExists):
-    raise HTTPException(409, "Match already exists")
+    new_exc = HTTPException(409, "Match already exists")
+    return await http_exception_handler(request, new_exc)
 
 
 class App(Starlette):

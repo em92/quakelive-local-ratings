@@ -5,11 +5,22 @@ import sys
 import typing
 import unittest
 import psycopg2
+import asyncio
 
 from starlette.testclient import TestClient
 
 from testing import postgresql as pgsql_test
 from conf import settings
+
+
+def unasync(f):
+    def wrapper(*args, **kwargs):
+        coro = asyncio.coroutine(f)
+        future = coro(*args, **kwargs)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(future)
+    return wrapper
+
 
 def handler(postgresql):
     f = open(os.path.dirname(os.path.realpath(__file__)) + "/../sql/init.sql")

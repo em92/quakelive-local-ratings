@@ -10,7 +10,7 @@ bp = App()
 
 
 @bp.route("/{ids:steam_ids}")
-def http_elo(request: Request):
+async def http_elo(request: Request):
     ids = request.path_params['ids']
     try:
         return RedirectResponse(request.url_for(
@@ -20,7 +20,7 @@ def http_elo(request: Request):
             ids=ids
         ))
     except KeyError:
-        return JSONResponse(simple(ids))
+        return JSONResponse(await simple(ids))
 
 
 @bp.route("/map_based/{gametype}/{mapname}/{ids:steam_ids}")
@@ -34,4 +34,4 @@ async def http_elo_map(request: Request):
 @bp.route("/with_qlstats_playerinfo/{ids:steam_ids}")
 async def http_elo_with_qlstats_playerinfo(request: Request):
     ids = request.path_params['ids']
-    return JSONResponse(with_player_info_from_qlstats(ids))
+    return JSONResponse(await with_player_info_from_qlstats(ids))

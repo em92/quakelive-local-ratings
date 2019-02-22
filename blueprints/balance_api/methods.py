@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import typing
 import requests
 from common import log_exception
 from conf import settings as cfg
-from db import db_connect, cache, get_db_pool
+from db import cache, get_db_pool
+from exceptions import InvalidGametype
 from submission import get_map_id
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
@@ -30,7 +32,7 @@ def prepare_result(players):
     }
 
 
-def simple(steam_ids):
+async def simple(steam_ids: typing.List[int]):
     """
     Outputs player ratings compatible with balance.py plugin from minqlx-plugins
 
@@ -38,24 +40,17 @@ def simple(steam_ids):
         steam_ids (list): array of steam ids
 
     Returns:
-        on success:
         {
             "ok": True
             "players": [...],
             "deactivated": []
         }
-
-        on fail:
-        {
-            "ok": False
-            "message": "error message"
-        }
     """
     players = {}
-    try:
+    dbpool = await get_db_pool()
+    con = await dbpool.acquire()
 
-        db = db_connect()
-        cu = db.cursor()
+    try:
 
         query = '''
         SELECT
@@ -65,9 +60,9 @@ def simple(steam_ids):
         LEFT JOIN
             gametypes gt ON gr.gametype_id = gt.gametype_id
         WHERE
-            steam_id IN %s'''
-        cu.execute(query, [tuple(steam_ids)])
-        for row in cu.fetchall():
+            steam_id = ANY($1)'''
+        rows = await con.fetch(query, steam_ids)
+        for row in rows:
             steam_id = str(row[0])
             gametype = row[1]
             rating   = round(row[2], 2)
@@ -78,24 +73,14 @@ def simple(steam_ids):
 
         result = prepare_result(players)
 
-    except Exception as e:
-        db.rollback()
-        log_exception(e)
-        result = {
-            "ok": False,
-            "message": type(e).__name__ + ": " + str(e)
-        }
-
-    cu.close()
-    db.close()
+    finally:
+        await dbpool.release(con)
 
     return result
 
 
-def with_player_info_from_qlstats(steam_ids):
-    result = simple(steam_ids)
-    if result['ok'] is False:
-        return result
+async def with_player_info_from_qlstats(steam_ids: typing.List[int]):
+    result = await simple(steam_ids)
 
     try:
         r = requests.get("http://qlstats.net/elo/" + "+".join(map(lambda id_: str(id_), steam_ids)), timeout=5)
@@ -118,7 +103,7 @@ def with_player_info_from_qlstats(steam_ids):
     return qlstats_data
 
 
-async def for_certain_map(steam_ids, gametype, mapname):
+async def for_certain_map(steam_ids: typing.List[int], gametype: str, mapname: str):
     """
     Outputs player ratings compatible with balance.py plugin from miqlx-plugins
 
@@ -134,25 +119,19 @@ async def for_certain_map(steam_ids, gametype, mapname):
             "players": [...],
             "deactivated": []
         }
-
-        on fail:
-        {
-            "ok": False
-            "message": "error message"
-        }
     """
+    # TODO: переписать. 8 игроков - 16 запросов
     players = {}
+
+    dbpool = await get_db_pool()
+    con = await dbpool.acquire()
+
     try:
+        gametype_id = GAMETYPE_IDS[gametype]
+    except KeyError:
+        raise InvalidGametype(gametype)
 
-        dbpool = await get_db_pool()
-        con = await dbpool.acquire()
-        db = db_connect()
-        cu = db.cursor()
-
-        try:
-            gametype_id = GAMETYPE_IDS[gametype]
-        except KeyError:
-            raise Exception("Invalid gametype: " + gametype)
+    try:
 
         query_template = '''
             SELECT
@@ -163,18 +142,18 @@ async def for_certain_map(steam_ids, gametype, mapname):
                 FROM
                     scoreboards s
                 LEFT JOIN matches m ON m.match_id = s.match_id
-                WHERE s.steam_id = %s AND m.gametype_id = %s {CLAUSE}
+                WHERE s.steam_id = $1 AND m.gametype_id = $2 {CLAUSE}
                 ORDER BY m.timestamp DESC
-                LIMIT %s
-            ) t;'''
+                LIMIT $3
+            ) t;
+         '''
 
         query_common = query_template.replace("{CLAUSE}", "")
-        query_by_map = query_template.replace("{CLAUSE}", "AND m.map_id = %s")
+        query_by_map = query_template.replace("{CLAUSE}", "AND m.map_id = $4")
 
         # getting common perfomance
         for steam_id in steam_ids:
-            cu.execute(query_common, [steam_id, gametype_id, MOVING_AVG_COUNT])
-            row = cu.fetchone()
+            row = await con.fetchrow(query_common, steam_id, gametype_id, MOVING_AVG_COUNT)
             if row[0] is None:
                 continue
             steam_id = str(steam_id)
@@ -190,8 +169,7 @@ async def for_certain_map(steam_ids, gametype, mapname):
 
         # getting map perfomance
         for steam_id in steam_ids:
-            cu.execute(query_by_map, [steam_id, gametype_id, map_id, MOVING_AVG_COUNT])
-            row = cu.fetchone()
+            row = row = await con.fetchrow(query_by_map, steam_id, gametype_id, MOVING_AVG_COUNT, map_id)
             if row[0] is None:
                 continue
             steam_id = str(steam_id)
@@ -201,20 +179,7 @@ async def for_certain_map(steam_ids, gametype, mapname):
 
         result = prepare_result(players)
 
-    except KeyError as e:
-        db.rollback()
-        log_exception(e)
-        result = prepare_result(players)
-
-    except Exception as e:
-        db.rollback()
-        log_exception(e)
-        result = {
-            "ok": False,
-            "message": type(e).__name__ + ": " + str(e)
-        }
-
-    cu.close()
-    db.close()
+    finally:
+        await dbpool.release(con)
 
     return result

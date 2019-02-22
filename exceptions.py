@@ -7,3 +7,7 @@ class InvalidMatchReport(Exception):
 
 class MatchAlreadyExists(InvalidMatchReport):
     pass
+
+
+class InvalidGametype(Exception):
+    pass

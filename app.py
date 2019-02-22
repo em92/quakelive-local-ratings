@@ -5,7 +5,10 @@ from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from exceptions import MatchAlreadyExists
+from exceptions import (
+    InvalidGametype,
+    MatchAlreadyExists
+)
 
 
 async def http_exception_handler(request: Request, e: HTTPException):
@@ -18,6 +21,11 @@ async def unhandled_exception_handler(request: Request, e: Exception):
 
 async def match_already_exists_exception_handler(request: Request, e: MatchAlreadyExists):
     new_exc = HTTPException(409, "Match already exists")
+    return await http_exception_handler(request, new_exc)
+
+
+async def invalid_gametype_exception_handler(request: Request, e: InvalidGametype):
+    new_exc = HTTPException(442, "Invalid gametype: {}".format(e))
     return await http_exception_handler(request, new_exc)
 
 

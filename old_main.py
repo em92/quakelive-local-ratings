@@ -191,25 +191,6 @@ def http_export_rating_format_gametype(frmt, gametype):
     return "Error: invalid format: " + frmt, 400
 
 
-@app.route("/scoreboard/<match_id>.json")
-@try304
-def http_scoreboard_match_id_json(match_id):
-  try:
-    if len(match_id) != len('12345678-1234-5678-1234-567812345678'):
-      raise ValueError()
-    UUID(match_id)
-  except ValueError:
-    return jsonify(ok=False, message="invalid match_id")
-
-  return jsonify(**rating.get_scoreboard(match_id))
-
-
-@app.route("/scoreboard/<match_id>")
-@try304
-def http_scoreboard_match_id(match_id):
-  return render_template("scoreboard.html", match_id = match_id, **rating.get_scoreboard( match_id ))
-
-
 @app.route("/generate_user_ratings/<gametype>.json")
 def http_generate_ratings(gametype):
   return jsonify(**rating.generate_user_ratings(gametype, unquote(request.query_string.decode("utf-8"))))

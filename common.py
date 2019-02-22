@@ -4,6 +4,8 @@
 import logging
 import traceback
 
+DATETIME_FORMAT = "YYYY-MM-DD HH24:MI TZ"
+
 logger = logging.getLogger("qllr")
 logger.setLevel(logging.DEBUG)
 

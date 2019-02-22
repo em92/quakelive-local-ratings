@@ -15,6 +15,7 @@ app.mount('/static', StaticFiles(directory="static"), name='static')
 import blueprints as bp
 app.mount('/elo', bp.balance_api)
 app.mount('/stats', bp.submission)
+app.mount('/scoreboard', bp.scoreboard)
 app.mount('', WSGIMiddleware(old_app.wsgi_app))
 
 

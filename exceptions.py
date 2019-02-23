@@ -11,3 +11,7 @@ class MatchAlreadyExists(InvalidMatchReport):
 
 class InvalidGametype(Exception):
     pass
+
+
+class MatchNotFound(Exception):
+    pass

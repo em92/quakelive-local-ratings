@@ -7,7 +7,8 @@ from starlette.responses import JSONResponse
 
 from exceptions import (
     InvalidGametype,
-    MatchAlreadyExists
+    MatchAlreadyExists,
+    MatchNotFound
 )
 
 
@@ -29,9 +30,15 @@ async def invalid_gametype_exception_handler(request: Request, e: InvalidGametyp
     return await http_exception_handler(request, new_exc)
 
 
+async def match_not_found_exception_handler(request: Request, e: MatchNotFound):
+    new_exc = HTTPException(404, "Match not found: {}".format(e))
+    return await http_exception_handler(request, new_exc)
+
+
 class App(Starlette):
     def __init__(self, debug: bool = False, template_directory: str = None):
         super().__init__(debug, template_directory)
         self.add_exception_handler(HTTPException, http_exception_handler)
         self.add_exception_handler(MatchAlreadyExists, match_already_exists_exception_handler)
+        self.add_exception_handler(MatchNotFound, match_not_found_exception_handler)
         self.add_exception_handler(Exception, unhandled_exception_handler)

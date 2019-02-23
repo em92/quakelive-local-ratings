@@ -1,34 +1,27 @@
 # -*- coding: utf-8 -*-
 
 from app import App
-from starlette.responses import JSONResponse, RedirectResponse
+from starlette.responses import JSONResponse
 from starlette.requests import Request
 from endpoints import Endpoint
 from .methods import get_scoreboard
+from templating import templates
 
 bp = App()
 
+
 @bp.route("/{match_id:match_id}.json")
 class ScoreboardJson(Endpoint):
-    async def get(self, request):
+    async def get(self, request: Request):
         match_id = request.path_params['match_id']
         return JSONResponse(await get_scoreboard(match_id))
 
-'''
-@app.route("/scoreboard/<match_id>")
-@try304
-def http_scoreboard_match_id(match_id):
-  return render_template("scoreboard.html", match_id = match_id, **rating.get_scoreboard( match_id ))
-@bp.route("/{ids:steam_ids}")
-async def http_elo(request: Request):
-    ids = request.path_params['ids']
-    try:
-        return RedirectResponse(request.url_for(
-            'http_elo_map',
-            gametype=request.headers['X-QuakeLive-Gametype'],
-            mapname=request.headers['X-QuakeLive-Map'],
-            ids=ids
-        ))
-    except KeyError:
-        return JSONResponse(await simple(ids))
-'''
+
+@bp.route("/{match_id:match_id}")
+class ScoreboardJson(Endpoint):
+    async def get(self, request: Request):
+        match_id = request.path_params['match_id']
+        context = await get_scoreboard(match_id)
+        context['request'] = request
+        context['match_id'] = match_id
+        return templates.TemplateResponse("scoreboard.html", context)

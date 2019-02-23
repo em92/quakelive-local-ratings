@@ -12,7 +12,7 @@ bp = App()
 class ScoreboardJson(Endpoint):
     async def get(self, request):
         match_id = request.path_params['match_id']
-        return JSONResponse(get_scoreboard(match_id))
+        return JSONResponse(await get_scoreboard(match_id))
 
 '''
 @app.route("/scoreboard/<match_id>")

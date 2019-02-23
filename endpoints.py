@@ -3,7 +3,9 @@
 from email.utils import parsedate
 
 from starlette.endpoints import HTTPEndpoint
+from starlette.requests import Request
 from starlette.responses import Response
+from starlette.types import Message, Receive, Scope, Send
 
 class Endpoint(HTTPEndpoint):
     '''
@@ -20,6 +22,7 @@ class Endpoint(HTTPEndpoint):
         return parsedate(last_req_time) >= parsedate(last_modified)  # type: ignore
     '''
 
-    async def __call__(self, *args, **kwargs) -> None:
-        print(self.scope)
-        return super().__call__(args, kwargs)
+    async def __call__(self, receive: Receive, send: Send) -> None:
+        request = Request(self.scope, receive=receive)
+        response = await self.dispatch(request)
+        await response(receive, send)

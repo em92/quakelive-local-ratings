@@ -97,16 +97,14 @@ def is_tdm2v2(data):
     return data["game_meta"]["G"] == "tdm" and len(data["players"]) == 4
 
 
-def get_factory_id(cu, factory):
-    cu.execute("SELECT factory_id FROM factories WHERE factory_short = %s", [factory])
-    try:
-        return cu.fetchone()[0]
-    except TypeError:
-        cu.execute(
-            "INSERT INTO factories (factory_id, factory_short) VALUES (nextval('factory_seq'), %s) RETURNING factory_id",
-            [factory],
-        )
-        return cu.fetchone()[0]
+async def get_factory_id(con: Connection, factory: str):
+    stmt = await con.prepare("SELECT factory_id FROM factories WHERE factory_short = $1")
+    result = await stmt.fetchval(factory)
+    if result is None:
+        stmt = await con.prepare("INSERT INTO factories (factory_id, factory_short) VALUES (nextval('factory_seq'), $1) RETURNING factory_id")
+        result = await stmt.fetchval(factory)
+
+    return result
 
 
 async def get_map_id(con: Connection, map_name: str, create_if_not_exists: bool = True) -> Optional[int]:
@@ -514,7 +512,7 @@ async def submit_match(data):
                 "INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
                 match_id,
                 GAMETYPE_IDS[data["game_meta"]["G"]],
-                None, #get_factory_id(cu, data["game_meta"]["O"]),
+                await get_factory_id(con, data["game_meta"]["O"]),
                 await get_map_id(con, data["game_meta"]["M"]),
                 match_timestamp,
                 match_duration,

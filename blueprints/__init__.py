@@ -24,7 +24,7 @@ class SteamIdsConvertor(cm.Convertor):
 
 
 class MatchIdConvertor(cm.Convertor):
-    regex = r"[0-9A-F\-]/i"
+    regex = r"[0-9A-Fa-f\-]+"
 
     def convert(self, value: str) -> Any:
         try:

@@ -38,6 +38,7 @@ async def match_not_found_exception_handler(request: Request, e: MatchNotFound):
 class App(Starlette):
     def __init__(self, debug: bool = False, template_directory: str = None):
         super().__init__(debug, template_directory)
+        self.json_only_mode = False
         self.add_exception_handler(HTTPException, http_exception_handler)
         self.add_exception_handler(MatchAlreadyExists, match_already_exists_exception_handler)
         self.add_exception_handler(MatchNotFound, match_not_found_exception_handler)

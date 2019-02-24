@@ -9,6 +9,7 @@ from starlette.responses import JSONResponse
 from starlette.requests import Request
 
 bp = App()
+bp.json_only_mode = True
 
 
 @bp.route("/submit", methods=["POST"])

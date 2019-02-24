@@ -7,6 +7,7 @@ from starlette.requests import Request
 from .methods import simple, for_certain_map, with_player_info_from_qlstats
 
 bp = App()
+bp.json_only_mode = True
 
 
 @bp.route("/{ids:steam_ids}")

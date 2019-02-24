@@ -92,6 +92,20 @@ class AppTestCase(unittest.TestCase):
         obj_expected = self.read_scoreboard(sample_filename)
         self.assertDictEqual(obj_defacto, obj_expected)
 
+    def assert_scoreboard_html_equals_sample(self, match_id: str, sample_filename: str):
+        resp = self.test_cli.get("/scoreboard/{0}".format(match_id))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.template.name, "scoreboard.html")
+        context = resp.context
+        self.assertIn('request', context)
+        self.assertIn('match_id', context)
+        self.assertEqual(context['match_id'], match_id)
+        del context['request']
+        del context['match_id']
+        obj_defacto = context
+        obj_expected = self.read_scoreboard(sample_filename)
+        self.assertDictEqual(obj_defacto, obj_expected)
+
     def assert_lists_have_same_elements(self, L1: list, L2: list):
         self.assertEqual(len(L1), len(L2))
         for item in L1:

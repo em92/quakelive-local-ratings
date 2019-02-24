@@ -3,21 +3,35 @@
 from starlette.applications import Starlette
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, PlainTextResponse
 
 from exceptions import (
     InvalidGametype,
     MatchAlreadyExists,
     MatchNotFound
 )
+from templating import templates
 
 
 async def http_exception_handler(request: Request, e: HTTPException):
-    return JSONResponse({'ok': False, 'message': e.detail}, status_code=e.status_code)
+    context = {'ok': False, 'message': e.detail}
+    if request.app.json_only_mode or request.url.path.lower().endswith(".json"):
+        return JSONResponse(context, status_code=e.status_code)
+
+    # stupid method to detect, what client wants
+    accept_mime_type = request.headers.get('accept', 'text/plain').lower()
+    if accept_mime_type.startswith('text/html'):
+        context['request'] = request
+        return templates.TemplateResponse("layout.html", context, status_code=e.status_code)
+    elif accept_mime_type.startswith('application/json'):
+        return JSONResponse(context, status_code=e.status_code)
+    else:
+        return PlainTextResponse(context['message'], status_code=e.status_code)
 
 
 async def unhandled_exception_handler(request: Request, e: Exception):
-    return JSONResponse({'ok': False, 'message': type(e).__name__ + ": " + str(e)}, status_code=500)
+    new_exc = HTTPException(500, type(e).__name__ + ": " + str(e))
+    return await http_exception_handler(request, new_exc)
 
 
 async def match_already_exists_exception_handler(request: Request, e: MatchAlreadyExists):

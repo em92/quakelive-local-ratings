@@ -349,7 +349,7 @@ async def post_process_trueskill(con: Connection, match_id: str, gametype_id: in
         rowcount = await con.execute(
             "UPDATE matches SET post_processed = TRUE WHERE match_id = $1", match_id
         )
-        assert rowcount == 1
+        assert rowcount == "UPDATE 1"
 
         LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
         return

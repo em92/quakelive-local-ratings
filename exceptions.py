@@ -15,3 +15,7 @@ class InvalidGametype(Exception):
 
 class MatchNotFound(Exception):
     pass
+
+
+class PlayerNotFound(Exception):
+    pass

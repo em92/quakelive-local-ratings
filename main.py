@@ -17,6 +17,7 @@ app.mount('/elo', bp.balance_api)
 app.mount('/stats', bp.submission)
 app.mount('/scoreboard', bp.scoreboard)
 app.mount('/player', bp.player)
+app.mount('/matches', bp.matches)
 app.mount('', WSGIMiddleware(old_app.wsgi_app))
 
 

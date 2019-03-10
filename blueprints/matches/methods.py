@@ -1,4 +1,4 @@
-from db import db_connect, cache, get_db_pool
+from db import db_connect, cache, get_db_pool, take_away_null_values
 from common import DATETIME_FORMAT, clean_name
 from math import ceil
 from collections import OrderedDict
@@ -85,6 +85,10 @@ async def get_last_matches(gametype=None, steam_id=None, page=0, from_ts=None, t
             "" if len(where_clauses) == 0 else "WHERE " + " AND ".join(where_clauses)
         )
 
+        count_params = take_away_null_values(params)
+        del count_params['offset']
+        del count_params['limit']
+
         # TODO: вынести эту функцию в кэш
         query = """
         SELECT
@@ -96,8 +100,8 @@ async def get_last_matches(gametype=None, steam_id=None, page=0, from_ts=None, t
             "{WHERE_CLAUSE}\n", where_clause_str
         )
 
-        row = await con.fetchval(query, *params.values())
-        overall_match_count = row[0]
+        row = await con.fetchval(query, *count_params.values())
+        overall_match_count = row
 
         query = """
         SELECT
@@ -124,8 +128,8 @@ async def get_last_matches(gametype=None, steam_id=None, page=0, from_ts=None, t
             WHERE_CLAUSE=where_clause_str, DATETIME_FORMAT=DATETIME_FORMAT, NOTHING="{}"
         )
 
-        row = await con.fetchval(query, *params.values())
-        matches = row[0]
+        row = await con.fetchval(query, *take_away_null_values(params).values())
+        matches = row
 
         result = {
             "ok": True,

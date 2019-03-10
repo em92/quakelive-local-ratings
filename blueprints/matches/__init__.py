@@ -25,6 +25,7 @@ bp = App()
 @bp.route("/player/{steam_id:int}/{gametype}/{page:int}")
 @bp.route("/{gametype}")
 @bp.route("/{gametype}/{page:int}")
+@bp.route("/{page:int}")
 class MatchesHtml(Endpoint):
     async def get(self, request: Request):
         gametype = request.path_params.get('gametype', None)
@@ -34,5 +35,5 @@ class MatchesHtml(Endpoint):
         context = await get_last_matches(gametype, steam_id, page)
         context['request'] = request
         context['gametype'] = gametype
-        context['current_page'] = page,
+        context['current_page'] = page
         return templates.TemplateResponse("match_list.html", context)

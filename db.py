@@ -19,6 +19,14 @@ async def get_db_pool() -> pool:
         return get_db_pool.cache
 
 
+def take_away_null_values(params: OrderedDict) -> OrderedDict:
+    result = params.copy()
+    for key, value in params.items():
+        if value is None:
+            del result[key]
+    return result
+
+
 def db_connect():
   result = urlparse( os.environ.get("DATABASE_URL", settings["db_url"]) )
   username = result.username

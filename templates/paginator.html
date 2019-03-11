@@ -3,7 +3,7 @@
   {% if i == current_page -%}
     [{{ i + 1 }}] &nbsp;
   {% elif i in (current_page - 1, current_page + 1, 0, page_count - 1) %}
-    <a href="{{ page_prefix }}/{{ i }}/{{ page_suffix }}">[{{ i+1 }}]</a> &nbsp;
+    <a href="{{ url_for(request.endpoint.__name__, gametype = gametype, page = i) }}">[{{ i+1 }}]</a> &nbsp;
   {% elif i in (1, page_count - 2) %}
     ...
   {%- endif %}

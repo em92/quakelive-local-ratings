@@ -36,18 +36,28 @@ class TestMatches(AppTestCase):
             self.upload_match_report_and_assert_success(sample_name, match_id)
 
     def test_matches_all(self):
-        r = self.test_cli.get("/matches/")
-        print(r.text)
-        r = self.test_cli.get("/matches/1")
-        print(r.text)
-        r = self.test_cli.get("/matches/ad")
-        print(r.text)
-        r = self.test_cli.get("/matches/ad/1")
-        print(r.text)
-        r = self.test_cli.get("/matches/tdm")
-        print(r.text)
-        r = self.test_cli.get("/matches/tdm/1")
-        print(r.text)
-        r = self.test_cli.get("/matches/player/76561198260599288")
-        print(r.text)
+        cases = [
+            ("/matches/", 0, None, 2),
+            ("/matches/1", 1, None, 2),
+            ("/matches/ad", 0, "ad", 1),
+            ("/matches/ad/1", 1, "ad", 1),
+            ("/matches/tdm", 0, "tdm", 1),
+            ("/matches/player/76561198260599288", 0, None, 1)
+        ]
+        for case in cases:
+            uri = case[0]
+            page = case[1]
+            gametype = case[2]
+            page_count = case[3]
+            resp = self.test_cli.get(uri)
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.template.name, "match_list.html")
 
+            context = resp.context
+            self.assertIn('request', context)
+            self.assertIn('current_page', context)
+            self.assertIn('gametype', context)
+            self.assertIn('page_count', context)
+            self.assertEqual(context['current_page'], page)
+            self.assertEqual(context['gametype'], gametype)
+            self.assertEqual(context['page_count'], page_count)

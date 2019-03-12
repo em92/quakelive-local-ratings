@@ -61,3 +61,9 @@ class TestMatches(AppTestCase):
             self.assertEqual(context['current_page'], page)
             self.assertEqual(context['gametype'], gametype)
             self.assertEqual(context['page_count'], page_count)
+
+            sample_filename = "match_list_{}".format(cases.index(case)+1)
+            self.assertEqual(
+                context['matches'],
+                self.read_json_sample(sample_filename)
+            )

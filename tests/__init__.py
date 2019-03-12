@@ -7,6 +7,7 @@ from .test_scoreboard import TestScoreboard
 from .test_player import TestPlayer as TestZPlayer
 from .test_balance_api import TestBalanceApi as TestZBalanceApi
 from .test_matches import TestMatches as TestZZMatches
+from .test_ratings import TestRatings as TestZZRatings
 
 
 def suite():
@@ -18,6 +19,7 @@ def suite():
     r.addTest(TestZBalanceApi())
     r.addTest(TestZPlayer())
     r.addTest(TestZZMatches())
+    r.addTest(TestZZRatings())
     return r
 
 

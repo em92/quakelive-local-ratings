@@ -34,6 +34,10 @@ def handler(postgresql):
     conn.close()
 
 
+# force default timezone to pass tests on os with different local timezone setting
+pgsql_test.Postgresql.DEFAULT_SETTINGS['postgres_args'] += ' -c timezone=+5'
+
+
 PGSQLFactory = pgsql_test.PostgresqlFactory(
     cache_initialized_db=True,
     on_initialized=handler

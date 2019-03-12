@@ -46,5 +46,6 @@ cm.CONVERTOR_TYPES['match_id'] = MatchIdConvertor()
 from .balance_api import bp as balance_api  # noqa: F401
 from .matches import bp as matches  # noqa: F401
 from .player import bp as player  # noqa: F401
+from .ratings import bp as ratings
 from .submission import bp as submission  # noqa: F401
 from .scoreboard import bp as scoreboard  # noqa: F401

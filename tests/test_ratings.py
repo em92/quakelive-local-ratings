@@ -4,6 +4,8 @@ from .fixture import AppTestCase
 
 class TestRatings(AppTestCase):
 
+    ORDER = 5
+
     def test_ratings_ad(self):
         resp = self.test_cli.get("/ratings/ad")
         self.assertEqual(

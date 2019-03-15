@@ -4,6 +4,9 @@ from .fixture import AppTestCase
 
 class TestPlayer(AppTestCase):
 
+    maxDiff = None
+    ORDER = 3
+
     def setUp(self):
         cases = OrderedDict([
             ("sample04", "125f1bda-5502-4549-b5e7-4e4ab01386df"),

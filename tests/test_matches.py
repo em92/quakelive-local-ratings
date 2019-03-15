@@ -4,6 +4,8 @@ from .fixture import AppTestCase
 
 class TestMatches(AppTestCase):
 
+    ORDER = 4
+
     def setUp(self):
         cases = OrderedDict([
             ("sample16", "c51c6bb7-9be2-455d-aef0-dcad07a9b4d1"),

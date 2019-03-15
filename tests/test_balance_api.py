@@ -2,6 +2,9 @@ from .fixture import AppTestCase
 
 
 class TestBalanceApi(AppTestCase):
+
+    ORDER = 2
+
     steam_ids = [
         "76561198043212328",  # shire
         "76561198257384619",  # HanzoHasashiSan

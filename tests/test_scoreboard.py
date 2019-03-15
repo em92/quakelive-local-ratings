@@ -4,6 +4,8 @@ from .fixture import AppTestCase
 
 class TestScoreboard(AppTestCase):
 
+    ORDER = 2
+
     def test_sample2_scoreboard_json(self):
         # TODO: make sure, sample2 is uploaded
         self.assert_scoreboard_equals_sample("44c479b9-fdbd-4674-b5bd-a56ef124e48c", "scoreboard_after_sample02.json")

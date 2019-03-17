@@ -40,9 +40,11 @@ class Endpoint(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         # check for valid gametype
         if request.path_params and 'gametype' in request.path_params:
-            request.path_params['gametype'] = request.path_params['gametype'].lower()
-            if request.path_params['gametype'] not in cache.GAMETYPE_IDS:
-                raise HTTPException(404, "invalid gametype: {}".format(request.path_params['gametype']))
+            gametype = request.path_params['gametype'] = request.path_params['gametype'].lower()
+            if gametype not in cache.GAMETYPE_IDS:
+                raise HTTPException(404, "invalid gametype: {}".format(gametype))
+            else:
+                request.path_params['gametype_id'] = cache.GAMETYPE_IDS[gametype]
 
         self.last_req_time = parsedate(request.headers.get("if-modified-since"))
 

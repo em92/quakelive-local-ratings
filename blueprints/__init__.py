@@ -8,12 +8,12 @@ from starlette.exceptions import HTTPException
 
 
 class SteamIdsConvertor(cm.Convertor):
-    regex = r"[0-9+]+"
+    regex = r"[0-9+\ ,]+"
 
     def convert(self, value: str) -> Any:
         if not value:
             raise HTTPException(422, "No steam ids given")
-        ids = value.split("+")
+        ids = value.replace(" ", "+").replace(",", "+").split("+")
         bad_ids = list(filter(lambda steam_id: not steam_id.isnumeric(), ids))
         if bad_ids:
             raise HTTPException(422, "Invalid steam ids: {0}".format(", ".join(bad_ids)))

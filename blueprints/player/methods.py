@@ -93,7 +93,7 @@ async def get_player_info(steam_id: int):
             GROUP BY map_id
         ) t
         LEFT JOIN maps ON maps.map_id = t.map_id
-        ORDER BY n DESC
+        ORDER BY maps.map_id ASC, n DESC
         LIMIT 1
         """
         row = await con.fetchval(query, steam_id)

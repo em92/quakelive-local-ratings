@@ -19,6 +19,7 @@ app.mount('/scoreboard', bp.scoreboard)
 app.mount('/player', bp.player)
 app.mount('/ratings', bp.ratings)
 app.mount('/matches', bp.matches)
+app.mount('/steam_api', bp.steam_api)
 app.mount('', WSGIMiddleware(old_app.wsgi_app))
 
 

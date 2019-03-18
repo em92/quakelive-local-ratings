@@ -82,9 +82,12 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(json['ok'], True)
 
     def read_json_sample(self, sample_filename: str) -> typing.Dict:
-        with gzip.open(self.module_path + "/samples/" + sample_filename + ".json.gz") as f:
+        return json.loads(self.read_sample(sample_filename + ".json"))
+
+    def read_sample(self, sample_filename: str) -> str:
+        with gzip.open(self.module_path + "/samples/" + sample_filename + ".gz") as f:
             result = f.read()
-        return json.loads(result.decode('utf-8'))
+        return result.decode('utf-8')
 
     def read_scoreboard(self, filename: str) -> typing.Dict:
         with gzip.open(self.module_path + "/match_samples/" + filename + ".gz") as f:

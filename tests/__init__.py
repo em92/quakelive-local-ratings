@@ -9,6 +9,7 @@ from .test_balance_api import TestBalanceApi as TestZBalanceApi
 from .test_matches import TestMatches as TestZZMatches
 from .test_ratings import TestRatings as TestZZRatings
 from .test_steam_api import TestSteamApi as TestZZSteamApi
+from .test_export_ratings import TestExportRatings as TestZZZExportRatings
 
 
 def suite():
@@ -22,6 +23,7 @@ def suite():
     r.addTest(TestZZMatches())
     r.addTest(TestZZRatings())
     r.addTest(TestZZSteamApi())
+    r.addTest(TestZZZExportRatings())
     return r
 
 

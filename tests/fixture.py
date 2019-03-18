@@ -46,6 +46,8 @@ PGSQLFactory = pgsql_test.PostgresqlFactory(
 postgresql = PGSQLFactory()
 os.environ["DATABASE_URL"] = postgresql.url()
 
+settings['use_avg_perf_tdm'] = True
+
 sys.path.append(sys.path[0] + "/..")
 from main import app  # noqa: E402
 

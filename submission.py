@@ -188,7 +188,7 @@ def count_multiple_players_match_perf(gametype, all_players_data, match_duration
     return result
 
 
-def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
+async def post_process_avg_perf(con: Connection, match_id: str, gametype_id: int, match_timestamp: int):
     """
     Updates players' ratings after playing match_id (using avg. perfomance)
 
@@ -201,86 +201,96 @@ def post_process_avg_perf(cu, match_id, gametype_id, match_timestamp):
             return 1
 
     global LAST_GAME_TIMESTAMPS
-    cu.execute(
-        "SELECT s.steam_id, team, match_perf, gr.mean FROM scoreboards s LEFT JOIN gametype_ratings gr ON gr.steam_id = s.steam_id AND gr.gametype_id = %s WHERE match_perf IS NOT NULL AND match_id = %s",
-        [gametype_id, match_id],
-    )
+    query = '''
+    SELECT s.steam_id, team, match_perf, gr.mean
+    FROM scoreboards s
+    LEFT JOIN gametype_ratings gr ON gr.steam_id = s.steam_id AND gr.gametype_id = $1
+    WHERE match_perf IS NOT NULL AND match_id = $2
+    '''
 
-    rows = cu.fetchall()
-    for row in rows:
+    async for row in con.cursor(query, gametype_id, match_id):
         steam_id = row[0]
         team = row[1]
         match_perf = row[2]
         old_rating = row[3]
 
-        cu.execute(
-            "UPDATE scoreboards SET old_mean = %s, old_deviation = 0 WHERE match_id = %s AND steam_id = %s AND team = %s",
-            [old_rating, match_id, steam_id, team],
-        )
-        assert cu.rowcount == 1
+        query = '''
+        UPDATE scoreboards
+        SET old_mean = $1, old_deviation = 0
+        WHERE match_id = $2 AND steam_id = $3 AND team = $4
+        '''
+        rowcount = await con.execute(query, old_rating, match_id, steam_id, team)
+        assert rowcount == "UPDATE 1"
 
-        if old_rating == None:
+        if old_rating is None:
             new_rating = match_perf
         else:
-            query_string = """
-      SELECT
-        COUNT(1),
-        SUM(win) as wins,
-        SUM(loss) as losses,
-        AVG(rating)
-      FROM (
-        SELECT
-          CASE
-            WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 1
-            WHEN m.team2_score > m.team1_score AND s.team = 2 THEN 1
-            ELSE 0
-          END as win,
-          CASE
-            WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 0
-            WHEN m.team2_score > m.team1_score AND s.team = 2 THEN 0
-            ELSE 1
-          END as loss,
-          s.match_perf as rating
-        FROM
-          matches m
-        LEFT JOIN
-          scoreboards s on s.match_id = m.match_id
-        WHERE
-          s.steam_id = %s AND
-          m.gametype_id = %s AND
-          (m.post_processed = TRUE OR m.match_id = %s) AND
-          s.match_perf IS NOT NULL
-        ORDER BY m.timestamp DESC
-        LIMIT %s
-      ) t"""
-            cu.execute(
-                query_string, [steam_id, gametype_id, match_id, MOVING_AVG_COUNT]
-            )
-            row = cu.fetchone()
+            query = """
+            SELECT
+                COUNT(1),
+                SUM(win) as wins,
+                SUM(loss) as losses,
+                AVG(rating)
+            FROM (
+                SELECT
+                    CASE
+                        WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 1
+                        WHEN m.team2_score > m.team1_score AND s.team = 2 THEN 1
+                        ELSE 0
+                    END as win,
+                    CASE
+                        WHEN m.team1_score > m.team2_score AND s.team = 1 THEN 0
+                        WHEN m.team2_score > m.team1_score AND s.team = 2 THEN 0
+                        ELSE 1
+                    END as loss,
+                    s.match_perf as rating
+                FROM
+                    matches m
+                LEFT JOIN
+                    scoreboards s on s.match_id = m.match_id
+                WHERE
+                    s.steam_id = $1 AND
+                    m.gametype_id = $2 AND
+                    (m.post_processed = TRUE OR m.match_id = $3) AND
+                    s.match_perf IS NOT NULL
+                ORDER BY m.timestamp DESC
+                LIMIT {MOVING_AVG_COUNT}
+            ) t""".format(MOVING_AVG_COUNT=MOVING_AVG_COUNT)
+
+            row = await con.fetchrow(query, steam_id, gametype_id, match_id)
             gametype = [k for k, v in GAMETYPE_IDS.items() if v == gametype_id][0]
             new_rating = row[3] * extra_factor(gametype, row[0], row[1], row[2])
 
-        cu.execute(
-            "UPDATE scoreboards SET new_mean = %s, new_deviation = 0 WHERE match_id = %s AND steam_id = %s AND team = %s",
-            [new_rating, match_id, steam_id, team],
-        )
-        assert cu.rowcount == 1
+        query = """
+        UPDATE scoreboards
+        SET new_mean = $1, new_deviation = 0
+        WHERE match_id = $2 AND steam_id = $3 AND team = $4
+        """
+        rowcount = await con.execute(query, new_rating, match_id, steam_id, team)
+        assert rowcount == "UPDATE 1"
 
-        cu.execute(
-            "UPDATE gametype_ratings SET mean = %s, deviation = 0, n = n + 1, last_played_timestamp = %s WHERE steam_id = %s AND gametype_id = %s",
-            [new_rating, match_timestamp, steam_id, gametype_id],
-        )
-        if cu.rowcount == 0:
-            cu.execute(
-                "INSERT INTO gametype_ratings (steam_id, gametype_id, mean, deviation, last_played_timestamp, n) VALUES (%s, %s, %s, 0, %s, 1)",
-                [steam_id, gametype_id, new_rating, match_timestamp],
-            )
-        assert cu.rowcount == 1
+        query = '''
+        UPDATE gametype_ratings
+        SET mean = $1, deviation = 0, n = n + 1, last_played_timestamp = $2
+        WHERE steam_id = $3 AND gametype_id = $4
+        '''
+        rowcount = await con.execute(query, new_rating, match_timestamp, steam_id, gametype_id)
+        if rowcount == "UPDATE 0":
+            query = '''
+            INSERT INTO gametype_ratings
+            (steam_id, gametype_id, mean, deviation, last_played_timestamp, n)
+            VALUES
+            ($1, $2, $3, 0, $4, 1)
+            '''
+            rowcount = await con.execute(query, steam_id, gametype_id, new_rating, match_timestamp)
+            assert rowcount == "INSERT 0 1"
+        else:
+            assert rowcount == "UPDATE 1"
 
-    cu.execute(
-        "UPDATE matches SET post_processed = TRUE WHERE match_id = %s", [match_id]
+    rowcount = await con.execute(
+        "UPDATE matches SET post_processed = TRUE WHERE match_id = $1", match_id
     )
-    assert cu.rowcount == 1
+    assert rowcount == "UPDATE 1"
 
     LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
 

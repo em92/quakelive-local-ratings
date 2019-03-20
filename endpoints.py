@@ -52,9 +52,15 @@ class Endpoint(HTTPEndpoint):
 
         dbpool = await get_db_pool()
         con = await dbpool.acquire()
-        async with con.transaction():
+        tr = con.transaction()
+        await tr.start()
+
+        try:
             await self.try_fast_response(request, con)
             return await self.get_common_response(request, con)
+        finally:
+            await tr.rollback()
+            await dbpool.release(con)
 
     def get_last_site_modified(self, request: Request):
         if 'gametype' in request.path_params:

@@ -69,3 +69,12 @@ class TestMatches(AppTestCase):
                 context['matches'],
                 self.read_json_sample(sample_filename)
             )
+    '''
+
+    def test_old_routes(self):
+        assert 0
+        resp = self.test_cli.get("/player/123/matches/blablabla/456/", allow_redirects=False)
+        self.assertTrue(resp.headers['Location'].endswith("/matches/player/123/blablabla/456"))
+
+        resp = self.test_cli.get("/player/123/matches/blablabla/456/", allow_redirects=False)
+        self.assertTrue(resp.headers['Location'].endswith("/matches/player/123/blablabla/456"))

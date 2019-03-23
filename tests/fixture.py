@@ -140,8 +140,12 @@ class AppTestCase(unittest.TestCase):
         return json.loads(self.read_sample(sample_filename + ".json"))
 
     def read_sample(self, sample_filename: str) -> str:
-        with gzip.open(self.module_path + "/samples/" + sample_filename + ".gz") as f:
-            result = f.read()
+        try:
+            with open(self.module_path + "/samples/" + sample_filename, 'rb') as f:
+                result = f.read()
+        except FileNotFoundError:
+            with gzip.open(self.module_path + "/samples/" + sample_filename + ".gz") as f:
+                result = f.read()
         return result.decode('utf-8')
 
     def read_scoreboard(self, filename: str) -> typing.Dict:

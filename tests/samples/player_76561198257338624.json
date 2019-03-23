@@ -1,0 +1,137 @@
+{
+  "ok": true,
+  "response": {
+    "fav": {
+      "gt": "Attack & Defend",
+      "map": "ump2ctf5",
+      "wpn": "Railgun"
+    },
+    "matches": [
+      {
+        "datetime": "2019-02-26 01:48 +05",
+        "gametype": "ad",
+        "map": "bigdm6",
+        "match_id": "39ac0a42-55a6-44b4-ac06-69571db6bc31",
+        "result": "Loss",
+        "team1_score": 14,
+        "team2_score": 11,
+        "timestamp": 1551127724
+      },
+      {
+        "datetime": "2019-02-26 01:22 +05",
+        "gametype": "ad",
+        "map": "stonekeep",
+        "match_id": "93a0b31f-4326-4971-ae51-8ddd97b74b83",
+        "result": "Win",
+        "team1_score": 15,
+        "team2_score": 5,
+        "timestamp": 1551126146
+      },
+      {
+        "datetime": "2019-02-26 01:00 +05",
+        "gametype": "ad",
+        "map": "industrialrevolution",
+        "match_id": "6ba4f41b-17bd-45dc-883e-9dacb49f3092",
+        "result": "Win",
+        "team1_score": 7,
+        "team2_score": 11,
+        "timestamp": 1551124813
+      },
+      {
+        "datetime": "2019-02-26 00:38 +05",
+        "gametype": "ad",
+        "map": "ump1ctf7",
+        "match_id": "5185e664-e476-49ba-953d-a6d59080d50b",
+        "result": "Loss",
+        "team1_score": 5,
+        "team2_score": 16,
+        "timestamp": 1551123483
+      },
+      {
+        "datetime": "2018-12-30 02:11 +05",
+        "gametype": "ad",
+        "map": "q3wcp11",
+        "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+        "result": "Win",
+        "team1_score": 13,
+        "team2_score": 10,
+        "timestamp": 1546117867
+      },
+      {
+        "datetime": "2018-12-30 00:56 +05",
+        "gametype": "ad",
+        "map": "japanesecastles",
+        "match_id": "44c479b9-fdbd-4674-b5bd-a56ef124e48c",
+        "result": "Loss",
+        "team1_score": 11,
+        "team2_score": 9,
+        "timestamp": 1546113404
+      },
+      {
+        "datetime": "2018-11-01 00:06 +05",
+        "gametype": "ad",
+        "map": "ump2ctf5",
+        "match_id": "69770ca5-943c-491d-931e-720c5474d33b",
+        "result": "Win",
+        "team1_score": 6,
+        "team2_score": 11,
+        "timestamp": 1541012801
+      }
+    ],
+    "name": "indie",
+    "ratings": [
+      {
+        "gametype": "Attack & Defend",
+        "gametype_short": "ad",
+        "n": 4,
+        "rating": 29.33,
+        "rating_d": 7.78
+      }
+    ],
+    "weapon_stats": [
+      {
+        "acc": 10,
+        "frags": 1,
+        "name": "Machine Gun",
+        "short": "mg"
+      },
+      {
+        "acc": 25,
+        "frags": 4,
+        "name": "Shotgun",
+        "short": "sg"
+      },
+      {
+        "acc": 7,
+        "frags": 0,
+        "name": "Grenade Launcher",
+        "short": "gl"
+      },
+      {
+        "acc": 18,
+        "frags": 13,
+        "name": "Rocket Launcher",
+        "short": "rl"
+      },
+      {
+        "acc": 36,
+        "frags": 10,
+        "name": "Lightning Gun",
+        "short": "lg"
+      },
+      {
+        "acc": 31,
+        "frags": 23,
+        "name": "Railgun",
+        "short": "rg"
+      },
+      {
+        "acc": 3,
+        "frags": 1,
+        "name": "Plasma Gun",
+        "short": "pg"
+      }
+    ]
+  },
+  "title": "indie"
+}

@@ -60,9 +60,14 @@ async def get_player_info(con: Connection, steam_id: int):
         FROM (
             SELECT weapon_id, frags, hits, shots
             FROM scoreboards_weapons sw
-            LEFT JOIN matches m ON m.match_id = sw.match_id
+            LEFT JOIN ( -- TODO: need to change from LEFT JOIN to WHERE match_id IN
+                SELECT m.match_id
+                FROM matches m
+                LEFT JOIN scoreboards s ON s.match_id = m.match_id
+                WHERE steam_id = $2
+                ORDER BY timestamp DESC LIMIT $1
+            ) m ON m.match_id = sw.match_id
             WHERE sw.steam_id = $2
-            ORDER BY timestamp DESC LIMIT $1
         ) sw
         GROUP BY weapon_id
     ) t

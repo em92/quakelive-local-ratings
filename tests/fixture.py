@@ -148,28 +148,9 @@ class AppTestCase(unittest.TestCase):
                 result = f.read()
         return result.decode('utf-8')
 
-    def read_scoreboard(self, filename: str) -> typing.Dict:
-        with gzip.open(self.module_path + "/match_samples/" + filename + ".gz") as f:
-            result = f.read()
-        return json.loads(result.decode('utf-8'))
-
     def assert_scoreboard_equals_sample(self, match_id: str, sample_filename: str):
         obj_defacto = self.test_cli.get("/scoreboard/{0}.json".format(match_id)).json()
-        obj_expected = self.read_scoreboard(sample_filename)
-        self.assertDictEqual(obj_defacto, obj_expected)
-
-    def assert_scoreboard_html_equals_sample(self, match_id: str, sample_filename: str):
-        resp = self.test_cli.get("/scoreboard/{0}".format(match_id))
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.template.name, "scoreboard.html")
-        context = resp.context
-        self.assertIn('request', context)
-        self.assertIn('match_id', context)
-        self.assertEqual(context['match_id'], match_id)
-        del context['request']
-        del context['match_id']
-        obj_defacto = context
-        obj_expected = self.read_scoreboard(sample_filename)
+        obj_expected = self.read_json_sample(sample_filename)
         self.assertDictEqual(obj_defacto, obj_expected)
 
     def assert_lists_have_same_elements(self, L1: list, L2: list):

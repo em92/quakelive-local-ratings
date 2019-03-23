@@ -173,7 +173,7 @@ async def get_scoreboard(con: Connection, match_id: str):
         ) ms ON ms.steam_id = t.steam_id AND ms.team = t.team
         WHERE
             t.match_id = $1
-        ORDER BY t.score DESC
+        ORDER BY t.score DESC, t.steam_id ASC
     ) t
     """
     overall_stats = await con.fetchval(query, match_id)

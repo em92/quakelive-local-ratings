@@ -1,0 +1,51 @@
+{
+  "ok": true,
+  "player": {
+    "_id": "76561198257338624",
+    "ad": {
+      "history": [
+        {
+          "match_id": "69770ca5-943c-491d-931e-720c5474d33b",
+          "rating": 1,
+          "timestamp": 1541012801
+        },
+        {
+          "match_id": "44c479b9-fdbd-4674-b5bd-a56ef124e48c",
+          "rating": 25.0,
+          "timestamp": 1546113404
+        },
+        {
+          "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+          "rating": 24.07,
+          "timestamp": 1546117867
+        },
+        {
+          "match_id": "5185e664-e476-49ba-953d-a6d59080d50b",
+          "rating": 24.07,
+          "timestamp": 1551123483
+        },
+        {
+          "match_id": "6ba4f41b-17bd-45dc-883e-9dacb49f3092",
+          "rating": 25.74,
+          "timestamp": 1551124813
+        },
+        {
+          "match_id": "93a0b31f-4326-4971-ae51-8ddd97b74b83",
+          "rating": 27.52,
+          "timestamp": 1551126146
+        },
+        {
+          "match_id": "39ac0a42-55a6-44b4-ac06-69571db6bc31",
+          "rating": 27.52,
+          "timestamp": 1551127724
+        }
+      ],
+      "max_rank": null,
+      "n": 4,
+      "rank": null,
+      "rating": 29.33
+    },
+    "model": "xaero",
+    "name": "indie"
+  }
+}

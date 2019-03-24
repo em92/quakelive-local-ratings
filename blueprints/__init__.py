@@ -51,3 +51,4 @@ from .ratings import bp as ratings
 from .submission import bp as submission  # noqa: F401
 from .scoreboard import bp as scoreboard  # noqa: F401
 from .steam_api import bp as steam_api  # noqa: F401
+from .deprecated import bp as deprecated  # noqa: F401

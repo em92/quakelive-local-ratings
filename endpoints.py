@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from calendar import timegm
 from time import gmtime
 from email.utils import parsedate, formatdate
 from db import cache, get_db_pool
@@ -20,8 +21,7 @@ class Endpoint(HTTPEndpoint):
         if self.last_req_time is None:
             return
 
-        last_modified = self.get_last_site_modified()
-        last_modified = gmtime(last_modified)[:]
+        last_modified = self.get_last_site_modified(request)
 
         if self.last_req_time >= last_modified:
             raise HTTPException(304)
@@ -47,6 +47,8 @@ class Endpoint(HTTPEndpoint):
                 request.path_params['gametype_id'] = cache.GAMETYPE_IDS[gametype]
 
         self.last_req_time = parsedate(request.headers.get("if-modified-since"))
+        if self.last_req_time:
+            self.last_req_time = self.last_req_time[0:6]
 
         self.try_very_fast_response(request)
 
@@ -62,12 +64,13 @@ class Endpoint(HTTPEndpoint):
             await tr.rollback()
             await dbpool.release(con)
 
-    def get_last_site_modified(self, request: Request):
+    def get_last_site_modified(self, request: Request) -> Tuple:
         if 'gametype' in request.path_params:
-            return cache.LAST_GAME_TIMESTAMPS[request.path_params["gametype"]]
+            r = cache.LAST_GAME_TIMESTAMPS[request.path_params["gametype"]]
         else:
             # TODO: move it to cache.LAST_GAME_TIMESTAMP
-            return max(cache.LAST_GAME_TIMESTAMPS.values())
+            r = max(cache.LAST_GAME_TIMESTAMPS.values())
+        return gmtime(r)[0:6]
 
     async def get_last_doc_modified(self, request: Request, con: Connection) -> Tuple:
         if self.last_mod_time:
@@ -78,7 +81,7 @@ class Endpoint(HTTPEndpoint):
 
     async def get_common_response(self, request: Request, con: Connection) -> Response:
         resp = await self._get(request, con)
-        resp.headers['Last-Modified'] = formatdate(await self._get_last_doc_modified(request, con), usegmt=True)
+        resp.headers['Last-Modified'] = formatdate(timegm(await self._get_last_doc_modified(request, con)), usegmt=True)
         return resp
 
     async def _get(self, request: Request, con: Connection) -> Response:

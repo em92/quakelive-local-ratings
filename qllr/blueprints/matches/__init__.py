@@ -21,13 +21,13 @@ bp = App()
 
 
 @bp.route("/")
-@bp.route("/{gametype}")
-@bp.route("/{gametype}/{page:int}")
-@bp.route("/player/{steam_id:int}")
-@bp.route("/player/{steam_id:int}/{gametype}")
-@bp.route("/player/{steam_id:int}/{gametype}/{page:int}")
-@bp.route("/player/{steam_id:int}/{page:int}")
-@bp.route("/{page:int}")
+@bp.route("/{gametype}/")
+@bp.route("/{gametype}/{page:int}/")
+@bp.route("/player/{steam_id:int}/")
+@bp.route("/player/{steam_id:int}/{gametype}/")
+@bp.route("/player/{steam_id:int}/{gametype}/{page:int}/")
+@bp.route("/player/{steam_id:int}/{page:int}/")
+@bp.route("/{page:int}/")
 class MatchesHtml(Endpoint):
     async def _get(self, request: Request, con: Connection):
         gametype = request.path_params.get('gametype', None)

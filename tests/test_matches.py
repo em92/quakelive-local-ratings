@@ -9,11 +9,11 @@ class TestMatches(AppTestCase):
     def test_matches_all(self):
         cases = [
             ("/matches/", 0, None, 2),
-            ("/matches/1", 1, None, 2),
-            ("/matches/ad", 0, "ad", 1),
-            ("/matches/ad/1", 1, "ad", 1),
-            ("/matches/tdm", 0, "tdm", 1),
-            ("/matches/player/76561198260599288", 0, None, 1)
+            ("/matches/1/", 1, None, 2),
+            ("/matches/ad/", 0, "ad", 1),
+            ("/matches/ad/1/", 1, "ad", 1),
+            ("/matches/tdm/", 0, "tdm", 1),
+            ("/matches/player/76561198260599288/", 0, None, 1)
         ]
         for case in cases:
             uri = case[0]

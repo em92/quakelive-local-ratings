@@ -8,6 +8,12 @@ from .common import logger
 
 
 class Settings:
+  _instance = None
+  def __new__(cls):
+    if not isinstance(cls._instance, cls):
+      cls._instance = object.__new__(cls)
+    return cls._instance
+
   def __init__(self):
     self._conf = {
       "db_url": "postgres://eugene:bebebe@localhost:5432/qllr",

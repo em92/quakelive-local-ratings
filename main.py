@@ -5,9 +5,11 @@ from db import create_pool
 
 from starlette.middleware.wsgi import WSGIMiddleware
 from starlette.staticfiles import StaticFiles
+from starlette.responses import RedirectResponse
 
 from app import App
 from old_main import app as old_app
+from starlette.requests import Request
 
 app = App(debug=True)
 app.mount('/static', StaticFiles(directory="static"), name='static')
@@ -23,6 +25,11 @@ app.mount('/steam_api', bp.steam_api)
 app.mount('/export_rating', bp.export_rating)
 app.mount('/deprecated', bp.deprecated)
 app.mount('', WSGIMiddleware(old_app.wsgi_app))
+
+
+@app.route('/')
+def http_root(request: Request):
+    return RedirectResponse(request.url_for('MatchesHtml'))
 
 
 if __name__ == "__main__":

@@ -86,39 +86,37 @@ class Cache:
         self._medals = []
         self._weapon_ids = {}
         self._weapons = []
-        self.LAST_GAME_TIMESTAMPS = {}
 
-        dbpool = run_sync(get_db_pool())
-        con = run_sync(dbpool.acquire())
-        tr = con.transaction()
-        run_sync(tr.start())
-
-        try:
-            run_sync(self._init(con))
-        finally:
-            run_sync(tr.rollback())
-            run_sync(dbpool.release(con))
-
-    async def _init(self, con: Connection):
-        async for row in con.cursor("SELECT gametype_id, gametype_short, gametype_name FROM gametypes"):
+        db = db_connect()
+        cu = db.cursor()
+        cu.execute("SELECT gametype_id, gametype_short, gametype_name FROM gametypes")
+        for row in cu.fetchall():
             self._gametype_ids[row[1]] = row[0]
             self._gametype_names[row[1]] = row[2]
 
         self.LAST_GAME_TIMESTAMPS = SurjectionDict(self._gametype_ids)
 
-        async for row in con.cursor("SELECT medal_id, medal_short FROM medals ORDER BY medal_id"):
+        cu.execute("SELECT medal_id, medal_short FROM medals ORDER BY medal_id")
+        for row in cu.fetchall():
             self._medal_ids[row[1]] = row[0]
             self._medals.append(row[1])
 
-        async for row in con.cursor("SELECT weapon_id, weapon_short FROM weapons ORDER BY weapon_id"):
+        cu.execute("SELECT weapon_id, weapon_short FROM weapons ORDER BY weapon_id")
+        for row in cu.fetchall():
             self._weapon_ids[row[1]] = row[0]
             self._weapons.append(row[1])
 
         for gametype_short, gametype_id in self._gametype_ids.items():
             self.LAST_GAME_TIMESTAMPS[gametype_id] = 0
-            r = await con.fetchval("SELECT timestamp FROM matches WHERE gametype_id = $1 ORDER BY timestamp DESC LIMIT 1", gametype_id)
-            if r:
-                self.LAST_GAME_TIMESTAMPS[gametype_id] = r
+            cu.execute(
+                "SELECT timestamp FROM matches WHERE gametype_id = %s ORDER BY timestamp DESC LIMIT 1",
+                [gametype_id],
+            )
+            for row in cu.fetchall():
+                self.LAST_GAME_TIMESTAMPS[gametype_id] = row[0]
+
+        cu.close()
+        db.close()
 
     @property
     def GAMETYPE_IDS(self):

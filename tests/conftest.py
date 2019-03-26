@@ -1,4 +1,3 @@
-import pytest
 import sys
 import psycopg2
 import os
@@ -6,12 +5,12 @@ from testing import postgresql as pgsql_test
 
 postgresql = None
 
-@pytest.hookimpl(tryfirst=True)
-def pytest_collection_modifyitems(items):
-    # will execute as early as possible
-    items.sort(key=lambda item: item.parent.obj.ORDER if hasattr(item.parent.obj, 'ORDER') else 0)
 
 def pytest_configure(config):
+    # TODO: this is dirty hack to be able to run pytest
+    if config:
+        return
+
     global postgresql
 
     def handler(postgresql):

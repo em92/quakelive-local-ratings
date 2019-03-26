@@ -1,4 +1,6 @@
 import unittest
+from .conftest import pytest_configure
+pytest_configure(None)
 
 from .test_app_common import TestAppCommon
 from .test_cache import TestCache

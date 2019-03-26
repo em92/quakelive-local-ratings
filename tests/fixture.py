@@ -1,17 +1,13 @@
 import gzip
 import json
 import os
-import sys
 import typing
 import unittest
-import psycopg2
 import asyncio
 from collections import OrderedDict
 
 from starlette.testclient import TestClient
 
-from testing import postgresql as pgsql_test
-from conf import settings
 from qllr import app
 
 
@@ -22,36 +18,6 @@ def unasync(f):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(future)
     return wrapper
-
-
-def handler(postgresql):
-    f = open(os.path.dirname(os.path.realpath(__file__)) + "/../sql/init.sql")
-    sql_query = f.read()
-    f.close()
-    conn = psycopg2.connect(**postgresql.dsn())
-    cursor = conn.cursor()
-    cursor.execute(sql_query)
-    cursor.close()
-    conn.commit()
-    conn.close()
-
-
-# force default timezone to pass tests on os with different local timezone setting
-pgsql_test.Postgresql.DEFAULT_SETTINGS['postgres_args'] += ' -c timezone=+5'
-
-
-PGSQLFactory = pgsql_test.PostgresqlFactory(
-    cache_initialized_db=True,
-    on_initialized=handler
-)
-
-postgresql = PGSQLFactory()
-os.environ["DATABASE_URL"] = postgresql.url()
-
-settings['use_avg_perf_tdm'] = True
-
-sys.path.append(sys.path[0] + "/..")
-from main import app  # noqa: E402
 
 
 class AppTestCase(unittest.TestCase):

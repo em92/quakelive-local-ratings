@@ -1,6 +1,6 @@
 import unittest
 
-from db import cache
+from qllr.db import cache
 
 
 class TestCache(unittest.TestCase):

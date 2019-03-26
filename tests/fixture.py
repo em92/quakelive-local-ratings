@@ -12,6 +12,7 @@ from starlette.testclient import TestClient
 
 from testing import postgresql as pgsql_test
 from conf import settings
+from qllr import app
 
 
 def unasync(f):

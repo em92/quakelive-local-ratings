@@ -38,4 +38,5 @@ class MatchesHtml(Endpoint):
         context['request'] = request
         context['gametype'] = gametype
         context['current_page'] = page
+        context['steam_id'] = steam_id
         return templates.TemplateResponse("match_list.html", context)

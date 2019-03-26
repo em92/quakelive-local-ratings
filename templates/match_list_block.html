@@ -14,7 +14,7 @@
         {% if gametype %}
           {{ item['gametype'] }}
         {% else %}
-          <a href="{{ url_for('MatchesHtml', gametype = item['gametype']) }}">{{ item['gametype'] }}</a>
+          <a href="{{ url_for('MatchesHtml', steam_id = steam_id, gametype = item['gametype']) }}">{{ item['gametype'] }}</a>
         {% endif %}
       </td>
       <td class="col-xs-3">{{ item['map'] }}</td>

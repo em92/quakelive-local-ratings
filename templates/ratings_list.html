@@ -29,9 +29,9 @@
   {% include "paginator.html" %}
   <br>
   <span>{% if show_inactive %}
-    <a href="{{ page_prefix }}">Hide inactive players</a>
+    <a href="{{ url_for(request.endpoint.__name__, gametype = gametype, page = current_page) }}">Hide inactive players</a>
   {% else %}
-    <a href="{{ page_prefix }}/?show_inactive=yes">Show inactive players</a>
+    <a href="{{ url_for(request.endpoint.__name__, gametype = gametype, page = current_page) }}?show_inactive=yes">Show inactive players</a>
   {% endif %}
   </span>
 </div>

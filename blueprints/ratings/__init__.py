@@ -31,4 +31,6 @@ class RatingsHtml(Endpoint):
 
         context = await get_list(con, gametype_id, page, show_inactive)
         context['request'] = request
+        context['current_page'] = page
+        context['gametype'] = request.path_params['gametype']
         return templates.TemplateResponse("ratings_list.html", context)

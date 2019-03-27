@@ -4,6 +4,7 @@ from starlette.applications import Starlette
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.routing import Route
 
 from .exceptions import (
     InvalidGametype,
@@ -12,6 +13,16 @@ from .exceptions import (
     PlayerNotFound
 )
 from .templating import templates
+
+
+# https://github.com/encode/starlette/issues/433
+def fixed_url_path_for(self, name: str, **path_params: str):
+    path_params = {k: v for k, v in path_params.items() if v is not None}
+    return self.bugged_url_path_for(name, **path_params)
+
+
+Route.bugged_url_path_for = Route.url_path_for
+Route.url_path_for = fixed_url_path_for
 
 
 async def http_exception_handler(request: Request, e: HTTPException):

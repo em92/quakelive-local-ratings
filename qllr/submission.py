@@ -5,7 +5,12 @@ from typing import Optional
 import trueskill
 
 from .common import log_exception
-from .conf import settings as cfg
+from .settings import (
+    MIN_PLAYER_COUNT_IN_MATCH_TO_RATE as MIN_PLAYER_COUNT_TO_RATE,
+    MOVING_AVG_COUNT,
+    USE_AVG_PERF,
+    RUN_POST_PROCESS
+)
 from .db import db_connect, cache, get_db_pool
 from .exceptions import *
 
@@ -16,9 +21,6 @@ GAMETYPE_IDS = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
 MEDAL_IDS = cache.MEDAL_IDS
 MIN_DURATION_TO_ADD = 60 * 5
-MIN_PLAYER_COUNT_TO_RATE = cfg.MIN_PLAYER_COUNT_TO_RATE
-MOVING_AVG_COUNT = cfg["moving_average_count"]
-USE_AVG_PERF = cfg.USE_AVG_PERF
 WEAPON_IDS = cache.WEAPON_IDS
 
 for gt, id in GAMETYPE_IDS.items():
@@ -528,7 +530,7 @@ async def submit_match(data):
                 match_duration,
                 team1_score,
                 team2_score,
-                cfg["run_post_process"],
+                RUN_POST_PROCESS,
             )
         except UniqueViolationError:
             raise MatchAlreadyExists(match_id)
@@ -620,7 +622,7 @@ async def submit_match(data):
                 )
 
         # post processing
-        if cfg["run_post_process"] == True:
+        if RUN_POST_PROCESS:
             await post_process(
                 con, match_id, GAMETYPE_IDS[data["game_meta"]["G"]], match_timestamp
             )

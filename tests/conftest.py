@@ -2,6 +2,7 @@ import sys
 import psycopg2
 import os
 from testing import postgresql as pgsql_test
+from starlette.config import environ
 
 postgresql = None
 
@@ -35,8 +36,7 @@ def pytest_configure(config):
     postgresql = PGSQLFactory()
     os.environ["DATABASE_URL"] = postgresql.url()
 
-    from qllr.conf import settings
-    settings['use_avg_perf_tdm'] = True
+    environ['USE_AVG_PERF_TDM'] = 'TRUE'
     sys.path.append(sys.path[0] + "/..")
 
 

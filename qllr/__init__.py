@@ -6,6 +6,7 @@ from starlette.responses import RedirectResponse
 
 from .app import App
 from .db import cache
+from .settings import PORT
 from starlette.requests import Request
 
 app = App(debug=True)
@@ -30,4 +31,5 @@ def http_root(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

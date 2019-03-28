@@ -2,11 +2,8 @@ import json
 from qllr.common import DATETIME_FORMAT, clean_name
 from asyncpg import Connection
 from functools import reduce
-from qllr.conf import settings
+from qllr.settings import MOVING_AVG_COUNT
 from qllr.exceptions import PlayerNotFound
-
-
-MOVING_AVG_COUNT = settings["moving_average_count"]
 
 
 async def get_player_info(con: Connection, steam_id: int):

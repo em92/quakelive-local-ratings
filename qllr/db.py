@@ -3,13 +3,11 @@
 
 from collections import OrderedDict, MutableMapping
 from urllib.parse import urlparse
-import os
 
 import psycopg2
 from asyncpg import pool, create_pool, Connection
-from .common import run_sync
 
-from .conf import settings
+from .settings import DATABASE_URL
 
 
 async def get_db_pool() -> pool:
@@ -17,7 +15,7 @@ async def get_db_pool() -> pool:
         return get_db_pool.cache
     except AttributeError:
         get_db_pool.cache = await create_pool(
-            dsn=os.environ.get("DATABASE_URL", settings["db_url"])
+            dsn=DATABASE_URL
         )
         return get_db_pool.cache
 
@@ -31,7 +29,7 @@ def take_away_null_values(params: OrderedDict) -> OrderedDict:
 
 
 def db_connect():
-    result = urlparse(os.environ.get("DATABASE_URL", settings["db_url"]))
+    result = urlparse(DATABASE_URL)
     username = result.username
     password = result.password
     database = result.path[1:]

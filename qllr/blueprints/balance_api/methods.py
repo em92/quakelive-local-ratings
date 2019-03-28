@@ -3,13 +3,12 @@
 import typing
 import requests
 from qllr.common import log_exception
-from qllr.conf import settings as cfg
+from qllr.settings import MOVING_AVG_COUNT
 from qllr.db import cache, get_db_pool
 from qllr.exceptions import InvalidGametype
 from qllr.submission import get_map_id
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
-MOVING_AVG_COUNT = cfg['moving_average_count']
 
 
 def prepare_result(players):

@@ -1,13 +1,12 @@
 from qllr.db import cache
-from qllr.conf import settings as cfg
 from qllr.common import MATCH_LIST_ITEM_COUNT
+from qllr.settings import PLAYER_COUNT_PER_PAGE
 from math import ceil
 from asyncpg import Connection
 import json
 
 KEEPING_TIME = 60 * 60 * 24 * 30
 
-MOVING_AVG_COUNT = cfg["moving_average_count"]
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
 
 SQL_TOP_PLAYERS_BY_GAMETYPE = """
@@ -45,8 +44,8 @@ async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=F
     )
 
     query = SQL_TOP_PLAYERS_BY_GAMETYPE + "LIMIT {LIMIT} OFFSET {OFFSET}".format(
-        LIMIT=int(cfg["player_count_per_page"]),
-        OFFSET=int(cfg["player_count_per_page"] * page)
+        LIMIT=int(PLAYER_COUNT_PER_PAGE),
+        OFFSET=int(PLAYER_COUNT_PER_PAGE * page)
     )
 
     start_timestamp = 0
@@ -100,5 +99,5 @@ async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=F
     return {
         "ok": True,
         "response": result,
-        "page_count": ceil(player_count / cfg["player_count_per_page"]),
+        "page_count": ceil(player_count / PLAYER_COUNT_PER_PAGE),
     }

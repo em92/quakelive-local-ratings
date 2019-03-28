@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from qllr.app import App
-from qllr.conf import settings as cfg
+from qllr.settings import RUN_POST_PROCESS
 from qllr.submission import submit_match  # TODO: перенеси в этот блупринт
 
 from starlette.exceptions import HTTPException
@@ -26,7 +26,7 @@ async def http_stats_submit(request: Request):
     if result["ok"] == False:
         raise HTTPException(422, result["message"])
     else:
-        if cfg['run_post_process'] == False:
+        if RUN_POST_PROCESS is False:
             raise HTTPException(202, result["message"])
         else:
             return JSONResponse(result)

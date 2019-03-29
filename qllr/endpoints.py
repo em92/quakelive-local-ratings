@@ -4,7 +4,7 @@ from calendar import timegm
 from time import gmtime
 from email.utils import parsedate, formatdate
 from .db import cache, get_db_pool
-from typing import Tuple
+from typing import Tuple, Optional
 
 from asyncpg import Connection
 from starlette.endpoints import HTTPEndpoint
@@ -17,7 +17,7 @@ class Endpoint(HTTPEndpoint):
     last_req_time = None
     last_mod_time = None
 
-    def try_very_fast_response(self, request: Request):
+    def try_very_fast_response(self, request: Request) -> Optional[Response]:
         if self.last_req_time is None:
             return
 
@@ -50,7 +50,9 @@ class Endpoint(HTTPEndpoint):
         if self.last_req_time:
             self.last_req_time = self.last_req_time[0:6]
 
-        self.try_very_fast_response(request)
+        resp = self.try_very_fast_response(request)
+        if resp:
+            return resp
 
         dbpool = await get_db_pool()
         con = await dbpool.acquire()

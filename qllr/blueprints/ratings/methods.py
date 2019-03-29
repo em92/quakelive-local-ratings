@@ -1,9 +1,11 @@
-from qllr.db import cache
-from qllr.common import MATCH_LIST_ITEM_COUNT
-from qllr.settings import PLAYER_COUNT_PER_PAGE
-from math import ceil
-from asyncpg import Connection
 import json
+from math import ceil
+
+from asyncpg import Connection
+
+from qllr.common import MATCH_LIST_ITEM_COUNT
+from qllr.db import cache
+from qllr.settings import PLAYER_COUNT_PER_PAGE
 
 KEEPING_TIME = 60 * 60 * 24 * 30
 
@@ -34,7 +36,9 @@ SQL_TOP_PLAYERS_BY_GAMETYPE = """
         )) AND
         gr.gametype_id = $2
     ORDER BY gr.mean DESC
-""".format(int(MATCH_LIST_ITEM_COUNT))
+""".format(
+    int(MATCH_LIST_ITEM_COUNT)
+)
 
 
 async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=False):
@@ -44,8 +48,7 @@ async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=F
     )
 
     query = SQL_TOP_PLAYERS_BY_GAMETYPE + "LIMIT {LIMIT} OFFSET {OFFSET}".format(
-        LIMIT=int(PLAYER_COUNT_PER_PAGE),
-        OFFSET=int(PLAYER_COUNT_PER_PAGE * page)
+        LIMIT=int(PLAYER_COUNT_PER_PAGE), OFFSET=int(PLAYER_COUNT_PER_PAGE * page)
     )
 
     start_timestamp = 0

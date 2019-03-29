@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
 from qllr.app import App
 from qllr.settings import RUN_POST_PROCESS
 from qllr.submission import submit_match  # TODO: перенеси в этот блупринт
-
-from starlette.exceptions import HTTPException
-from starlette.responses import JSONResponse
-from starlette.requests import Request
 
 bp = App()
 bp.json_only_mode = True
@@ -18,11 +18,16 @@ async def http_stats_submit(request: Request):
     if request.headers.get("X-D0-Blind-Id-Detached-Signature") != "dummy":
         raise HTTPException(403, "signature header invalid or not found")
 
-    if request.client.host not in ['::ffff:127.0.0.1', '::1', '127.0.0.1', 'testclient']:
+    if request.client.host not in [
+        "::ffff:127.0.0.1",
+        "::1",
+        "127.0.0.1",
+        "testclient",
+    ]:
         raise HTTPException(403, "non-loopback requests are not allowed")
 
     match_report = await request.body()
-    result = await submit_match(match_report.decode('utf-8'))
+    result = await submit_match(match_report.decode("utf-8"))
     if result["ok"] == False:
         raise HTTPException(422, result["message"])
     else:

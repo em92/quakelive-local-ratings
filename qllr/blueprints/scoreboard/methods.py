@@ -2,18 +2,16 @@
 
 import json
 
-from qllr.common import DATETIME_FORMAT
 from asyncpg import Connection
+
+from qllr.common import DATETIME_FORMAT
 from qllr.exceptions import MatchNotFound
 
 
 async def get_scoreboard(con: Connection, match_id: str):
 
     await con.set_type_codec(
-        'json',
-        encoder=json.dumps,
-        decoder=json.loads,
-        schema='pg_catalog'
+        "json", encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
     )
 
     query = """
@@ -204,10 +202,7 @@ async def get_scoreboard(con: Connection, match_id: str):
 
     return {
         "summary": summary,
-        "player_stats": {
-            "weapons": player_weapon_stats,
-            "medals": player_medal_stats,
-        },
+        "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
         "team_stats": {"overall": overall_stats},
         "weapons_available": weapons_available,
         "medals_available": medals_available,

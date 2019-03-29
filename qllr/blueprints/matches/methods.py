@@ -1,8 +1,10 @@
-from qllr.db import cache
-from qllr.common import DATETIME_FORMAT, clean_name
-from math import ceil
-from asyncpg import Connection
 import json
+from math import ceil
+
+from asyncpg import Connection
+
+from qllr.common import DATETIME_FORMAT, clean_name
+from qllr.db import cache
 from qllr.exceptions import InvalidGametype, PlayerNotFound
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
@@ -10,7 +12,9 @@ GAMETYPE_NAMES = cache.GAMETYPE_NAMES
 MATCH_LIST_ITEM_COUNT = 25
 
 
-async def get_last_matches(con: Connection, gametype=None, steam_id=None, page=0, from_ts=None, to_ts=None):
+async def get_last_matches(
+    con: Connection, gametype=None, steam_id=None, page=0, from_ts=None, to_ts=None
+):
     """
     Returns last matches
 
@@ -59,7 +63,9 @@ async def get_last_matches(con: Connection, gametype=None, steam_id=None, page=0
         title = "Recent {} games".format(GAMETYPE_NAMES[gametype])
 
     if steam_id:
-        row = await con.fetchval("SELECT name FROM players WHERE steam_id = $1", steam_id)
+        row = await con.fetchval(
+            "SELECT name FROM players WHERE steam_id = $1", steam_id
+        )
         if row is None:
             raise PlayerNotFound(steam_id)
 
@@ -69,7 +75,9 @@ async def get_last_matches(con: Connection, gametype=None, steam_id=None, page=0
         )
         params.append(steam_id)
         where_clauses.append(
-            "m.match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = ${})".format(len(params))
+            "m.match_id IN (SELECT match_id FROM scoreboards WHERE steam_id = ${})".format(
+                len(params)
+            )
         )
 
     where_clause_str = (
@@ -113,7 +121,11 @@ async def get_last_matches(con: Connection, gametype=None, steam_id=None, page=0
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN maps mm ON mm.map_id = m.map_id
     """.format(
-        WHERE_CLAUSE=where_clause_str, DATETIME_FORMAT=DATETIME_FORMAT, NOTHING="{}", OFFSET=int(offset), LIMIT=int(limit)
+        WHERE_CLAUSE=where_clause_str,
+        DATETIME_FORMAT=DATETIME_FORMAT,
+        NOTHING="{}",
+        OFFSET=int(offset),
+        LIMIT=int(limit),
     )
 
     row = await con.fetchval(query, *params)

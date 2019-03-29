@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from qllr.app import App
-from starlette.responses import JSONResponse, PlainTextResponse
-from starlette.requests import Request
-from qllr.endpoints import Endpoint
-from .methods import get_list
-from qllr.templating import templates
 from asyncpg import Connection
+from starlette.requests import Request
+from starlette.responses import JSONResponse, PlainTextResponse
+
+from qllr.app import App
+from qllr.endpoints import Endpoint
+from qllr.templating import templates
+
+from .methods import get_list
 
 bp = App()
 
@@ -30,7 +32,7 @@ class RatingsHtml(Endpoint):
             show_inactive = True
 
         context = await get_list(con, gametype_id, page, show_inactive)
-        context['request'] = request
-        context['current_page'] = page
-        context['gametype'] = request.path_params['gametype']
+        context["request"] = request
+        context["current_page"] = page
+        context["gametype"] = request.path_params["gametype"]
         return templates.TemplateResponse("ratings_list.html", context)

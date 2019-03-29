@@ -1,10 +1,11 @@
-from qllr.common import clean_name
 from asyncpg import Connection
+
+from qllr.common import clean_name
 
 
 async def export(con: Connection, gametype_id: int):
 
-    query = '''
+    query = """
     SELECT
         p.steam_id, p.name, gr.mean, gr.n
     FROM
@@ -14,18 +15,17 @@ async def export(con: Connection, gametype_id: int):
     WHERE
         gr.gametype_id = $1
     ORDER BY gr.mean DESC
-    '''
+    """
 
     result = []
     async for row in con.cursor(query, gametype_id):
-        result.append({
-            '_id': str(row[0]),
-            'name': clean_name(row[1]),
-            'rating': row[2],
-            'n': row[3]
-        })
+        result.append(
+            {
+                "_id": str(row[0]),
+                "name": clean_name(row[1]),
+                "rating": row[2],
+                "n": row[3],
+            }
+        )
 
-    return {
-        "ok": True,
-        "response": result
-    }
+    return {"ok": True, "response": result}

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# isort:skip_file
 
 from typing import Any
 from uuid import UUID
@@ -16,7 +17,9 @@ class SteamIdsConvertor(cm.Convertor):
         ids = value.replace(" ", "+").replace(",", "+").split("+")
         bad_ids = list(filter(lambda steam_id: not steam_id.isnumeric(), ids))
         if bad_ids:
-            raise HTTPException(422, "Invalid steam ids: {0}".format(", ".join(bad_ids)))
+            raise HTTPException(
+                422, "Invalid steam ids: {0}".format(", ".join(bad_ids))
+            )
         return list(map(int, ids))
 
     def to_string(self, value: Any) -> str:
@@ -28,7 +31,7 @@ class MatchIdConvertor(cm.Convertor):
 
     def convert(self, value: str) -> Any:
         try:
-            if len(value) != len('12345678-1234-5678-1234-567812345678'):
+            if len(value) != len("12345678-1234-5678-1234-567812345678"):
                 raise ValueError()
             UUID(value)
         except ValueError:
@@ -40,8 +43,8 @@ class MatchIdConvertor(cm.Convertor):
         return value
 
 
-cm.CONVERTOR_TYPES['steam_ids'] = SteamIdsConvertor()
-cm.CONVERTOR_TYPES['match_id'] = MatchIdConvertor()
+cm.CONVERTOR_TYPES["steam_ids"] = SteamIdsConvertor()
+cm.CONVERTOR_TYPES["match_id"] = MatchIdConvertor()
 
 from .balance_api import bp as balance_api  # noqa: F401
 from .deprecated import bp as deprecated  # noqa: F401

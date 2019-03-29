@@ -1,9 +1,11 @@
 import json
-from qllr.common import DATETIME_FORMAT, clean_name
-from asyncpg import Connection
 from functools import reduce
-from qllr.settings import MOVING_AVG_COUNT
+
+from asyncpg import Connection
+
+from qllr.common import DATETIME_FORMAT, clean_name
 from qllr.exceptions import PlayerNotFound
+from qllr.settings import MOVING_AVG_COUNT
 
 
 async def get_player_info(con: Connection, steam_id: int):

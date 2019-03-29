@@ -1,6 +1,8 @@
-from qllr.db import cache
 from asyncpg import Connection
-from ..ratings.methods import SQL_TOP_PLAYERS_BY_GAMETYPE, KEEPING_TIME
+
+from qllr.db import cache
+
+from ..ratings.methods import KEEPING_TIME, SQL_TOP_PLAYERS_BY_GAMETYPE
 
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
 GAMETYPE_IDS = cache.GAMETYPE_IDS

@@ -28,6 +28,7 @@ class PlayerHtml(Endpoint):
         return templates.TemplateResponse("player_stats.html", context)
 
 
+@bp.route("/{steam_id:int}/matches")
 @bp.route("/{steam_id:int}/matches/")
 @bp.route("/{steam_id:int}/matches/{page:int}/")
 @bp.route("/{steam_id:int}/matches/{gametype}/")

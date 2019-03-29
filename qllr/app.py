@@ -10,7 +10,7 @@ from .exceptions import (
     InvalidGametype,
     MatchAlreadyExists,
     MatchNotFound,
-    PlayerNotFound
+    PlayerNotFound,
 )
 from .templating import templates
 
@@ -26,19 +26,24 @@ Route.url_path_for = fixed_url_path_for
 
 
 async def http_exception_handler(request: Request, e: HTTPException):
-    context = {'ok': False, 'message': e.detail}
+    from traceback import print_exc
+
+    print_exc()
+    context = {"ok": False, "message": e.detail}
     if request.app.json_only_mode or request.url.path.lower().endswith(".json"):
         return JSONResponse(context, status_code=e.status_code)
 
     # stupid method to detect, what client wants
-    accept_mime_type = request.headers.get('accept', 'text/plain').lower()
-    if accept_mime_type.startswith('text/html'):
-        context['request'] = request
-        return templates.TemplateResponse("layout.html", context, status_code=e.status_code)
-    elif accept_mime_type.startswith('application/json'):
+    accept_mime_type = request.headers.get("accept", "text/plain").lower()
+    if accept_mime_type.startswith("text/html"):
+        context["request"] = request
+        return templates.TemplateResponse(
+            "layout.html", context, status_code=e.status_code
+        )
+    elif accept_mime_type.startswith("application/json"):
         return JSONResponse(context, status_code=e.status_code)
     else:
-        return PlainTextResponse(context['message'], status_code=e.status_code)
+        return PlainTextResponse(context["message"], status_code=e.status_code)
 
 
 async def unhandled_exception_handler(request: Request, e: Exception):
@@ -46,7 +51,9 @@ async def unhandled_exception_handler(request: Request, e: Exception):
     return await http_exception_handler(request, new_exc)
 
 
-async def match_already_exists_exception_handler(request: Request, e: MatchAlreadyExists):
+async def match_already_exists_exception_handler(
+    request: Request, e: MatchAlreadyExists
+):
     new_exc = HTTPException(409, "Match already exists")
     return await http_exception_handler(request, new_exc)
 
@@ -71,7 +78,9 @@ class App(Starlette):
         super().__init__(debug, template_directory)
         self.json_only_mode = False
         self.add_exception_handler(HTTPException, http_exception_handler)
-        self.add_exception_handler(MatchAlreadyExists, match_already_exists_exception_handler)
+        self.add_exception_handler(
+            MatchAlreadyExists, match_already_exists_exception_handler
+        )
         self.add_exception_handler(MatchNotFound, match_not_found_exception_handler)
         self.add_exception_handler(PlayerNotFound, player_not_found_exception_handler)
         self.add_exception_handler(Exception, unhandled_exception_handler)

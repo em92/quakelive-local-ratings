@@ -1,21 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from warnings import warn
 from typing import Optional
+from warnings import warn
+
 import trueskill
-
-from .common import log_exception
-from .settings import (
-    MIN_PLAYER_COUNT_IN_MATCH_TO_RATE as MIN_PLAYER_COUNT_TO_RATE,
-    MOVING_AVG_COUNT,
-    USE_AVG_PERF,
-    RUN_POST_PROCESS
-)
-from .db import db_connect, cache, get_db_pool
-from .exceptions import *
-
 from asyncpg import Connection
 from asyncpg.exceptions import UniqueViolationError
+
+from .common import log_exception
+from .db import cache, db_connect, get_db_pool
+from .exceptions import *
+from .settings import MIN_PLAYER_COUNT_IN_MATCH_TO_RATE as MIN_PLAYER_COUNT_TO_RATE
+from .settings import MOVING_AVG_COUNT, RUN_POST_PROCESS, USE_AVG_PERF
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
@@ -100,22 +96,30 @@ def is_tdm2v2(data):
 
 
 async def get_factory_id(con: Connection, factory: str):
-    stmt = await con.prepare("SELECT factory_id FROM factories WHERE factory_short = $1")
+    stmt = await con.prepare(
+        "SELECT factory_id FROM factories WHERE factory_short = $1"
+    )
     result = await stmt.fetchval(factory)
     if result is None:
-        stmt = await con.prepare("INSERT INTO factories (factory_id, factory_short) VALUES (nextval('factory_seq'), $1) RETURNING factory_id")
+        stmt = await con.prepare(
+            "INSERT INTO factories (factory_id, factory_short) VALUES (nextval('factory_seq'), $1) RETURNING factory_id"
+        )
         result = await stmt.fetchval(factory)
 
     return result
 
 
-async def get_map_id(con: Connection, map_name: str, create_if_not_exists: bool = True) -> Optional[int]:
+async def get_map_id(
+    con: Connection, map_name: str, create_if_not_exists: bool = True
+) -> Optional[int]:
     map_name = map_name.lower()
 
     stmt = await con.prepare("SELECT map_id FROM maps WHERE map_name = $1")
     result = await stmt.fetchval(map_name)
     if result is None and create_if_not_exists is True:
-        stmt = await con.prepare("INSERT INTO maps (map_id, map_name) VALUES (nextval('map_seq'), $1) RETURNING map_id")
+        stmt = await con.prepare(
+            "INSERT INTO maps (map_id, map_name) VALUES (nextval('map_seq'), $1) RETURNING map_id"
+        )
         result = await stmt.fetchval(map_name)
 
     return result
@@ -190,7 +194,9 @@ def count_multiple_players_match_perf(gametype, all_players_data, match_duration
     return result
 
 
-async def post_process_avg_perf(con: Connection, match_id: str, gametype_id: int, match_timestamp: int):
+async def post_process_avg_perf(
+    con: Connection, match_id: str, gametype_id: int, match_timestamp: int
+):
     """
     Updates players' ratings after playing match_id (using avg. perfomance)
 
@@ -203,12 +209,12 @@ async def post_process_avg_perf(con: Connection, match_id: str, gametype_id: int
             return 1
 
     global LAST_GAME_TIMESTAMPS
-    query = '''
+    query = """
     SELECT s.steam_id, team, match_perf, gr.mean
     FROM scoreboards s
     LEFT JOIN gametype_ratings gr ON gr.steam_id = s.steam_id AND gr.gametype_id = $1
     WHERE match_perf IS NOT NULL AND match_id = $2
-    '''
+    """
 
     async for row in con.cursor(query, gametype_id, match_id):
         steam_id = row[0]
@@ -216,11 +222,11 @@ async def post_process_avg_perf(con: Connection, match_id: str, gametype_id: int
         match_perf = row[2]
         old_rating = row[3]
 
-        query = '''
+        query = """
         UPDATE scoreboards
         SET old_mean = $1, old_deviation = 0
         WHERE match_id = $2 AND steam_id = $3 AND team = $4
-        '''
+        """
         rowcount = await con.execute(query, old_rating, match_id, steam_id, team)
         assert rowcount == "UPDATE 1"
 
@@ -257,7 +263,9 @@ async def post_process_avg_perf(con: Connection, match_id: str, gametype_id: int
                     s.match_perf IS NOT NULL
                 ORDER BY m.timestamp DESC
                 LIMIT {MOVING_AVG_COUNT}
-            ) t""".format(MOVING_AVG_COUNT=MOVING_AVG_COUNT)
+            ) t""".format(
+                MOVING_AVG_COUNT=MOVING_AVG_COUNT
+            )
 
             row = await con.fetchrow(query, steam_id, gametype_id, match_id)
             gametype = [k for k, v in GAMETYPE_IDS.items() if v == gametype_id][0]
@@ -271,20 +279,24 @@ async def post_process_avg_perf(con: Connection, match_id: str, gametype_id: int
         rowcount = await con.execute(query, new_rating, match_id, steam_id, team)
         assert rowcount == "UPDATE 1"
 
-        query = '''
+        query = """
         UPDATE gametype_ratings
         SET mean = $1, deviation = 0, n = n + 1, last_played_timestamp = $2
         WHERE steam_id = $3 AND gametype_id = $4
-        '''
-        rowcount = await con.execute(query, new_rating, match_timestamp, steam_id, gametype_id)
+        """
+        rowcount = await con.execute(
+            query, new_rating, match_timestamp, steam_id, gametype_id
+        )
         if rowcount == "UPDATE 0":
-            query = '''
+            query = """
             INSERT INTO gametype_ratings
             (steam_id, gametype_id, mean, deviation, last_played_timestamp, n)
             VALUES
             ($1, $2, $3, 0, $4, 1)
-            '''
-            rowcount = await con.execute(query, steam_id, gametype_id, new_rating, match_timestamp)
+            """
+            rowcount = await con.execute(
+                query, steam_id, gametype_id, new_rating, match_timestamp
+            )
             assert rowcount == "INSERT 0 1"
         else:
             assert rowcount == "UPDATE 1"
@@ -297,7 +309,9 @@ async def post_process_avg_perf(con: Connection, match_id: str, gametype_id: int
     LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
 
 
-async def post_process_trueskill(con: Connection, match_id: str, gametype_id: int, match_timestamp: int):
+async def post_process_trueskill(
+    con: Connection, match_id: str, gametype_id: int, match_timestamp: int
+):
     """
     Updates players' ratings after playing match_id (using trueskill)
 
@@ -328,7 +342,8 @@ async def post_process_trueskill(con: Connection, match_id: str, gametype_id: in
             match_perf IS NOT NULL AND
             match_id = $2
         """,
-        gametype_id, match_id,
+        gametype_id,
+        match_id,
     )
 
     team_ratings_old = [[], []]
@@ -442,9 +457,13 @@ async def post_process_trueskill(con: Connection, match_id: str, gametype_id: in
     LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
 
 
-async def post_process(con: Connection, match_id: str, gametype_id: int, match_timestamp: int):
+async def post_process(
+    con: Connection, match_id: str, gametype_id: int, match_timestamp: int
+):
     if USE_AVG_PERF[gametype_id]:
-        return await post_process_avg_perf(con, match_id, gametype_id, match_timestamp)  # TODO: протестировать
+        return await post_process_avg_perf(
+            con, match_id, gametype_id, match_timestamp
+        )  # TODO: протестировать
     else:
         return await post_process_trueskill(con, match_id, gametype_id, match_timestamp)
 
@@ -496,12 +515,16 @@ async def submit_match(data):
     except KeyError:
         raise InvalidMatchReport("Match duration not given")
     except ValueError:
-        raise InvalidMatchReport("Match duration is not integer: {}".format(data["game_meta"]["D"]))
+        raise InvalidMatchReport(
+            "Match duration is not integer: {}".format(data["game_meta"]["D"])
+        )
 
     if match_duration < MIN_DURATION_TO_ADD:
-        raise InvalidMatchReport("not enough match duration: given - {}, required - {}".format(
-            match_duration, MIN_DURATION_TO_ADD
-        ))
+        raise InvalidMatchReport(
+            "not enough match duration: given - {}, required - {}".format(
+                match_duration, MIN_DURATION_TO_ADD
+            )
+        )
 
     dbpool = await get_db_pool()
     con = await dbpool.acquire()
@@ -618,7 +641,11 @@ async def submit_match(data):
                     INSERT INTO scoreboards_medals (match_id, steam_id, team, medal_id, count)
                     VALUES ($1, $2, $3, $4, $5)
                     """,
-                    match_id, player["P"], team, medal_id, medal_count,
+                    match_id,
+                    player["P"],
+                    team,
+                    medal_id,
+                    medal_count,
                 )
 
         # post processing
@@ -748,7 +775,8 @@ def reset_gametype_ratings(gametype):
 
     return result
 
-'''
+
+"""
 db = db_connect()
 cu = db.cursor()
 
@@ -763,4 +791,4 @@ if cfg["run_post_process"]:
 
 cu.close()
 db.close()
-'''
+"""

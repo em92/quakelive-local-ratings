@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 #
 
-from collections import OrderedDict, MutableMapping
+from collections import MutableMapping, OrderedDict
 from urllib.parse import urlparse
 
+from asyncpg import Connection, create_pool, pool
+
 import psycopg2
-from asyncpg import pool, create_pool, Connection
 
 from .settings import DATABASE_URL
 
@@ -14,9 +15,7 @@ async def get_db_pool() -> pool:
     try:
         return get_db_pool.cache
     except AttributeError:
-        get_db_pool.cache = await create_pool(
-            dsn=DATABASE_URL
-        )
+        get_db_pool.cache = await create_pool(dsn=DATABASE_URL)
         return get_db_pool.cache
 
 

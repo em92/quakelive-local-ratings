@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import starlette.convertors as cm
-
 from typing import Any
 from uuid import UUID
+
+import starlette.convertors as cm
 from starlette.exceptions import HTTPException
 
 
@@ -17,10 +17,10 @@ class SteamIdsConvertor(cm.Convertor):
         bad_ids = list(filter(lambda steam_id: not steam_id.isnumeric(), ids))
         if bad_ids:
             raise HTTPException(422, "Invalid steam ids: {0}".format(", ".join(bad_ids)))
-        return list(map(lambda steam_id: int(steam_id), ids))
+        return list(map(int, ids))
 
     def to_string(self, value: Any) -> str:
-        return "+".join(map(lambda item: str(item), value))
+        return "+".join(map(str, value))
 
 
 class MatchIdConvertor(cm.Convertor):
@@ -44,11 +44,11 @@ cm.CONVERTOR_TYPES['steam_ids'] = SteamIdsConvertor()
 cm.CONVERTOR_TYPES['match_id'] = MatchIdConvertor()
 
 from .balance_api import bp as balance_api  # noqa: F401
+from .deprecated import bp as deprecated  # noqa: F401
 from .export_rating import bp as export_rating  # noqa: F401
 from .matches import bp as matches  # noqa: F401
 from .player import bp as player  # noqa: F401
-from .ratings import bp as ratings
-from .submission import bp as submission  # noqa: F401
+from .ratings import bp as ratings  # noqa: F401
 from .scoreboard import bp as scoreboard  # noqa: F401
 from .steam_api import bp as steam_api  # noqa: F401
-from .deprecated import bp as deprecated  # noqa: F401
+from .submission import bp as submission  # noqa: F401

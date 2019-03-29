@@ -139,9 +139,11 @@ class Cache:
     def WEAPONS_AVAILABLE(self):
         return self._weapons[:]
 
-    @property
-    def LAST_GAME_TIMESTAMP(self):
-        return max(self.LAST_GAME_TIMESTAMPS.values())
+    def LAST_GAME_TIMESTAMP(self, gametype: str) -> int:
+        if gametype not in self.LAST_GAME_TIMESTAMPS:
+            return max(self.LAST_GAME_TIMESTAMPS.values())
+
+        return self.LAST_GAME_TIMESTAMPS[gametype]
 
 
 cache = Cache()

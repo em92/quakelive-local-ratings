@@ -70,11 +70,8 @@ class Endpoint(HTTPEndpoint):
             await dbpool.release(con)
 
     def get_last_site_modified(self, request: Request) -> Tuple:
-        if 'gametype' in request.path_params:
-            r = cache.LAST_GAME_TIMESTAMPS[request.path_params["gametype"]]
-        else:
-            # TODO: move it to cache.LAST_GAME_TIMESTAMP
-            r = max(cache.LAST_GAME_TIMESTAMPS.values())
+        gametype = request.path_params.get("gametype")
+        r = cache.LAST_GAME_TIMESTAMP(gametype)
         return gmtime(r)[0:6]
 
     async def get_last_doc_modified(self, request: Request, con: Connection) -> Tuple:

@@ -39,9 +39,14 @@ class TestMatches(AppTestCase):
             )
 
     def test_old_routes(self):
-        assert 0
-        resp = self.test_cli.get("/player/123/matches/blablabla/456/", allow_redirects=False)
-        self.assertTrue(resp.headers['Location'].endswith("/matches/player/123/blablabla/456"))
-
-        resp = self.test_cli.get("/player/123/matches/blablabla/456/", allow_redirects=False)
-        self.assertTrue(resp.headers['Location'].endswith("/matches/player/123/blablabla/456"))
+        pairs = [
+            ("/player/123/matches", "/matches/player/123/"),
+            ("/player/123/matches/", "/matches/player/123/"),
+            ("/player/123/matches/456/", "/matches/player/123/456/"),
+            ("/player/123/matches/blablabla/456/", "/matches/player/123/blablabla/456/")
+        ]
+        for pair in pairs:
+            old_uri = pair[0]
+            new_uri = pair[1]
+            resp = self.get(old_uri, 302)
+            self.assertTrue(resp.headers['Location'].endswith(new_uri))

@@ -8,8 +8,7 @@ class TestScoreboard(AppTestCase):
     maxDiff = None
 
     def assert_scoreboard_html_equals_sample(self, match_id: str, sample_filename: str):
-        resp = self.test_cli.get("/scoreboard/{0}".format(match_id))
-        self.assertEqual(resp.status_code, 200)
+        resp = self.get("/scoreboard/{0}".format(match_id))
         self.assertEqual(resp.template.name, "scoreboard.html")
         context = resp.context
         self.assertIn('request', context)
@@ -34,14 +33,12 @@ class TestScoreboard(AppTestCase):
         self.assert_scoreboard_html_equals_sample("abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4", "scoreboard_sample03")
 
     def test_not_exists_scoreboard_json(self):
-        resp = self.test_cli.get("/scoreboard/11111111-1111-1111-1111-111111111111.json", headers={'accept': 'text/html'})
-        self.assertEqual(resp.status_code, 404)
+        resp = self.get("/scoreboard/11111111-1111-1111-1111-111111111111.json", 404, headers={'accept': 'text/html'})
         try:
             resp.json()
         except json.decoder.JSONDecodeError:
             self.fail("Expected json response")
 
     def test_not_exists_scoreboard_html(self):
-        resp = self.test_cli.get("/scoreboard/11111111-1111-1111-1111-111111111111", headers={'accept': 'text/html'})
+        resp = self.get("/scoreboard/11111111-1111-1111-1111-111111111111", 404, headers={'accept': 'text/html'})
         self.assertEqual(resp.template.name, "layout.html")
-        self.assertEqual(resp.status_code, 404)

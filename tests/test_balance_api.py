@@ -39,20 +39,19 @@ class TestBalanceApi(AppTestCase):
 
     def test_simple_ad_only_players(self):
         self.assert_balance_api_data_equal(
-            self.test_cli.get("/elo/" + self.steam_ids_as_string_with_plus()).json(),
+            self.get("/elo/" + self.steam_ids_as_string_with_plus()).json(),
             self.read_json_sample("balance_api_ad_only_players")
         )
 
     def test_map_based1(self):
         self.assert_balance_api_data_equal(
-            self.test_cli.get("/elo/map_based/ad/japanesecastles/" + self.steam_ids_as_string_with_plus()).json(),
+            self.get("/elo/map_based/ad/japanesecastles/" + self.steam_ids_as_string_with_plus()).json(),
             self.read_json_sample("balance_api_ad_japanesecastles")
         )
         # TODO: add gametype check
 
     def test_map_based2(self):
-        response = self.test_cli.get("/elo/" + "+".join(self.steam_ids), headers={"X-QuakeLive-Gametype": "ad", "X-QuakeLive-Map": "japanesecastles"}, allow_redirects=False)
-        self.assertEqual(response.status_code, 302)
+        response = self.get("/elo/" + "+".join(self.steam_ids), 302, headers={"X-QuakeLive-Gametype": "ad", "X-QuakeLive-Map": "japanesecastles"})
 
         new_url = response.headers["Location"]
         self.assertTrue(

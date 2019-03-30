@@ -7,10 +7,8 @@ class TestRatings(AppTestCase):
     ORDER = 5
 
     def test_ratings_ad(self):
-        resp = self.test_cli.get("/ratings/ad")
+        resp = self.get("/ratings/ad/")
         context = resp.context
-
-        self.assertEqual(resp.status_code, 200)
 
         self.assertIn('request', context)
         self.assertIn('current_page', context)
@@ -26,7 +24,7 @@ class TestRatings(AppTestCase):
         )
 
     def test_ratings_ad_json(self):
-        resp = self.test_cli.get("/ratings/ad/0.json")
+        resp = self.get("/ratings/ad/0.json")
         self.assertEqual(
             resp.json()['response'],
             self.read_json_sample("ratings_ad")

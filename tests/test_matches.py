@@ -20,8 +20,7 @@ class TestMatches(AppTestCase):
             page = case[1]
             gametype = case[2]
             page_count = case[3]
-            resp = self.test_cli.get(uri)
-            self.assertEqual(resp.status_code, 200)
+            resp = self.get(uri)
             self.assertEqual(resp.template.name, "match_list.html")
 
             context = resp.context

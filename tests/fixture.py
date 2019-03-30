@@ -9,6 +9,7 @@ from collections import OrderedDict
 from starlette.testclient import TestClient
 
 from qllr import app
+from requests import Response
 
 
 def unasync(f):
@@ -21,7 +22,7 @@ def unasync(f):
 
 
 class AppTestCase(unittest.TestCase):
-    test_cli = TestClient(app, raise_server_exceptions=False)
+    _test_cli = TestClient(app, raise_server_exceptions=False)
     module_path = os.path.dirname(os.path.realpath(__file__))
     is_set_up = False
 
@@ -94,12 +95,12 @@ class AppTestCase(unittest.TestCase):
             sample = f.read()
             f.close()
 
-        return self.test_cli.post("/stats/submit", headers=headers, data=sample)
+        return self._test_cli.post("/stats/submit", headers=headers, data=sample)
 
     def upload_match_report_and_assert_success(self, sample_name: str, uuid: str):
         resp = self.upload_match_report(sample_name)
         self.assertEqual(resp.status_code, 200)
-        resp = self.test_cli.get("/scoreboard/{0}.json".format(uuid))
+        resp = self._test_cli.get("/scoreboard/{0}.json".format(uuid))
         json = resp.json()
         self.assertEqual(json['ok'], True)
 
@@ -116,7 +117,7 @@ class AppTestCase(unittest.TestCase):
         return result.decode('utf-8')
 
     def assert_scoreboard_equals_sample(self, match_id: str, sample_filename: str):
-        obj_defacto = self.test_cli.get("/scoreboard/{0}.json".format(match_id)).json()
+        obj_defacto = self._test_cli.get("/scoreboard/{0}.json".format(match_id)).json()
         obj_expected = self.read_json_sample(sample_filename)
         self.assertDictEqual(obj_defacto, obj_expected)
 
@@ -124,3 +125,8 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(len(L1), len(L2))
         for item in L1:
             self.assertIn(item, L2)
+
+    def get(self, uri: str, expected_http_code: int = 200, **kwargs) -> Response:
+        resp = self._test_cli.get(uri, allow_redirects=False, **kwargs)
+        self.assertEqual(resp.status_code, expected_http_code)
+        return resp

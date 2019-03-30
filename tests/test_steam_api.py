@@ -19,20 +19,18 @@ class TestSteamApi(AppTestCase):
     ]
 
     def test_players_ad_with_plus(self):
-        resp = self.test_cli.get(
+        resp = self.get(
             "/steam_api/GetPlayerSummaries/?steamids={}".format("+".join(self.steam_ids))
         )
-        self.assertEqual(resp.status_code, 200)
         self.assertDictEqual(
             resp.json(),
             self.read_json_sample("steam_api_1")
         )
 
     def test_players_ad_with_comma(self):
-        resp = self.test_cli.get(
+        resp = self.get(
             "/steam_api/GetPlayerSummaries/?steamids={}".format(",".join(self.steam_ids))
         )
-        self.assertEqual(resp.status_code, 200)
         self.assertDictEqual(
             resp.json(),
             self.read_json_sample("steam_api_1")

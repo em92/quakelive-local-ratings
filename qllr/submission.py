@@ -364,7 +364,7 @@ async def post_process_trueskill(
                     e
                 )
             )
-            return post_process_avg_perf(cu, match_id, gametype_id, match_timestamp)
+            return await post_process_avg_perf(con, match_id, gametype_id, match_timestamp)
 
         try:
             team_ratings_old[team - 1].append(ts_rating)
@@ -546,7 +546,7 @@ async def submit_match(data):
             await con.execute(
                 "INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
                 match_id,
-                GAMETYPE_IDS[data["game_meta"]["G"]],
+                GAMETYPE_IDS[gametype],
                 await get_factory_id(con, data["game_meta"]["O"]),
                 await get_map_id(con, data["game_meta"]["M"]),
                 match_timestamp,
@@ -559,7 +559,7 @@ async def submit_match(data):
             raise MatchAlreadyExists(match_id)
 
         player_match_ratings = count_multiple_players_match_perf(
-            data["game_meta"]["G"], data["players"], match_duration
+            gametype, data["players"], match_duration
         )
         for player in data["players"]:
             player["P"] = int(player["P"])
@@ -651,7 +651,7 @@ async def submit_match(data):
         # post processing
         if RUN_POST_PROCESS:
             await post_process(
-                con, match_id, GAMETYPE_IDS[data["game_meta"]["G"]], match_timestamp
+                con, match_id, GAMETYPE_IDS[gametype], match_timestamp
             )
             result = {"ok": True, "message": "done", "match_id": match_id}
         else:

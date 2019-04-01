@@ -358,6 +358,8 @@ async def post_process_trueskill(
 
         try:
             ts_rating = trueskill.Rating(mean, deviation)
+            # TODO: надо это переписать так, чтобы можно было записать оба вида рейтинга
+            # TODO: И если по какой-то причине тут выкидывается исключение - используй рейтинг по-умолчанию, а ниже - не ворнинг а вывод в sys.stderr
         except ValueError as e:
             warn(
                 "Cannot use trueskill rating: {}. Falling back to average perfomance rating...".format(

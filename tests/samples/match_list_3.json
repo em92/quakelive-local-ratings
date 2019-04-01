@@ -1,0 +1,227 @@
+[
+    {
+        "map": "rota3ctf2",
+        "team2_score": 15,
+        "datetime": "2019-03-10 03:41 +05",
+        "match_id": "a53b8274-989d-4e07-afd8-3603d402b207",
+        "team1_score": 3,
+        "timestamp": 1552171311,
+        "gametype": "ad"
+    },
+    {
+        "map": "skyward",
+        "team2_score": 17,
+        "datetime": "2019-03-10 03:24 +05",
+        "match_id": "dd4ce899-ce86-4ec5-8b3e-c8303433a353",
+        "team1_score": 8,
+        "timestamp": 1552170289,
+        "gametype": "ad"
+    },
+    {
+        "map": "dividedcrossings",
+        "team2_score": 15,
+        "datetime": "2019-03-10 03:13 +05",
+        "match_id": "3a3a88ed-f11e-404c-b362-d5ce376ec241",
+        "team1_score": 8,
+        "timestamp": 1552169626,
+        "gametype": "ad"
+    },
+    {
+        "map": "cpmctf2",
+        "team2_score": 15,
+        "datetime": "2019-03-10 02:55 +05",
+        "match_id": "0e463edf-12cf-4858-8739-83fe57e98e7a",
+        "team1_score": 7,
+        "timestamp": 1552168546,
+        "gametype": "ad"
+    },
+    {
+        "map": "futurecrossings",
+        "team2_score": 15,
+        "datetime": "2019-03-10 02:41 +05",
+        "match_id": "a2a89cbc-3c6e-4430-b3eb-c32b610ad4ff",
+        "team1_score": 8,
+        "timestamp": 1552167709,
+        "gametype": "ad"
+    },
+    {
+        "map": "troubledwaters",
+        "team2_score": 15,
+        "datetime": "2019-03-10 02:22 +05",
+        "match_id": "3bd7ffa1-2c35-48c8-8cb5-fe582c9684ba",
+        "team1_score": 6,
+        "timestamp": 1552166551,
+        "gametype": "ad"
+    },
+    {
+        "map": "campercrossings",
+        "team2_score": 17,
+        "datetime": "2019-03-10 01:58 +05",
+        "match_id": "55bce45b-305d-4ab4-8bbe-ec8ddc8bc037",
+        "team1_score": 12,
+        "timestamp": 1552165118,
+        "gametype": "ad"
+    },
+    {
+        "map": "actf20",
+        "team2_score": 15,
+        "datetime": "2019-03-10 01:30 +05",
+        "match_id": "06b0c4d0-9720-40c5-92c5-e406c1496684",
+        "team1_score": 9,
+        "timestamp": 1552163458,
+        "gametype": "ad"
+    },
+    {
+        "map": "ctfscp5",
+        "team2_score": 12,
+        "datetime": "2019-03-10 01:06 +05",
+        "match_id": "44de3665-dd33-4f09-ae2e-a3f0456e6a9b",
+        "team1_score": 4,
+        "timestamp": 1552162004,
+        "gametype": "ad"
+    },
+    {
+        "map": "saintctf3",
+        "team2_score": 10,
+        "datetime": "2019-03-10 00:39 +05",
+        "match_id": "13d71e4f-69e9-4a04-8c37-f12a35ab9d2f",
+        "team1_score": 14,
+        "timestamp": 1552160394,
+        "gametype": "ad"
+    },
+    {
+        "map": "courtyard",
+        "team2_score": 6,
+        "datetime": "2019-03-10 00:13 +05",
+        "match_id": "47bf1f66-21a8-4414-a196-fb4262f2f81e",
+        "team1_score": 16,
+        "timestamp": 1552158790,
+        "gametype": "ad"
+    },
+    {
+        "map": "shiningforces",
+        "team2_score": 15,
+        "datetime": "2019-03-09 23:54 +05",
+        "match_id": "77c4459a-90d0-4598-b399-971f278bdc38",
+        "team1_score": 9,
+        "timestamp": 1552157660,
+        "gametype": "ad"
+    },
+    {
+        "map": "saintctf2",
+        "team2_score": 12,
+        "datetime": "2019-03-09 23:32 +05",
+        "match_id": "c51c6bb7-9be2-455d-aef0-dcad07a9b4d1",
+        "team1_score": 16,
+        "timestamp": 1552156367,
+        "gametype": "ad"
+    },
+    {
+        "map": "dividedcrossings",
+        "team2_score": 8,
+        "datetime": "2019-02-26 02:12 +05",
+        "match_id": "e3492e13-6792-4ff6-9554-ff869c7e4931",
+        "team1_score": 10,
+        "timestamp": 1551129176,
+        "gametype": "ad"
+    },
+    {
+        "map": "bigdm6",
+        "team2_score": 11,
+        "datetime": "2019-02-26 01:48 +05",
+        "match_id": "39ac0a42-55a6-44b4-ac06-69571db6bc31",
+        "team1_score": 14,
+        "timestamp": 1551127724,
+        "gametype": "ad"
+    },
+    {
+        "map": "stonekeep",
+        "team2_score": 5,
+        "datetime": "2019-02-26 01:22 +05",
+        "match_id": "93a0b31f-4326-4971-ae51-8ddd97b74b83",
+        "team1_score": 15,
+        "timestamp": 1551126146,
+        "gametype": "ad"
+    },
+    {
+        "map": "industrialrevolution",
+        "team2_score": 11,
+        "datetime": "2019-02-26 01:00 +05",
+        "match_id": "6ba4f41b-17bd-45dc-883e-9dacb49f3092",
+        "team1_score": 7,
+        "timestamp": 1551124813,
+        "gametype": "ad"
+    },
+    {
+        "map": "ump1ctf7",
+        "team2_score": 16,
+        "datetime": "2019-02-26 00:38 +05",
+        "match_id": "5185e664-e476-49ba-953d-a6d59080d50b",
+        "team1_score": 5,
+        "timestamp": 1551123483,
+        "gametype": "ad"
+    },
+    {
+        "map": "push",
+        "team2_score": 8,
+        "datetime": "2019-02-25 23:54 +05",
+        "match_id": "52b7ae54-8040-4a21-9912-9e5ee13e2caa",
+        "team1_score": 16,
+        "timestamp": 1551120886,
+        "gametype": "ad"
+    },
+    {
+        "map": "reflux",
+        "team2_score": 6,
+        "datetime": "2019-02-25 23:33 +05",
+        "match_id": "fddd7e05-6a1e-462c-aed1-7af81177d483",
+        "team1_score": 8,
+        "timestamp": 1551119630,
+        "gametype": "ad"
+    },
+    {
+        "map": "futurecrossings",
+        "team2_score": 15,
+        "datetime": "2019-02-25 23:11 +05",
+        "match_id": "7d5b863f-ee71-4f74-b237-c9f743f14976",
+        "team1_score": 8,
+        "timestamp": 1551118288,
+        "gametype": "ad"
+    },
+    {
+        "map": "campercrossings",
+        "team2_score": 16,
+        "datetime": "2019-02-25 22:49 +05",
+        "match_id": "125f1bda-5502-4549-b5e7-4e4ab01386df",
+        "team1_score": 5,
+        "timestamp": 1551116980,
+        "gametype": "ad"
+    },
+    {
+        "map": "q3wcp11",
+        "team2_score": 10,
+        "datetime": "2018-12-30 02:11 +05",
+        "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+        "team1_score": 13,
+        "timestamp": 1546117867,
+        "gametype": "ad"
+    },
+    {
+        "map": "japanesecastles",
+        "team2_score": 9,
+        "datetime": "2018-12-30 00:56 +05",
+        "match_id": "44c479b9-fdbd-4674-b5bd-a56ef124e48c",
+        "team1_score": 11,
+        "timestamp": 1546113404,
+        "gametype": "ad"
+    },
+    {
+        "map": "ump2ctf5",
+        "team2_score": 11,
+        "datetime": "2018-11-01 00:06 +05",
+        "match_id": "69770ca5-943c-491d-931e-720c5474d33b",
+        "team1_score": 6,
+        "timestamp": 1541012801,
+        "gametype": "ad"
+    }
+]

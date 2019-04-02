@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from asyncio import Lock
 from typing import Optional
 from warnings import warn
 
@@ -18,6 +19,8 @@ LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
 MEDAL_IDS = cache.MEDAL_IDS
 MIN_DURATION_TO_ADD = 60 * 5
 WEAPON_IDS = cache.WEAPON_IDS
+
+lock = Lock()
 
 for gt, id in GAMETYPE_IDS.items():
     USE_AVG_PERF[id] = USE_AVG_PERF[gt]
@@ -475,6 +478,11 @@ def filter_insignificant_players(players):
 
 
 async def submit_match(data):
+    with await lock:
+        return await _submit_match(data)
+
+
+async def _submit_match(data):
     """
     Match report handler
 
@@ -674,123 +682,19 @@ async def submit_match(data):
     return result
 
 
-def reset_gametype_ratings(gametype):
+async def run_post_process(con: Connection) -> None:
+    with await lock:
+        await _run_post_process(con)
+
+
+async def _run_post_process(con: Connection) -> None:
+    query = """
+        SELECT match_id, gametype_id, timestamp
+        FROM matches
+        WHERE post_processed = FALSE
+        ORDER BY timestamp ASC
     """
-    Resets ratings for gametype
-    """
-    if gametype not in GAMETYPE_IDS:
-        print("gametype is not accepted: " + gametype)
-        return False
-
-    gametype_id = GAMETYPE_IDS[gametype]
-    result = False
-    try:
-        db = db_connect()
-        cu = db.cursor()
-        cw = db.cursor()
-
-        cw.execute(
-            "UPDATE matches SET post_processed = FALSE WHERE gametype_id = %s",
-            [gametype_id],
-        )
-        cw.execute(
-            "UPDATE gametype_ratings SET mean = %s, deviation = %s, n = 0 WHERE gametype_id = %s",
-            [trueskill.MU, trueskill.SIGMA, gametype_id],
-        )
-        scoreboard_query = """
-    SELECT
-      s.match_id,
-      MIN(m.team1_score) AS team1_score,
-      MIN(m.team2_score) AS team1_score,
-      array_agg(json_build_object(
-        'P',                    s.steam_id,
-        't',                    s.team,
-        'alivetime',            s.alive_time,
-        'scoreboard-score',     s.score,
-        'scoreboard-pushes',    s.damage_dealt,
-        'scoreboard-destroyed', s.damage_taken,
-        'scoreboard-kills',     s.frags,
-        'scoreboard-deaths',    s.deaths,
-        'medal-captures',       mm.medals->'captures',
-        'medal-defends',        mm.medals->'defends',
-        'medal-assists',        mm.medals->'assists'
-      )),
-      MIN(m.duration)
-    FROM
-      scoreboards s
-    LEFT JOIN matches m ON m.match_id = s.match_id
-    LEFT JOIN (
-      SELECT
-        sm.steam_id, sm.team, sm.match_id,
-        json_object_agg(mm.medal_short, sm.count) as medals
-      FROM
-        scoreboards_medals sm
-      LEFT JOIN
-        medals mm ON mm.medal_id = sm.medal_id
-      GROUP BY sm.steam_id, sm.team, sm.match_id
-    ) mm ON mm.match_id = s.match_id AND s.steam_id = mm.steam_id AND s.team = mm.team
-    WHERE gametype_id = %s
-    GROUP BY s.match_id;
-    """
-
-        cu.execute(scoreboard_query, [gametype_id])
-        for row in cu:
-            match_id = row[0]
-            team1_score = row[1]
-            team2_score = row[2]
-            match_duration = row[4]
-            all_players_data = []
-            for player in row[3]:
-                if player["t"] == 1 and team1_score > team2_score:
-                    player["win"] = 1
-                if player["t"] == 2 and team1_score < team2_score:
-                    player["win"] = 1
-                all_players_data.append(player.copy())
-            print(match_id)
-            player_match_ratings = count_multiple_players_match_perf(
-                gametype, all_players_data, match_duration
-            )
-
-            for player in all_players_data:
-                player["P"] = int(player["P"])
-                team = int(player["t"]) if "t" in player else 0
-
-                cw.execute(
-                    "UPDATE scoreboards SET match_perf = %s, new_mean = NULL, old_mean = NULL, new_deviation = NULL, old_deviation = NULL WHERE match_id = %s AND team = %s AND steam_id = %s",
-                    [
-                        player_match_ratings[team][player["P"]]["perf"],
-                        match_id,
-                        team,
-                        player["P"],
-                    ],
-                )
-
-        db.commit()
-        result = True
-
-    except Exception as e:
-        db.rollback()
-        log_exception(e)
-    finally:
-        cu.close()
-        db.close()
-
-    return result
-
-
-"""
-db = db_connect()
-cu = db.cursor()
-
-if cfg["run_post_process"]:
-    cu.execute(
-        "SELECT match_id, gametype_id, timestamp FROM matches WHERE post_processed = FALSE ORDER BY timestamp ASC"
-    )
-    for row in cu.fetchall():
-        print("running post process: " + str(row[0]) + "\t" + str(row[2]))
-        post_process(cu, row[0], row[1], row[2])
-        db.commit()
-
-cu.close()
-db.close()
-"""
+    async for match_id, gametype_id, timestamp in con.cursor(query):
+        print("running post process: {}\t{}".format(match_id, timestamp))
+        await post_process(con, match_id, gametype_id, timestamp)
+        await con.execute("COMMIT")

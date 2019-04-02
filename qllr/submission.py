@@ -697,4 +697,3 @@ async def _run_post_process(con: Connection) -> None:
     async for match_id, gametype_id, timestamp in con.cursor(query):
         print("running post process: {}\t{}".format(match_id, timestamp))
         await post_process(con, match_id, gametype_id, timestamp)
-        await con.execute("COMMIT")

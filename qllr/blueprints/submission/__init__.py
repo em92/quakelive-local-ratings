@@ -28,10 +28,7 @@ async def http_stats_submit(request: Request):
 
     match_report = await request.body()
     result = await submit_match(match_report.decode("utf-8"))
-    if result["ok"] == False:
-        raise HTTPException(422, result["message"])
-    else:
-        if RUN_POST_PROCESS is False:
-            raise HTTPException(202, result["message"])
-        else:
-            return JSONResponse(result)
+    if RUN_POST_PROCESS is False:
+        raise HTTPException(202, result["message"])
+
+    return JSONResponse(result)

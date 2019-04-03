@@ -7,14 +7,16 @@ class TestMatchUpload1(AppTestCase):
     ORDER = 1
 
     def test_upload_no_signature(self):
-        resp = self.upload_match_report(sample="something", headers={'Content-Type': "text/plain"})
+        resp = self.upload_match_report(
+            sample="something", headers={"Content-Type": "text/plain"}
+        )
         self.assertEqual(resp.status_code, 403)
         json = resp.json()
-        self.assertTrue("signature" in json['message'].lower())
+        self.assertTrue("signature" in json["message"].lower())
 
-# TODO:
-# shit posting examples
-# 202 or 200
+    # TODO:
+    # shit posting examples
+    # 202 or 200
 
     def test_upload_junk(self):
         resp = self.upload_match_report(sample="junk sample")

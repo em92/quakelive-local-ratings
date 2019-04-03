@@ -9,9 +9,7 @@ class TestExportRatings(AppTestCase):
         resp = self.get("/export_rating/csv/ad", 302)
 
         new_url = resp.headers["Location"]
-        self.assertTrue(
-            new_url.endswith("/export_rating/ad.csv")
-        )
+        self.assertTrue(new_url.endswith("/export_rating/ad.csv"))
 
     def test_ratings_ad_csv(self):
         resp = self.get("/export_rating/ad.csv")
@@ -19,9 +17,4 @@ class TestExportRatings(AppTestCase):
 
     def test_ratings_ad_json(self):
         resp = self.get("/export_rating/ad.json")
-        self.assertDictEqual(
-            resp.json(),
-            self.read_json_sample("exported_ratings_ad")
-        )
-
-
+        self.assertDictEqual(resp.json(), self.read_json_sample("exported_ratings_ad"))

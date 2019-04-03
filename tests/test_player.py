@@ -29,12 +29,12 @@ class TestPlayer(AppTestCase):
             resp = self.get("/player/{0}".format(steam_id))
             self.assertEqual(resp.template.name, "player_stats.html")
             context = resp.context
-            self.assertIn('request', context)
-            self.assertIn('steam_id', context)
-            self.assertEqual(context['steam_id'], steam_id)
+            self.assertIn("request", context)
+            self.assertIn("steam_id", context)
+            self.assertEqual(context["steam_id"], steam_id)
 
-            del context['request']
-            del context['steam_id']
+            del context["request"]
+            del context["steam_id"]
             obj_defacto = context
             self.assertDictEqual(obj_defacto, obj_expected)
 
@@ -43,5 +43,5 @@ class TestPlayer(AppTestCase):
             resp = self.get("/deprecated/player/{0}.json".format(steam_id))
             self.assertDictEqual(
                 resp.json(),
-                self.read_json_sample("deprecated_player_{0}".format(steam_id))
+                self.read_json_sample("deprecated_player_{0}".format(steam_id)),
             )

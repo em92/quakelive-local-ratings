@@ -11,11 +11,11 @@ class TestScoreboard(AppTestCase):
         resp = self.get("/scoreboard/{0}".format(match_id))
         self.assertEqual(resp.template.name, "scoreboard.html")
         context = resp.context
-        self.assertIn('request', context)
-        self.assertIn('match_id', context)
-        self.assertEqual(context['match_id'], match_id)
-        del context['request']
-        del context['match_id']
+        self.assertIn("request", context)
+        self.assertIn("match_id", context)
+        self.assertEqual(context["match_id"], match_id)
+        del context["request"]
+        del context["match_id"]
         obj_defacto = context
         obj_expected = self.read_json_sample(sample_filename)
         self.assertDictEqual(obj_defacto, obj_expected)
@@ -42,19 +42,30 @@ class TestScoreboard(AppTestCase):
         ]
         for sample_name, match_id in cases:
             try:
-                self.assert_scoreboard_equals_sample(match_id, "scoreboard_{}".format(sample_name))
-                self.assert_scoreboard_html_equals_sample(match_id, "scoreboard_{}".format(sample_name))
+                self.assert_scoreboard_equals_sample(
+                    match_id, "scoreboard_{}".format(sample_name)
+                )
+                self.assert_scoreboard_html_equals_sample(
+                    match_id, "scoreboard_{}".format(sample_name)
+                )
             except AssertionError as e:
                 raise AssertionError("{}: {}".format(sample_name, e))
 
-
     def test_not_exists_scoreboard_json(self):
-        resp = self.get("/scoreboard/11111111-1111-1111-1111-111111111111.json", 404, headers={'accept': 'text/html'})
+        resp = self.get(
+            "/scoreboard/11111111-1111-1111-1111-111111111111.json",
+            404,
+            headers={"accept": "text/html"},
+        )
         try:
             resp.json()
         except json.decoder.JSONDecodeError:
             self.fail("Expected json response")
 
     def test_not_exists_scoreboard_html(self):
-        resp = self.get("/scoreboard/11111111-1111-1111-1111-111111111111", 404, headers={'accept': 'text/html'})
+        resp = self.get(
+            "/scoreboard/11111111-1111-1111-1111-111111111111",
+            404,
+            headers={"accept": "text/html"},
+        )
         self.assertEqual(resp.template.name, "layout.html")

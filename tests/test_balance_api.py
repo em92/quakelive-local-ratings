@@ -31,7 +31,9 @@ class TestBalanceApi(AppTestCase):
 
         self.assertIn("deactivated", first)
         self.assertIn("deactivated", second)
-        self.assert_lists_have_same_elements(first["deactivated"], second["deactivated"])
+        self.assert_lists_have_same_elements(
+            first["deactivated"], second["deactivated"]
+        )
 
         self.assertIn("untracked", first)
         self.assertIn("untracked", second)
@@ -40,21 +42,34 @@ class TestBalanceApi(AppTestCase):
     def test_simple_ad_only_players(self):
         self.assert_balance_api_data_equal(
             self.get("/elo/" + self.steam_ids_as_string_with_plus()).json(),
-            self.read_json_sample("balance_api_ad_only_players")
+            self.read_json_sample("balance_api_ad_only_players"),
         )
 
     def test_map_based1(self):
         self.assert_balance_api_data_equal(
-            self.get("/elo/map_based/ad/japanesecastles/" + self.steam_ids_as_string_with_plus()).json(),
-            self.read_json_sample("balance_api_ad_japanesecastles")
+            self.get(
+                "/elo/map_based/ad/japanesecastles/"
+                + self.steam_ids_as_string_with_plus()
+            ).json(),
+            self.read_json_sample("balance_api_ad_japanesecastles"),
         )
         # TODO: add gametype check
 
     def test_map_based2(self):
-        response = self.get("/elo/" + "+".join(self.steam_ids), 302, headers={"X-QuakeLive-Gametype": "ad", "X-QuakeLive-Map": "japanesecastles"})
+        response = self.get(
+            "/elo/" + "+".join(self.steam_ids),
+            302,
+            headers={
+                "X-QuakeLive-Gametype": "ad",
+                "X-QuakeLive-Map": "japanesecastles",
+            },
+        )
 
         new_url = response.headers["Location"]
         self.assertTrue(
-            new_url.endswith("/elo/map_based/ad/japanesecastles/" + self.steam_ids_as_string_with_plus())
+            new_url.endswith(
+                "/elo/map_based/ad/japanesecastles/"
+                + self.steam_ids_as_string_with_plus()
+            )
         )
         # TODO: add gametype check

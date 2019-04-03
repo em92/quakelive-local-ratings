@@ -4,7 +4,6 @@ from qllr.db import cache
 
 
 class TestCache(unittest.TestCase):
-
     def _test_lengths(self, a, b):
         len1 = len(a)
         len2 = len(b)

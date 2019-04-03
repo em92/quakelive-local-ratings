@@ -18,17 +18,16 @@ def handler(postgresql):
 
 
 # force default timezone to pass tests on os with different local timezone setting
-pgsql_test.Postgresql.DEFAULT_SETTINGS['postgres_args'] += ' -c timezone=+5'
+pgsql_test.Postgresql.DEFAULT_SETTINGS["postgres_args"] += " -c timezone=+5"
 
 PGSQLFactory = pgsql_test.PostgresqlFactory(
-    cache_initialized_db=True,
-    on_initialized=handler
+    cache_initialized_db=True, on_initialized=handler
 )
 
 postgresql = PGSQLFactory()
 os.environ["DATABASE_URL"] = postgresql.url()
 
-environ['USE_AVG_PERF_TDM'] = 'TRUE'
+environ["USE_AVG_PERF_TDM"] = "TRUE"
 sys.path.append(sys.path[0] + "/..")
 
 

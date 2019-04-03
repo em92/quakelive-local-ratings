@@ -35,6 +35,7 @@ async def on_startup():
 
     try:
         await submission.run_post_process(con)
+        await tr.commit()
     finally:
         await dbpool.release(con)
 

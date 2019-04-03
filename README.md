@@ -11,6 +11,7 @@ On quake live server side with minqlx [balance.py](https://github.com/MinoMino/m
 * Clan Arena
 * Freeze Tag
 * Team Deathmatch
+* Team Deathmatch (2v2)
 
 ### Differences between QLLR and [QLStats](http://qlstats.net/)
 
@@ -22,46 +23,15 @@ On quake live server side with minqlx [balance.py](https://github.com/MinoMino/m
 ### Requirements
 
 For qllr itself:
-* Python 3.4 with pip
+* Python 3.5 with pip
 * PostgreSQL 9.5
 
 For feeder:
 * Node.js 0.11.13
 * libzmq3
 
-### Installation
+### Docs
 
-* [Instructions for Debian Jessie](README-Debian-Jessie.md)
-* [Instructions for Debian Stretch](README-Debian-Stretch.md)
-
-### qlds/minqlx configuration
-
-In server.cfg:
-
-```
-seta qlx_balanceUrl "YOUR-HOST-HERE"
-seta qlx_balanceMinimumSuggestionDiff 0
-seta qlx_balanceApi "elo"
-```
-
-Make sure that http://YOUR-HOST-HERE/elo/666 is accessible.
-
-If you want to used per-map ratings, make sure that you are using [modified balance.py plugin](https://github.com/em92/minqlx-plugins/blob/master/balance.py) and in server.cfg:
-
-```
-seta qlx_balanceApi "elo_map"
-```
-
-### Import/export database
-
-#### Export database
-
-```
-./dump_backup.py [-c cfg.json]
-```
-It will generate .tar.gz file as database backup.
-
-#### Import database
-```
-./restore_backup.py [-c cfg.json] filename.tar.gz
-```
+* [Installation (on Debian Stretch)](docs/install.md)
+* [Backing up database](docs/backup.md)
+* [qlds/minqlx configuration](docs/minqlx_config.md)

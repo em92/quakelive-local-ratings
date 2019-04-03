@@ -1,0 +1,10 @@
+{% macro rating(data, key) -%}
+  {% if data[ key ] %}
+    {{ data[key] }}
+    {% if data[ key + '_d' ] %}
+      &plusmn; {{ data[ key + '_d'] }}
+    {% endif %}
+  {% else %}
+  -
+  {% endif %}
+{%- endmacro %}

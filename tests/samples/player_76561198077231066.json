@@ -1,0 +1,69 @@
+{
+  "ok": true,
+  "response": {
+    "fav": {
+      "gt": "Attack & Defend",
+      "map": "japanesecastles",
+      "wpn": "Rocket Launcher"
+    },
+    "matches": [
+      {
+        "datetime": "2018-12-30 02:11 +05",
+        "gametype": "ad",
+        "map": "q3wcp11",
+        "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+        "result": "Loss",
+        "team1_score": 13,
+        "team2_score": 10,
+        "timestamp": 1546117867
+      },
+      {
+        "datetime": "2018-12-30 00:56 +05",
+        "gametype": "ad",
+        "map": "japanesecastles",
+        "match_id": "44c479b9-fdbd-4674-b5bd-a56ef124e48c",
+        "result": "Win",
+        "team1_score": 11,
+        "team2_score": 9,
+        "timestamp": 1546113404
+      }
+    ],
+    "name": "Mike_Litoris",
+    "ratings": [
+      {
+        "gametype": "Attack & Defend",
+        "gametype_short": "ad",
+        "n": 1,
+        "rating": 23.28,
+        "rating_d": 8.17
+      }
+    ],
+    "weapon_stats": [
+      {
+        "acc": 3,
+        "frags": 0,
+        "name": "Grenade Launcher",
+        "short": "gl"
+      },
+      {
+        "acc": 28,
+        "frags": 7,
+        "name": "Rocket Launcher",
+        "short": "rl"
+      },
+      {
+        "acc": 17,
+        "frags": 3,
+        "name": "Lightning Gun",
+        "short": "lg"
+      },
+      {
+        "acc": 12,
+        "frags": 0,
+        "name": "Railgun",
+        "short": "rg"
+      }
+    ]
+  },
+  "title": "Mike_Litoris"
+}

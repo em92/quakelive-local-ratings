@@ -1,2 +1,3 @@
-__pycache__/*
+*.pyc
 player_ids.json
+.idea/*

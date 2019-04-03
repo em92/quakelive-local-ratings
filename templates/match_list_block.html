@@ -1,6 +1,6 @@
 <div id="summary-table-wrapper">
   <p>{{ title }}</p>
-  <table id="summary-table" table="table table-borderless">
+  <table id="summary-table" class="table table-borderless">
     <thead><tr>
       <th class="col-xs-2">Time</th>
       <th class="col-xs-1">Gametype</th>
@@ -9,17 +9,17 @@
       <th class="col-xs-1">Scores</th>
     </tr></thead>
     <tbody>{% for item in matches %}<tr>
-      <td class="col-xs-2" title="{{ item['datetime'] }}">{{ item['timedelta'] }}</td>
+      <td class="col-xs-2" title="{{ item['datetime'] }}" data-timestamp="{{ item['timestamp'] }}">{{ item['datetime'] }}</td>
       <td class="col-xs-1">
         {% if gametype %}
           {{ item['gametype'] }}
         {% else %}
-          <a href="{{ page_prefix }}/{{ item['gametype'] }}/">{{ item['gametype'] }}</a>
+          <a href="{{ url_for('MatchesHtml', steam_id = steam_id, gametype = item['gametype']) }}">{{ item['gametype'] }}</a>
         {% endif %}
       </td>
       <td class="col-xs-3">{{ item['map'] }}</td>
       <td class="col-xs-1">
-        <a href="/scoreboard/{{ item['match_id'] }}">link</a>
+        <a href="{{ url_for('ScoreboardHtml', match_id = item['match_id']) }}">link</a>
       </td>
       <td class="col-xs-1">{{ item['team1_score'] }} : {{ item['team2_score'] }}</td>
     </tr>{% endfor %}</tbody>

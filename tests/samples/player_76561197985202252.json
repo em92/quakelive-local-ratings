@@ -1,0 +1,123 @@
+{
+  "ok": true,
+  "response": {
+    "fav": {
+      "gt": "Attack & Defend",
+      "map": "ump2ctf5",
+      "wpn": "Railgun"
+    },
+    "matches": [
+      {
+        "datetime": "2019-03-10 01:30 +05",
+        "gametype": "ad",
+        "map": "actf20",
+        "match_id": "06b0c4d0-9720-40c5-92c5-e406c1496684",
+        "result": "Win",
+        "team1_score": 9,
+        "team2_score": 15,
+        "timestamp": 1552163458
+      },
+      {
+        "datetime": "2019-03-10 01:06 +05",
+        "gametype": "ad",
+        "map": "ctfscp5",
+        "match_id": "44de3665-dd33-4f09-ae2e-a3f0456e6a9b",
+        "result": "Win",
+        "team1_score": 4,
+        "team2_score": 12,
+        "timestamp": 1552162004
+      },
+      {
+        "datetime": "2019-03-10 00:39 +05",
+        "gametype": "ad",
+        "map": "saintctf3",
+        "match_id": "13d71e4f-69e9-4a04-8c37-f12a35ab9d2f",
+        "result": "Win",
+        "team1_score": 14,
+        "team2_score": 10,
+        "timestamp": 1552160394
+      },
+      {
+        "datetime": "2018-12-30 02:11 +05",
+        "gametype": "ad",
+        "map": "q3wcp11",
+        "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+        "result": "Win",
+        "team1_score": 13,
+        "team2_score": 10,
+        "timestamp": 1546117867
+      },
+      {
+        "datetime": "2018-11-01 00:06 +05",
+        "gametype": "ad",
+        "map": "ump2ctf5",
+        "match_id": "69770ca5-943c-491d-931e-720c5474d33b",
+        "result": "Win",
+        "team1_score": 6,
+        "team2_score": 11,
+        "timestamp": 1541012801
+      }
+    ],
+    "name": "carecryy",
+    "ratings": [
+      {
+        "gametype": "Attack & Defend",
+        "gametype_short": "ad",
+        "n": 5,
+        "rating": 32.29,
+        "rating_d": 7.55
+      }
+    ],
+    "weapon_stats": [
+      {
+        "acc": 0,
+        "frags": 1,
+        "name": "Gauntlet",
+        "short": "gt"
+      },
+      {
+        "acc": 3,
+        "frags": 1,
+        "name": "Machine Gun",
+        "short": "mg"
+      },
+      {
+        "acc": 11,
+        "frags": 2,
+        "name": "Shotgun",
+        "short": "sg"
+      },
+      {
+        "acc": 6,
+        "frags": 1,
+        "name": "Grenade Launcher",
+        "short": "gl"
+      },
+      {
+        "acc": 14,
+        "frags": 13,
+        "name": "Rocket Launcher",
+        "short": "rl"
+      },
+      {
+        "acc": 43,
+        "frags": 29,
+        "name": "Lightning Gun",
+        "short": "lg"
+      },
+      {
+        "acc": 61,
+        "frags": 74,
+        "name": "Railgun",
+        "short": "rg"
+      },
+      {
+        "acc": 8,
+        "frags": 5,
+        "name": "Plasma Gun",
+        "short": "pg"
+      }
+    ]
+  },
+  "title": "carecryy"
+}

@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "player": {
+    "_id": "76561197985202252",
+    "ad": {
+      "history": [
+        {
+          "match_id": "69770ca5-943c-491d-931e-720c5474d33b",
+          "rating": 25.0,
+          "timestamp": 1541012801
+        },
+        {
+          "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+          "rating": 27.2,
+          "timestamp": 1546117867
+        },
+        {
+          "match_id": "13d71e4f-69e9-4a04-8c37-f12a35ab9d2f",
+          "rating": 28.8,
+          "timestamp": 1552160394
+        },
+        {
+          "match_id": "44de3665-dd33-4f09-ae2e-a3f0456e6a9b",
+          "rating": 29.76,
+          "timestamp": 1552162004
+        },
+        {
+          "match_id": "06b0c4d0-9720-40c5-92c5-e406c1496684",
+          "rating": 31.49,
+          "timestamp": 1552163458
+        }
+      ],
+      "max_rank": null,
+      "n": 5,
+      "rank": null,
+      "rating": 32.29
+    },
+    "model": "mynx",
+    "name": "carecryy"
+  }
+}

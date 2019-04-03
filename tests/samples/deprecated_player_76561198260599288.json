@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "player": {
+    "_id": "76561198260599288",
+    "ad": {
+      "history": [
+        {
+          "match_id": "44c479b9-fdbd-4674-b5bd-a56ef124e48c",
+          "rating": 25.0,
+          "timestamp": 1546113404
+        },
+        {
+          "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+          "rating": 25.93,
+          "timestamp": 1546117867
+        }
+      ],
+      "max_rank": null,
+      "n": 2,
+      "rank": null,
+      "rating": 24.26
+    },
+    "model": "bitterman/blue",
+    "name": "eugene"
+  }
+}

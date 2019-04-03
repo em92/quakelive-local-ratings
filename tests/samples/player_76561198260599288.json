@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "response": {
+    "fav": {
+      "gt": "Attack & Defend",
+      "map": "japanesecastles",
+      "wpn": "Lightning Gun"
+    },
+    "matches": [
+      {
+        "datetime": "2018-12-30 02:11 +05",
+        "gametype": "ad",
+        "map": "q3wcp11",
+        "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+        "result": "Loss",
+        "team1_score": 13,
+        "team2_score": 10,
+        "timestamp": 1546117867
+      },
+      {
+        "datetime": "2018-12-30 00:56 +05",
+        "gametype": "ad",
+        "map": "japanesecastles",
+        "match_id": "44c479b9-fdbd-4674-b5bd-a56ef124e48c",
+        "result": "Win",
+        "team1_score": 11,
+        "team2_score": 9,
+        "timestamp": 1546113404
+      }
+    ],
+    "name": "eugene",
+    "ratings": [
+      {
+        "gametype": "Attack & Defend",
+        "gametype_short": "ad",
+        "n": 2,
+        "rating": 24.26,
+        "rating_d": 8.06
+      }
+    ],
+    "weapon_stats": [
+      {
+        "acc": 3,
+        "frags": 0,
+        "name": "Machine Gun",
+        "short": "mg"
+      },
+      {
+        "acc": 15,
+        "frags": 1,
+        "name": "Shotgun",
+        "short": "sg"
+      },
+      {
+        "acc": 6,
+        "frags": 1,
+        "name": "Grenade Launcher",
+        "short": "gl"
+      },
+      {
+        "acc": 34,
+        "frags": 10,
+        "name": "Rocket Launcher",
+        "short": "rl"
+      },
+      {
+        "acc": 26,
+        "frags": 19,
+        "name": "Lightning Gun",
+        "short": "lg"
+      },
+      {
+        "acc": 36,
+        "frags": 8,
+        "name": "Railgun",
+        "short": "rg"
+      },
+      {
+        "acc": 16,
+        "frags": 0,
+        "name": "Plasma Gun",
+        "short": "pg"
+      }
+    ]
+  },
+  "title": "eugene"
+}

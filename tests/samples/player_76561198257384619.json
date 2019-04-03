@@ -1,0 +1,131 @@
+{
+  "ok": true,
+  "response": {
+    "fav": {
+      "gt": "Attack & Defend",
+      "map": "japanesecastles",
+      "wpn": "Railgun"
+    },
+    "matches": [
+      {
+        "datetime": "2019-02-26 01:48 +05",
+        "gametype": "ad",
+        "map": "bigdm6",
+        "match_id": "39ac0a42-55a6-44b4-ac06-69571db6bc31",
+        "result": "Loss",
+        "team1_score": 14,
+        "team2_score": 11,
+        "timestamp": 1551127724
+      },
+      {
+        "datetime": "2019-02-26 01:22 +05",
+        "gametype": "ad",
+        "map": "stonekeep",
+        "match_id": "93a0b31f-4326-4971-ae51-8ddd97b74b83",
+        "result": "Win",
+        "team1_score": 15,
+        "team2_score": 5,
+        "timestamp": 1551126146
+      },
+      {
+        "datetime": "2019-02-26 01:00 +05",
+        "gametype": "ad",
+        "map": "industrialrevolution",
+        "match_id": "6ba4f41b-17bd-45dc-883e-9dacb49f3092",
+        "result": "Win",
+        "team1_score": 7,
+        "team2_score": 11,
+        "timestamp": 1551124813
+      },
+      {
+        "datetime": "2019-02-26 00:38 +05",
+        "gametype": "ad",
+        "map": "ump1ctf7",
+        "match_id": "5185e664-e476-49ba-953d-a6d59080d50b",
+        "result": "Win",
+        "team1_score": 5,
+        "team2_score": 16,
+        "timestamp": 1551123483
+      },
+      {
+        "datetime": "2019-02-25 23:54 +05",
+        "gametype": "ad",
+        "map": "push",
+        "match_id": "52b7ae54-8040-4a21-9912-9e5ee13e2caa",
+        "result": "Loss",
+        "team1_score": 16,
+        "team2_score": 8,
+        "timestamp": 1551120886
+      },
+      {
+        "datetime": "2018-12-30 02:11 +05",
+        "gametype": "ad",
+        "map": "q3wcp11",
+        "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+        "result": "Loss",
+        "team1_score": 13,
+        "team2_score": 10,
+        "timestamp": 1546117867
+      },
+      {
+        "datetime": "2018-12-30 00:56 +05",
+        "gametype": "ad",
+        "map": "japanesecastles",
+        "match_id": "44c479b9-fdbd-4674-b5bd-a56ef124e48c",
+        "result": "Loss",
+        "team1_score": 11,
+        "team2_score": 9,
+        "timestamp": 1546113404
+      }
+    ],
+    "name": "^2HanzoHas^4ashiSan^7",
+    "ratings": [
+      {
+        "gametype": "Attack & Defend",
+        "gametype_short": "ad",
+        "n": 6,
+        "rating": 27.26,
+        "rating_d": 7.53
+      }
+    ],
+    "weapon_stats": [
+      {
+        "acc": 31,
+        "frags": 1,
+        "name": "Machine Gun",
+        "short": "mg"
+      },
+      {
+        "acc": 16,
+        "frags": 7,
+        "name": "Shotgun",
+        "short": "sg"
+      },
+      {
+        "acc": 7,
+        "frags": 6,
+        "name": "Grenade Launcher",
+        "short": "gl"
+      },
+      {
+        "acc": 32,
+        "frags": 30,
+        "name": "Rocket Launcher",
+        "short": "rl"
+      },
+      {
+        "acc": 31,
+        "frags": 15,
+        "name": "Lightning Gun",
+        "short": "lg"
+      },
+      {
+        "acc": 34,
+        "frags": 34,
+        "name": "Railgun",
+        "short": "rg"
+      }
+    ]
+  },
+  "title": "HanzoHasashiSan"
+}

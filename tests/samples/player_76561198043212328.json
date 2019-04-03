@@ -1,0 +1,125 @@
+{
+  "ok": true,
+  "response": {
+    "fav": {
+      "gt": "Attack & Defend",
+      "map": "ump2ctf5",
+      "wpn": "Railgun"
+    },
+    "matches": [
+      {
+        "datetime": "2019-03-10 01:30 +05",
+        "gametype": "ad",
+        "map": "actf20",
+        "match_id": "06b0c4d0-9720-40c5-92c5-e406c1496684",
+        "result": "Loss",
+        "team1_score": 9,
+        "team2_score": 15,
+        "timestamp": 1552163458
+      },
+      {
+        "datetime": "2019-03-10 01:06 +05",
+        "gametype": "ad",
+        "map": "ctfscp5",
+        "match_id": "44de3665-dd33-4f09-ae2e-a3f0456e6a9b",
+        "result": "Loss",
+        "team1_score": 4,
+        "team2_score": 12,
+        "timestamp": 1552162004
+      },
+      {
+        "datetime": "2019-03-10 00:39 +05",
+        "gametype": "ad",
+        "map": "saintctf3",
+        "match_id": "13d71e4f-69e9-4a04-8c37-f12a35ab9d2f",
+        "result": "Loss",
+        "team1_score": 14,
+        "team2_score": 10,
+        "timestamp": 1552160394
+      },
+      {
+        "datetime": "2019-03-10 00:13 +05",
+        "gametype": "ad",
+        "map": "courtyard",
+        "match_id": "47bf1f66-21a8-4414-a196-fb4262f2f81e",
+        "result": "Win",
+        "team1_score": 16,
+        "team2_score": 6,
+        "timestamp": 1552158790
+      },
+      {
+        "datetime": "2018-12-30 02:11 +05",
+        "gametype": "ad",
+        "map": "q3wcp11",
+        "match_id": "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4",
+        "result": "Win",
+        "team1_score": 13,
+        "team2_score": 10,
+        "timestamp": 1546117867
+      },
+      {
+        "datetime": "2018-12-30 00:56 +05",
+        "gametype": "ad",
+        "map": "japanesecastles",
+        "match_id": "44c479b9-fdbd-4674-b5bd-a56ef124e48c",
+        "result": "Win",
+        "team1_score": 11,
+        "team2_score": 9,
+        "timestamp": 1546113404
+      },
+      {
+        "datetime": "2018-11-01 00:06 +05",
+        "gametype": "ad",
+        "map": "ump2ctf5",
+        "match_id": "69770ca5-943c-491d-931e-720c5474d33b",
+        "result": "Loss",
+        "team1_score": 6,
+        "team2_score": 11,
+        "timestamp": 1541012801
+      }
+    ],
+    "name": "^6dobo ^7shire",
+    "ratings": [
+      {
+        "gametype": "Attack & Defend",
+        "gametype_short": "ad",
+        "n": 6,
+        "rating": 21.83,
+        "rating_d": 7.46
+      }
+    ],
+    "weapon_stats": [
+      {
+        "acc": 3,
+        "frags": 2,
+        "name": "Grenade Launcher",
+        "short": "gl"
+      },
+      {
+        "acc": 14,
+        "frags": 9,
+        "name": "Rocket Launcher",
+        "short": "rl"
+      },
+      {
+        "acc": 34,
+        "frags": 26,
+        "name": "Lightning Gun",
+        "short": "lg"
+      },
+      {
+        "acc": 44,
+        "frags": 31,
+        "name": "Railgun",
+        "short": "rg"
+      },
+      {
+        "acc": 3,
+        "frags": 0,
+        "name": "Plasma Gun",
+        "short": "pg"
+      }
+    ]
+  },
+  "title": "dobo shire"
+}

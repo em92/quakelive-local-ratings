@@ -14,12 +14,12 @@
         {% if gametype %}
           {{ item['gametype'] }}
         {% else %}
-          <a href="{{ page_prefix }}/{{ item['gametype'] }}/">{{ item['gametype'] }}</a>
+          <a href="{{ url_for('MatchesHtml', steam_id = steam_id, gametype = item['gametype']) }}">{{ item['gametype'] }}</a>
         {% endif %}
       </td>
       <td class="col-xs-3">{{ item['map'] }}</td>
       <td class="col-xs-1">
-        <a href="/scoreboard/{{ item['match_id'] }}">link</a>
+        <a href="{{ url_for('ScoreboardHtml', match_id = item['match_id']) }}">link</a>
       </td>
       <td class="col-xs-1">{{ item['team1_score'] }} : {{ item['team2_score'] }}</td>
     </tr>{% endfor %}</tbody>

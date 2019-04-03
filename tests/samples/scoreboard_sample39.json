@@ -1,0 +1,1011 @@
+{
+    "medals_available": [
+        "combokill",
+        "excellent",
+        "firstfrag",
+        "headshot",
+        "humiliation",
+        "impressive",
+        "midair",
+        "perforated",
+        "revenge"
+    ],
+    "ok": true,
+    "player_stats": {
+        "medals": {
+            "76561197994123047": {
+                "combokill": 2,
+                "excellent": 3,
+                "firstfrag": 1,
+                "headshot": 1,
+                "humiliation": 3,
+                "impressive": 9,
+                "midair": 1,
+                "revenge": 3
+            },
+            "76561198033752090": {
+                "combokill": 1,
+                "excellent": 6,
+                "humiliation": 2,
+                "impressive": 2,
+                "revenge": 3
+            },
+            "76561198196618515": {
+                "excellent": 5,
+                "humiliation": 2,
+                "impressive": 4,
+                "revenge": 3
+            },
+            "76561198256203867": {
+                "excellent": 5,
+                "humiliation": 1,
+                "impressive": 8,
+                "midair": 1,
+                "perforated": 1,
+                "revenge": 3
+            },
+            "76561198257330241": {
+                "excellent": 2,
+                "humiliation": 3,
+                "impressive": 1,
+                "revenge": 6
+            },
+            "76561198257679175": {
+                "excellent": 3,
+                "humiliation": 5,
+                "impressive": 2,
+                "midair": 1,
+                "revenge": 6
+            },
+            "76561198273556024": {
+                "excellent": 2,
+                "revenge": 3
+            },
+            "76561198284683846": {
+                "excellent": 2,
+                "humiliation": 1,
+                "impressive": 3,
+                "midair": 1,
+                "revenge": 6
+            }
+        },
+        "weapons": {
+            "76561197994123047": {
+                "gl": [
+                    1,
+                    7,
+                    99
+                ],
+                "gt": [
+                    3,
+                    0,
+                    0
+                ],
+                "lg": [
+                    1,
+                    26,
+                    73
+                ],
+                "mg": [
+                    3,
+                    234,
+                    733
+                ],
+                "pg": [
+                    3,
+                    38,
+                    207
+                ],
+                "rg": [
+                    11,
+                    24,
+                    42
+                ],
+                "rl": [
+                    6,
+                    30,
+                    60
+                ],
+                "sg": [
+                    16,
+                    463,
+                    1340
+                ]
+            },
+            "76561198033752090": {
+                "gt": [
+                    2,
+                    0,
+                    0
+                ],
+                "lg": [
+                    19,
+                    263,
+                    957
+                ],
+                "mg": [
+                    6,
+                    211,
+                    654
+                ],
+                "pg": [
+                    0,
+                    15,
+                    93
+                ],
+                "rg": [
+                    4,
+                    13,
+                    24
+                ],
+                "rl": [
+                    11,
+                    36,
+                    86
+                ],
+                "sg": [
+                    11,
+                    366,
+                    1220
+                ]
+            },
+            "76561198196618515": {
+                "gl": [
+                    0,
+                    0,
+                    1
+                ],
+                "gt": [
+                    2,
+                    0,
+                    0
+                ],
+                "lg": [
+                    3,
+                    68,
+                    200
+                ],
+                "mg": [
+                    7,
+                    209,
+                    717
+                ],
+                "pg": [
+                    1,
+                    13,
+                    158
+                ],
+                "rg": [
+                    4,
+                    18,
+                    43
+                ],
+                "rl": [
+                    13,
+                    48,
+                    101
+                ],
+                "sg": [
+                    11,
+                    261,
+                    960
+                ]
+            },
+            "76561198256203867": {
+                "gt": [
+                    1,
+                    0,
+                    0
+                ],
+                "lg": [
+                    18,
+                    381,
+                    1229
+                ],
+                "mg": [
+                    4,
+                    148,
+                    481
+                ],
+                "pg": [
+                    2,
+                    9,
+                    60
+                ],
+                "rg": [
+                    11,
+                    24,
+                    53
+                ],
+                "rl": [
+                    7,
+                    23,
+                    50
+                ],
+                "sg": [
+                    4,
+                    50,
+                    140
+                ]
+            },
+            "76561198257330241": {
+                "gl": [
+                    1,
+                    3,
+                    16
+                ],
+                "gt": [
+                    3,
+                    0,
+                    0
+                ],
+                "lg": [
+                    0,
+                    15,
+                    56
+                ],
+                "mg": [
+                    10,
+                    365,
+                    1447
+                ],
+                "pg": [
+                    4,
+                    34,
+                    270
+                ],
+                "rg": [
+                    1,
+                    5,
+                    8
+                ],
+                "rl": [
+                    4,
+                    23,
+                    70
+                ],
+                "sg": [
+                    10,
+                    366,
+                    1380
+                ]
+            },
+            "76561198257679175": {
+                "gl": [
+                    0,
+                    2,
+                    21
+                ],
+                "gt": [
+                    5,
+                    0,
+                    0
+                ],
+                "lg": [
+                    2,
+                    51,
+                    190
+                ],
+                "mg": [
+                    6,
+                    344,
+                    1283
+                ],
+                "pg": [
+                    3,
+                    24,
+                    194
+                ],
+                "rg": [
+                    2,
+                    8,
+                    29
+                ],
+                "rl": [
+                    12,
+                    57,
+                    146
+                ],
+                "sg": [
+                    5,
+                    151,
+                    720
+                ]
+            },
+            "76561198273556024": {
+                "gl": [
+                    0,
+                    1,
+                    10
+                ],
+                "lg": [
+                    1,
+                    13,
+                    100
+                ],
+                "mg": [
+                    1,
+                    88,
+                    604
+                ],
+                "pg": [
+                    3,
+                    28,
+                    342
+                ],
+                "rg": [
+                    1,
+                    1,
+                    1
+                ],
+                "rl": [
+                    21,
+                    66,
+                    170
+                ],
+                "sg": [
+                    5,
+                    168,
+                    460
+                ]
+            },
+            "76561198284683846": {
+                "gl": [
+                    1,
+                    3,
+                    11
+                ],
+                "gt": [
+                    1,
+                    0,
+                    0
+                ],
+                "lg": [
+                    1,
+                    38,
+                    87
+                ],
+                "mg": [
+                    5,
+                    401,
+                    1159
+                ],
+                "pg": [
+                    0,
+                    3,
+                    51
+                ],
+                "rg": [
+                    3,
+                    9,
+                    23
+                ],
+                "rl": [
+                    10,
+                    40,
+                    116
+                ],
+                "sg": [
+                    10,
+                    296,
+                    1060
+                ]
+            }
+        }
+    },
+    "summary": {
+        "datetime": "2019-03-10 04:52 +05",
+        "duration": "20:00",
+        "factory": "ttdm",
+        "gt": "Team Deathmatch",
+        "gt_short": "tdm",
+        "map": "limbus",
+        "rating_diff": -2.45,
+        "team1_score": 152,
+        "team2_score": 157,
+        "timestamp": 1552175533
+    },
+    "team_stats": {
+        "overall": [
+            {
+                "medal_stats": {
+                    "combokill": 1,
+                    "excellent": 6,
+                    "humiliation": 2,
+                    "impressive": 2,
+                    "revenge": 3
+                },
+                "name": "^18-# ^7k1lljoy",
+                "rating": {
+                    "new": 32.54,
+                    "new_d": 0,
+                    "old": 27.52,
+                    "old_d": 0
+                },
+                "stats": {
+                    "alive_time": 1200,
+                    "damage_dealt": 9125,
+                    "damage_taken": 6417,
+                    "deaths": 32,
+                    "frags": 53,
+                    "score": 53
+                },
+                "steam_id": "76561198033752090",
+                "team": "2",
+                "weapon_stats": {
+                    "gt": [
+                        2,
+                        0,
+                        0,
+                        0
+                    ],
+                    "lg": [
+                        19,
+                        263,
+                        957,
+                        27
+                    ],
+                    "mg": [
+                        6,
+                        211,
+                        654,
+                        32
+                    ],
+                    "pg": [
+                        0,
+                        15,
+                        93,
+                        16
+                    ],
+                    "rg": [
+                        4,
+                        13,
+                        24,
+                        54
+                    ],
+                    "rl": [
+                        11,
+                        36,
+                        86,
+                        42
+                    ],
+                    "sg": [
+                        11,
+                        366,
+                        1220,
+                        30
+                    ]
+                }
+            },
+            {
+                "medal_stats": {
+                    "excellent": 5,
+                    "humiliation": 1,
+                    "impressive": 8,
+                    "midair": 1,
+                    "perforated": 1,
+                    "revenge": 3
+                },
+                "name": "prestij",
+                "rating": {
+                    "new": 35.12,
+                    "new_d": 0,
+                    "old": 36.19,
+                    "old_d": 0
+                },
+                "stats": {
+                    "alive_time": 1200,
+                    "damage_dealt": 7037,
+                    "damage_taken": 6382,
+                    "deaths": 30,
+                    "frags": 48,
+                    "score": 45
+                },
+                "steam_id": "76561198256203867",
+                "team": "1",
+                "weapon_stats": {
+                    "gt": [
+                        1,
+                        0,
+                        0,
+                        0
+                    ],
+                    "lg": [
+                        18,
+                        381,
+                        1229,
+                        31
+                    ],
+                    "mg": [
+                        4,
+                        148,
+                        481,
+                        31
+                    ],
+                    "pg": [
+                        2,
+                        9,
+                        60,
+                        15
+                    ],
+                    "rg": [
+                        11,
+                        24,
+                        53,
+                        45
+                    ],
+                    "rl": [
+                        7,
+                        23,
+                        50,
+                        46
+                    ],
+                    "sg": [
+                        4,
+                        50,
+                        140,
+                        36
+                    ]
+                }
+            },
+            {
+                "medal_stats": {
+                    "combokill": 2,
+                    "excellent": 3,
+                    "firstfrag": 1,
+                    "headshot": 1,
+                    "humiliation": 3,
+                    "impressive": 9,
+                    "midair": 1,
+                    "revenge": 3
+                },
+                "name": "vasnur",
+                "rating": {
+                    "new": 37.14,
+                    "new_d": 0,
+                    "old": 37.13,
+                    "old_d": 0
+                },
+                "stats": {
+                    "alive_time": 1200,
+                    "damage_dealt": 8820,
+                    "damage_taken": 5952,
+                    "deaths": 36,
+                    "frags": 44,
+                    "score": 43
+                },
+                "steam_id": "76561197994123047",
+                "team": "1",
+                "weapon_stats": {
+                    "gl": [
+                        1,
+                        7,
+                        99,
+                        7
+                    ],
+                    "gt": [
+                        3,
+                        0,
+                        0,
+                        0
+                    ],
+                    "lg": [
+                        1,
+                        26,
+                        73,
+                        36
+                    ],
+                    "mg": [
+                        3,
+                        234,
+                        733,
+                        32
+                    ],
+                    "pg": [
+                        3,
+                        38,
+                        207,
+                        18
+                    ],
+                    "rg": [
+                        11,
+                        24,
+                        42,
+                        57
+                    ],
+                    "rl": [
+                        6,
+                        30,
+                        60,
+                        50
+                    ],
+                    "sg": [
+                        16,
+                        463,
+                        1340,
+                        35
+                    ]
+                }
+            },
+            {
+                "medal_stats": {
+                    "excellent": 5,
+                    "humiliation": 2,
+                    "impressive": 4,
+                    "revenge": 3
+                },
+                "name": "Drayan",
+                "rating": {
+                    "new": 36.94,
+                    "new_d": 0,
+                    "old": 40.59,
+                    "old_d": 0
+                },
+                "stats": {
+                    "alive_time": 1200,
+                    "damage_dealt": 7127,
+                    "damage_taken": 6280,
+                    "deaths": 39,
+                    "frags": 41,
+                    "score": 41
+                },
+                "steam_id": "76561198196618515",
+                "team": "2",
+                "weapon_stats": {
+                    "gl": [
+                        0,
+                        0,
+                        1,
+                        0
+                    ],
+                    "gt": [
+                        2,
+                        0,
+                        0,
+                        0
+                    ],
+                    "lg": [
+                        3,
+                        68,
+                        200,
+                        34
+                    ],
+                    "mg": [
+                        7,
+                        209,
+                        717,
+                        29
+                    ],
+                    "pg": [
+                        1,
+                        13,
+                        158,
+                        8
+                    ],
+                    "rg": [
+                        4,
+                        18,
+                        43,
+                        42
+                    ],
+                    "rl": [
+                        13,
+                        48,
+                        101,
+                        48
+                    ],
+                    "sg": [
+                        11,
+                        261,
+                        960,
+                        27
+                    ]
+                }
+            },
+            {
+                "medal_stats": {
+                    "excellent": 3,
+                    "humiliation": 5,
+                    "impressive": 2,
+                    "midair": 1,
+                    "revenge": 6
+                },
+                "name": "^4E^7teto",
+                "rating": {
+                    "new": 19.6,
+                    "new_d": 0,
+                    "old": 22.93,
+                    "old_d": 0
+                },
+                "stats": {
+                    "alive_time": 1200,
+                    "damage_dealt": 7540,
+                    "damage_taken": 7994,
+                    "deaths": 58,
+                    "frags": 35,
+                    "score": 35
+                },
+                "steam_id": "76561198257679175",
+                "team": "1",
+                "weapon_stats": {
+                    "gl": [
+                        0,
+                        2,
+                        21,
+                        10
+                    ],
+                    "gt": [
+                        5,
+                        0,
+                        0,
+                        0
+                    ],
+                    "lg": [
+                        2,
+                        51,
+                        190,
+                        27
+                    ],
+                    "mg": [
+                        6,
+                        344,
+                        1283,
+                        27
+                    ],
+                    "pg": [
+                        3,
+                        24,
+                        194,
+                        12
+                    ],
+                    "rg": [
+                        2,
+                        8,
+                        29,
+                        28
+                    ],
+                    "rl": [
+                        12,
+                        57,
+                        146,
+                        39
+                    ],
+                    "sg": [
+                        5,
+                        151,
+                        720,
+                        21
+                    ]
+                }
+            },
+            {
+                "medal_stats": {
+                    "excellent": 2,
+                    "humiliation": 3,
+                    "impressive": 1,
+                    "revenge": 6
+                },
+                "name": "tough maf",
+                "rating": {
+                    "new": 17.76,
+                    "new_d": 0,
+                    "old": 17.72,
+                    "old_d": 0
+                },
+                "stats": {
+                    "alive_time": 1200,
+                    "damage_dealt": 6552,
+                    "damage_taken": 6282,
+                    "deaths": 44,
+                    "frags": 33,
+                    "score": 33
+                },
+                "steam_id": "76561198257330241",
+                "team": "2",
+                "weapon_stats": {
+                    "gl": [
+                        1,
+                        3,
+                        16,
+                        19
+                    ],
+                    "gt": [
+                        3,
+                        0,
+                        0,
+                        0
+                    ],
+                    "lg": [
+                        0,
+                        15,
+                        56,
+                        27
+                    ],
+                    "mg": [
+                        10,
+                        365,
+                        1447,
+                        25
+                    ],
+                    "pg": [
+                        4,
+                        34,
+                        270,
+                        13
+                    ],
+                    "rg": [
+                        1,
+                        5,
+                        8,
+                        63
+                    ],
+                    "rl": [
+                        4,
+                        23,
+                        70,
+                        33
+                    ],
+                    "sg": [
+                        10,
+                        366,
+                        1380,
+                        27
+                    ]
+                }
+            },
+            {
+                "medal_stats": {
+                    "excellent": 2,
+                    "humiliation": 1,
+                    "impressive": 3,
+                    "midair": 1,
+                    "revenge": 6
+                },
+                "name": "raket41k",
+                "rating": {
+                    "new": 16.82,
+                    "new_d": 0,
+                    "old": 17.38,
+                    "old_d": 0
+                },
+                "stats": {
+                    "alive_time": 1200,
+                    "damage_dealt": 6385,
+                    "damage_taken": 6424,
+                    "deaths": 45,
+                    "frags": 31,
+                    "score": 30
+                },
+                "steam_id": "76561198284683846",
+                "team": "2",
+                "weapon_stats": {
+                    "gl": [
+                        1,
+                        3,
+                        11,
+                        27
+                    ],
+                    "gt": [
+                        1,
+                        0,
+                        0,
+                        0
+                    ],
+                    "lg": [
+                        1,
+                        38,
+                        87,
+                        44
+                    ],
+                    "mg": [
+                        5,
+                        401,
+                        1159,
+                        35
+                    ],
+                    "pg": [
+                        0,
+                        3,
+                        51,
+                        6
+                    ],
+                    "rg": [
+                        3,
+                        9,
+                        23,
+                        39
+                    ],
+                    "rl": [
+                        10,
+                        40,
+                        116,
+                        34
+                    ],
+                    "sg": [
+                        10,
+                        296,
+                        1060,
+                        28
+                    ]
+                }
+            },
+            {
+                "medal_stats": {
+                    "excellent": 2,
+                    "revenge": 3
+                },
+                "name": "trig",
+                "rating": {
+                    "new": -2.04,
+                    "new_d": 0,
+                    "old": -2.86,
+                    "old_d": 0
+                },
+                "stats": {
+                    "alive_time": 1200,
+                    "damage_dealt": 5224,
+                    "damage_taken": 6518,
+                    "deaths": 41,
+                    "frags": 32,
+                    "score": 29
+                },
+                "steam_id": "76561198273556024",
+                "team": "1",
+                "weapon_stats": {
+                    "gl": [
+                        0,
+                        1,
+                        10,
+                        10
+                    ],
+                    "lg": [
+                        1,
+                        13,
+                        100,
+                        13
+                    ],
+                    "mg": [
+                        1,
+                        88,
+                        604,
+                        15
+                    ],
+                    "pg": [
+                        3,
+                        28,
+                        342,
+                        8
+                    ],
+                    "rg": [
+                        1,
+                        1,
+                        1,
+                        100
+                    ],
+                    "rl": [
+                        21,
+                        66,
+                        170,
+                        39
+                    ],
+                    "sg": [
+                        5,
+                        168,
+                        460,
+                        37
+                    ]
+                }
+            }
+        ]
+    },
+    "weapons_available": [
+        "gt",
+        "mg",
+        "sg",
+        "gl",
+        "rl",
+        "lg",
+        "rg",
+        "pg"
+    ]
+}

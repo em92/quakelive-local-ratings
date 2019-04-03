@@ -1,5 +1,6 @@
-### Installation on Debian Stretch
+# Installation (on Debian Stretch)
 
+## Installing and configuring QLLR
 ```
 # base apps
 sudo apt-get install python3 python3-pip postgresql git
@@ -10,8 +11,11 @@ cd ./quakelive-local-ratings
 sudo pip3 install -r requirements.txt
 ```
 
+All config is in `.env` file. See `.env.example`.
+
+
 Assuming that we are making database "qllr" with owner's name "eugene" and password "bebebe".
-If not - edit cfg.json to change "db_url" key.
+If not - edit `.env` file to change `DATABASE_URL` value.
 
 * creating database in postgresql
 
@@ -27,7 +31,7 @@ GRANT ALL ON DATABASE qllr TO eugene;
 \q
 ```
 
-* deploying database (if you have database backup to restore - ignore this step and do [this](README.md#import-database) instead)
+* deploying database (if you have database backup to restore - ignore this step and do [this](backup.md) instead)
 ```
 psql -h localhost qllr eugene
 ```
@@ -41,13 +45,14 @@ in postgresql shell:
 That's it. Now run in separate screen.
 
 ```
-./main.py
+source .env
+uvicorn qllr:app --PORT $PORT
 ```
 
-By default it is running on port 7081.
+By default it is running on port 8000.
 
 
-### Installing and configurating feeder
+## Installing and configuring feeder
 
 ```
 git clone https://github.com/em92/qlstats-feeder-mini.git
@@ -63,7 +68,7 @@ mkdir ql-match-jsons
 mkdir ql-match-jsons/errors
 ```
 
-Edit cfg.json. *xonstatSubmissionUrl* value must point to our qllr (example http://YOUR-HOST-HERE:7081/stats/submit).
+Edit cfg.json. *xonstatSubmissionUrl* value must point to our qllr (example http://YOUR-HOST-HERE:8000/stats/submit).
 
 Now run in separate screen.
 ```

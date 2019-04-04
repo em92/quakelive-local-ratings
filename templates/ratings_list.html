@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
 <div id="summary-table-wrapper">
-  <table id="summary-table" class="table table-borderless">
+  <div style="overflow-x: auto"><table id="summary-table" class="table table-borderless">
     <thead><tr>
       <th class="col-xs-1">Rank</th>
       <th class="col-xs-3">Nickname</th>
@@ -25,7 +25,7 @@
       <td class="col-xs-1">{{ item['n'] }}</td>
       <td class="col-xs-1">{{ item['win_ratio'] }}</td>
     </tr>{% endfor %}</tbody>
-  </table>
+  </table></div>
   {% include "paginator.html" %}
   <br>
   <span>{% if show_inactive %}

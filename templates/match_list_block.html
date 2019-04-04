@@ -1,6 +1,6 @@
 <div id="summary-table-wrapper">
   <p>{{ title }}</p>
-  <table id="summary-table" class="table table-borderless">
+  <div style="overflow-x: auto"><table id="summary-table" class="table table-borderless">
     <thead><tr>
       <th class="col-xs-2">Time</th>
       <th class="col-xs-1">Gametype</th>
@@ -23,6 +23,6 @@
       </td>
       <td class="col-xs-1">{{ item['team1_score'] }} : {{ item['team2_score'] }}</td>
     </tr>{% endfor %}</tbody>
-  </table>
+  </table></div>
   {% include 'paginator.html' %}
 </div>

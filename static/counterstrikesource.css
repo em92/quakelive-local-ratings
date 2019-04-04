@@ -141,7 +141,7 @@ img.player_icon {
   padding: 3px;
   background-color: #CCC;
   border: 1px solid black;
-  width: 450px;
+  max-width: 450px;
   margin-left: auto;
   margin-right: auto;
   text-align: center;

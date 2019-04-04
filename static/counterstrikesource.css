@@ -114,7 +114,7 @@ td {
 #summary-table-wrapper {
 	margin-left: auto;
 	margin-right: auto;
-	width: 800px;
+	max-width: 800px;
 }
 
 #summary-table-wrapper td {
@@ -124,14 +124,6 @@ td {
 img.player_icon {
   width: 32px;
   height: 32px;
-}
-
-li {
-	width: 400px;
-	padding: 3px;
-	border-radius: 10px;
-	cursor: pointer;
-	margin-bottom: 3px;
 }
 
 #content {
@@ -287,8 +279,4 @@ li.dropdown:hover > .dropdown-menu {
 
 #navbar-toggle-cbox:checked ~ .collapse {
     display: block;
-}
-
-.navbar-brand {
-    line-height: unset;
 }

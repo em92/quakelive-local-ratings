@@ -12,7 +12,7 @@
     {% for item in response['ratings'] %}
       <li>{{ item['gametype'] }}:
         <a href="/ratings/{{ item['gametype_short'] }}/">{{ rating(item, 'rating') }}</a>
-        (<a href="/player/{{ steam_id }}/matches/{{ item['gametype_short'] }}/">{{ item['n'] }} games</a> played)
+        (<a href="/player/{{ steam_id }}/matches/{{ item['gametype_short'] }}/">{{ item['n'] }} matches</a>)
       </li>
     {% endfor %}
     {% if response['ratings'] | length == 0 %}

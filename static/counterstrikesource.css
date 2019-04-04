@@ -280,3 +280,15 @@ li.dropdown:hover > .dropdown-menu {
 .s.sm {
   min-width: 56px;
 }
+
+#navbar-toggle-cbox {
+    display:none
+}
+
+#navbar-toggle-cbox:checked ~ .collapse {
+    display: block;
+}
+
+.navbar-brand {
+    line-height: unset;
+}

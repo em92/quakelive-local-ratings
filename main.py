@@ -7,4 +7,4 @@ from qllr import app
 from qllr.settings import HOST, PORT
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=HOST, port=PORT)
+    uvicorn.run(app, host=HOST, port=PORT, lifespan="on")

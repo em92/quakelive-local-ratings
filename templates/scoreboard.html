@@ -33,7 +33,7 @@
   -
   {% else %}
     {{ ( data['new'] - data['old'] ) | round(2) }}
-    {% if data['old_d'] and data['new_d'] %}
+    {% if data['old_d'] and data['new_d'] and data['new_d'] - data['old_d'] %}
       &plusmn; {{ ( data['new_d'] - data['old_d'] ) | round(2) }}
     {% endif %}
   {% endif %}

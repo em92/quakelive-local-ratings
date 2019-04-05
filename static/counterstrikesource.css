@@ -117,8 +117,10 @@ td {
 	max-width: 800px;
 }
 
+.scoreboard td,
 #summary-table-wrapper td {
 	vertical-align: middle;
+	white-space: nowrap;
 }
 
 img.player_icon {

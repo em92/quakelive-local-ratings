@@ -3,11 +3,11 @@
 <head>
 <link rel="icon" type="image/png" href="https://www.quakelive.com/images/favicon.png">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-<link rel="stylesheet" href="/static/counterstrikesource.css?20190405"> <!-- :D -->
+<link rel="stylesheet" href="{{ url_for('static', path='counterstrikesource.css?20190405') }}"> <!-- :D -->
 <meta charset="UTF-8" />
 <meta name="robots" content="noindex, nofollow"/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="/static/helpers.js"></script>
+<script src="{{ url_for('static', path='helpers.js') }}"></script>
 <script type="text/javascript">if ( location.hash.substr(1, 1) == "/" ) { var path = location.hash.substr(1); location.hash = ""; location.pathname = path; } </script>
 {% if title %}
 <title>{{ title }} - Quake Live Local Ratings</title>

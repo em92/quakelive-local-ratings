@@ -12,8 +12,8 @@
     <tbody>{% for item in response %}<tr>
       <td class="col-xs-1">{{ item['rank'] }}</td>
       <td class="col-xs-3">
-        <a href="/player/{{ item['_id'] }}">
-          <img class="player_icon" src="/static/images/players/{{ item['model'].replace('/', '/icon_') }}.png" />&nbsp;
+        <a href="{{ url_for('PlayerHtml', steam_id=item['_id']) }}">
+          <img class="player_icon" src="{{ url_for('static', path='images/players/' + item['model'].replace('/', '/icon_') + '.png') }}"/>&nbsp;
           {{ item['name'] | ql_nickname | safe }}
         </a>
       </td>

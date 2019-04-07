@@ -1,16 +1,24 @@
-<nav class="navbar navbar-inverse" role="navigation">
-  <div class="container-fluid">
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+<nav class="navbar navbar-inverse">
+  <div class="container">
+    <input type="checkbox" id="navbar-toggle-cbox">
+    <div class="navbar-header">
+      <label for="navbar-toggle-cbox" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </label>
+      <a class="navbar-brand" href="{{ url_for('http_root') }}">QLLR</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-        <li><a href="/">QLLR</a></li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Matches<b class="caret"></b></a>
           <ul class="dropdown-menu">
-            <li><a href="/matches/">All</a></li>
+            <li><a href="{{ url_for('MatchesHtml') }}">All</a></li>
             <li class="divider"></li>
             {% for short, name in gametype_names.items() %}
-            <li><a href="/matches/{{ short }}/">{{ name }}</a></li>
+            <li><a href="{{ url_for('MatchesHtml', gametype = short) }}">{{ name }}</a></li>
             {% endfor %}
           </ul>
         </li>
@@ -18,11 +26,11 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Ratings<b class="caret"></b></a>
           <ul class="dropdown-menu">
             {% for short, name in gametype_names.items() %}
-            <li><a href="/ratings/{{ short }}/">{{ name }}</a></li>
+            <li><a href="{{ url_for('RatingsHtml', gametype = short) }}">{{ name }}</a></li>
             {% endfor %}
           </ul>
         </li>
       </ul>
-    </div><!-- /.navbar-collapse -->
-  </div><!-- /.container-fluid -->
+    </div>
+  </div>
 </nav>

@@ -114,24 +114,18 @@ td {
 #summary-table-wrapper {
 	margin-left: auto;
 	margin-right: auto;
-	width: 800px;
+	max-width: 800px;
 }
 
+.scoreboard td,
 #summary-table-wrapper td {
 	vertical-align: middle;
+	white-space: nowrap;
 }
 
 img.player_icon {
   width: 32px;
   height: 32px;
-}
-
-li {
-	width: 400px;
-	padding: 3px;
-	border-radius: 10px;
-	cursor: pointer;
-	margin-bottom: 3px;
 }
 
 #content {
@@ -149,7 +143,7 @@ li {
   padding: 3px;
   background-color: #CCC;
   border: 1px solid black;
-  width: 450px;
+  max-width: 450px;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
@@ -279,4 +273,12 @@ li.dropdown:hover > .dropdown-menu {
 .s.sa,
 .s.sm {
   min-width: 56px;
+}
+
+#navbar-toggle-cbox {
+    display:none
+}
+
+#navbar-toggle-cbox:checked ~ .collapse {
+    display: block;
 }

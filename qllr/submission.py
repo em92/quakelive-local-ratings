@@ -304,13 +304,6 @@ async def post_process_avg_perf(
         else:
             assert rowcount == "UPDATE 1"
 
-    rowcount = await con.execute(
-        "UPDATE matches SET post_processed = TRUE WHERE match_id = $1", match_id
-    )
-    assert rowcount == "UPDATE 1"
-
-    LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
-
 
 async def post_process_trueskill(
     con: Connection, match_id: str, gametype_id: int, match_timestamp: int
@@ -378,12 +371,6 @@ async def post_process_trueskill(
             continue
 
     if len(team_ratings_old[0]) == 0 or len(team_ratings_old[1]) == 0:
-        rowcount = await con.execute(
-            "UPDATE matches SET post_processed = TRUE WHERE match_id = $1", match_id
-        )
-        assert rowcount == "UPDATE 1"
-
-        LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
         return
 
     team1_ratings, team2_ratings = trueskill.rate(team_ratings_old, ranks=team_ranks)
@@ -454,23 +441,21 @@ async def post_process_trueskill(
             )
         assert r == "UPDATE 1" or r == "INSERT 0 1"
 
+
+async def post_process(
+    con: Connection, match_id: str, gametype_id: int, match_timestamp: int
+):
+    if USE_AVG_PERF[gametype_id]:
+        await post_process_avg_perf(con, match_id, gametype_id, match_timestamp)
+    else:
+        await post_process_trueskill(con, match_id, gametype_id, match_timestamp)
+
     r = await con.execute(
         "UPDATE matches SET post_processed = TRUE WHERE match_id = $1", match_id
     )
     assert r == "UPDATE 1"
 
     LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
-
-
-async def post_process(
-    con: Connection, match_id: str, gametype_id: int, match_timestamp: int
-):
-    if USE_AVG_PERF[gametype_id]:
-        return await post_process_avg_perf(
-            con, match_id, gametype_id, match_timestamp
-        )  # TODO: протестировать
-    else:
-        return await post_process_trueskill(con, match_id, gametype_id, match_timestamp)
 
 
 def filter_insignificant_players(players):

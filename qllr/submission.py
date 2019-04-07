@@ -305,14 +305,9 @@ async def post_process_avg_perf(
             assert rowcount == "UPDATE 1"
 
 
-async def post_process_trueskill(
-    con: Connection, match_id: str, gametype_id: int, match_timestamp: int
+async def _calc_ratings_trueskill(
+    con: Connection, match_id: str, gametype_id: int
 ):
-    """
-    Updates players' ratings after playing match_id (using trueskill)
-
-    """
-    global LAST_GAME_TIMESTAMPS
     row = await con.fetchrow(
         "SELECT team2_score > team1_score, team2_score < team1_score FROM matches WHERE match_id = $1",
         match_id,
@@ -354,15 +349,8 @@ async def post_process_trueskill(
 
         try:
             ts_rating = trueskill.Rating(mean, deviation)
-            # TODO: надо это переписать так, чтобы можно было записать оба вида рейтинга
-            # TODO: И если по какой-то причине тут выкидывается исключение - используй рейтинг по-умолчанию, а ниже - не ворнинг а вывод в sys.stderr
         except ValueError as e:
-            warn(
-                "Cannot use trueskill rating: {}. Falling back to average perfomance rating...".format(
-                    e
-                )
-            )
-            return await post_process_avg_perf(con, match_id, gametype_id, match_timestamp)
+            ts_rating = trueskill.Rating()
 
         try:
             team_ratings_old[team - 1].append(ts_rating)
@@ -374,7 +362,6 @@ async def post_process_trueskill(
         return
 
     team1_ratings, team2_ratings = trueskill.rate(team_ratings_old, ranks=team_ranks)
-    team_ratings_new = [team1_ratings, team2_ratings]
 
     steam_ids = team_steam_ids[0] + team_steam_ids[1]
     new_ratings = team1_ratings + team2_ratings
@@ -394,6 +381,22 @@ async def post_process_trueskill(
             "new": new_ratings[i],
             "team": 1 if i < len(team1_ratings) else 2,
         }
+
+    return steam_ratings
+
+
+async def post_process_trueskill(
+    con: Connection, match_id: str, gametype_id: int, match_timestamp: int
+):
+    """
+    Updates players' ratings after playing match_id (using trueskill)
+
+    """
+    global LAST_GAME_TIMESTAMPS
+    steam_ratings = await _calc_ratings_trueskill(con, match_id, gametype_id)
+
+    if steam_ratings is None:
+        return
 
     for steam_id, ratings in steam_ratings.items():
         r = await con.execute(

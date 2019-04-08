@@ -14,6 +14,11 @@ from starlette.responses import Response
 from .db import cache, get_db_pool
 
 
+class NotModified(HTTPException):
+    def __init__(self):
+        super().__init__(304)
+
+
 class Endpoint(HTTPEndpoint):
     last_req_time = None
     last_mod_time = None
@@ -25,7 +30,7 @@ class Endpoint(HTTPEndpoint):
         last_modified = self.get_last_site_modified(request)
 
         if self.last_req_time >= last_modified:
-            raise HTTPException(304)
+            raise NotModified
 
     async def try_fast_response(self, request: Request, conn: Connection) -> None:
         if self.last_req_time is None:
@@ -36,7 +41,7 @@ class Endpoint(HTTPEndpoint):
             return
 
         if self.last_req_time >= last_modified:
-            raise HTTPException(304)
+            raise NotModified
 
     async def get(self, request: Request) -> Response:
         # check for valid gametype
@@ -53,21 +58,25 @@ class Endpoint(HTTPEndpoint):
         if self.last_req_time:
             self.last_req_time = self.last_req_time[0:6]
 
-        resp = self.try_very_fast_response(request)
-        if resp:
-            return resp
-
-        dbpool = await get_db_pool()
-        con = await dbpool.acquire()
-        tr = con.transaction()
-        await tr.start()
-
         try:
-            await self.try_fast_response(request, con)
-            return await self.get_common_response(request, con)
-        finally:
-            await tr.rollback()
-            await dbpool.release(con)
+            resp = self.try_very_fast_response(request)
+            if resp:
+                return resp
+
+            dbpool = await get_db_pool()
+            con = await dbpool.acquire()
+            tr = con.transaction()
+            await tr.start()
+
+            try:
+                await self.try_fast_response(request, con)
+                return await self.get_common_response(request, con)
+            finally:
+                await tr.rollback()
+                await dbpool.release(con)
+
+        except NotModified:
+            return Response(None, 304)
 
     def get_last_site_modified(self, request: Request) -> Tuple:
         gametype = request.path_params.get("gametype")

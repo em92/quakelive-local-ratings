@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from starlette.config import Config
-from starlette.datastructures import URL, Secret
+from starlette.datastructures import URL, CommaSeparatedStrings
 
 config = Config(".env")
 
 DATABASE_URL = str(config("DATABASE_URL", cast=URL))
 HOST = config("HOST", default="127.0.0.1")
 PORT = config("PORT", cast=int, default=7081)
+TRUSTED_PROXIES = config("TRUSTED_PROXIES", cast=CommaSeparatedStrings, default=[])
 PLAYER_COUNT_PER_PAGE = config("PLAYER_COUNT_PER_PAGE", cast=int, default=10)
 RUN_POST_PROCESS = config("RUN_POST_PROCESS", cast=bool, default=True)
 MIN_PLAYER_COUNT_IN_MATCH_TO_RATE = {

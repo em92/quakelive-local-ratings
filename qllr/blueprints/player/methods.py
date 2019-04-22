@@ -4,7 +4,7 @@ from functools import reduce
 from asyncpg import Connection
 
 from qllr.common import DATETIME_FORMAT, clean_name
-from qllr.exceptions import PlayerNotFound
+from qllr.exceptions import MatchNotFound, PlayerNotFound
 from qllr.settings import MOVING_AVG_COUNT
 
 
@@ -148,3 +148,27 @@ async def get_player_info(con: Connection, steam_id: int):
     result["matches"] = await con.fetchval(query, steam_id)
 
     return {"response": result, "title": clean_name(result["name"]), "ok": True}
+
+
+async def get_best_match_of_player(con: Connection, steam_id: int, gametype_id: int) -> str:
+
+    query = """
+    SELECT s.match_id::text
+    FROM scoreboards s
+    WHERE match_id IN (
+        SELECT match_id
+        FROM matches
+        WHERE gametype_id = $1
+    ) AND
+    match_perf IS NOT NULL AND
+    alive_time >= 1200 AND
+    steam_id = $2
+    ORDER BY match_perf DESC
+    LIMIT 1
+    """
+    result = await con.fetchval(query, gametype_id, steam_id)
+
+    if result is None:
+        raise MatchNotFound("could not detect player's best match")
+
+    return result

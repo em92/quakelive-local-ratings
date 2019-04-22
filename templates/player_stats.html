@@ -25,6 +25,17 @@
     <li>Gametype: {{ response['fav']['gt'] }}</li>
     <li>Weapon: {{ response['fav']['wpn'] }}</li>
     </ul>
+    <h3>Best matches</h3>
+    <ul>
+    {% for item in response['ratings'] %}
+      <li>
+        <a href="{{ url_for('BestMatchOfPlayerRedirect', steam_id = steam_id, gametype = item['gametype_short']) }}">{{ item['gametype'] }}</a>
+      </li>
+    {% endfor %}
+    {% if response['ratings'] | length == 0 %}
+      <li>Not available</li>
+    {% endif %}
+    </ul>
   </div>
 
   <div class="col-sm-4">

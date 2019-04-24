@@ -94,6 +94,21 @@ CREATE TABLE maps (
 
 CREATE SEQUENCE map_seq START 1;
 
+CREATE TABLE map_gametype_ratings(
+  steam_id BIGINT,
+  gametype_id SMALLINT,
+  map_id SMALLINT,
+  r1_mean REAL,
+  r1_deviation REAL,
+  r2_value REAL,
+  n BIGINT DEFAULT 0,
+  last_played_timestamp BIGINT DEFAULT 0,
+  FOREIGN KEY (steam_id)    REFERENCES players(steam_id),
+  FOREIGN KEY (gametype_id) REFERENCES gametypes(gametype_id),
+  FOREIGN KEY (map_id)      REFERENCES maps(map_id),
+  PRIMARY KEY (steam_id, gametype_id, map_id)
+);
+
 CREATE TABLE matches (
   match_id UUID,
   gametype_id SMALLINT,

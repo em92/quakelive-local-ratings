@@ -4,6 +4,7 @@ from .fixture import AppTestCase
 class TestBalanceApi(AppTestCase):
 
     ORDER = 2
+    maxDiff = None
 
     steam_ids = [
         "76561198043212328",  # shire
@@ -46,11 +47,14 @@ class TestBalanceApi(AppTestCase):
         )
 
     def test_map_based1(self):
+        # TODO: тесты проваливаются, т.к. переписали
+        # TODO: написать тесты, где используется среднее арифметическое
         self.assert_balance_api_data_equal(
             self.get(
                 "/elo/map_based/ad/japanesecastles/"
                 + self.steam_ids_as_string_with_plus()
             ).json(),
+
             self.read_json_sample("balance_api_ad_japanesecastles"),
         )
         # TODO: add gametype check

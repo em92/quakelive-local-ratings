@@ -114,6 +114,54 @@ async def for_certain_map(
             "deactivated": []
         }
     """
+    players = {}
+
+    try:
+        gametype_id = GAMETYPE_IDS[gametype]
+    except KeyError:
+        raise InvalidGametype(gametype)
+
+    # checking, if map is played ever?
+    map_id = await get_map_id(con, mapname, False)
+    if map_id is None:
+        raise KeyError("Unknown map: " + mapname)
+
+    query = """
+    SELECT
+        steam_id, gametype_short, r1_mean, n
+    FROM
+        map_gametype_ratings gr
+    LEFT JOIN
+        gametypes gt ON gr.gametype_id = gt.gametype_id
+    WHERE
+        steam_id = ANY($1) AND map_id = $2"""
+    async for row in con.cursor(query, steam_ids, map_id):
+        steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), row[3])
+        if steam_id not in players:
+            players[steam_id] = {"steamid": steam_id}
+        players[steam_id][gametype] = {"games": n, "elo": rating}
+
+    # TODO: надобы это переписать
+    # TODO: для использование не годится. Надо добавить что-то вроде (1-w)*rating+w*map_rating. w = max(1, n/MOVING_AVG_COUNT)
+
+    query = """
+    SELECT
+        steam_id, gametype_short, mean
+    FROM
+        gametype_ratings gr
+    LEFT JOIN
+        gametypes gt ON gr.gametype_id = gt.gametype_id
+    WHERE
+        steam_id = ANY($1)"""
+    async for row in con.cursor(query, steam_ids):
+        steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), 0)
+        if steam_id in players:
+            continue
+        players[steam_id] = {"steamid": steam_id}
+        players[steam_id][gametype] = {"games": n, "elo": rating}
+
+    return prepare_result(players)
+
     # TODO: переписать. 8 игроков - 16 запросов
     players = {}
 

@@ -128,36 +128,34 @@ async def for_certain_map(
 
     query = """
     SELECT
-        steam_id, gametype_short, r1_mean, n
-    FROM
-        map_gametype_ratings gr
+        steam_id,
+        gametype_short,
+        (1-w)*rating+w*map_rating,
+        n
+    FROM (
+        SELECT
+            gr.steam_id,
+            gr.mean AS rating, COALESCE(mgr.r1_mean, 0) AS map_rating,
+            COALESCE(mgr.n, 0) AS n,
+            LEAST(1, (COALESCE(mgr.n, 0)/{MOVING_AVG_COUNT})::integer) AS w,
+            gr.gametype_id
+        FROM
+            gametype_ratings gr
+        LEFT JOIN (
+            SELECT *
+            FROM map_gametype_ratings
+            WHERE map_id = $2
+        ) mgr ON mgr.gametype_id = gr.gametype_id AND mgr.steam_id = gr.steam_id
+        WHERE
+            gr.steam_id = ANY($1)
+    ) gr
     LEFT JOIN
         gametypes gt ON gr.gametype_id = gt.gametype_id
-    WHERE
-        steam_id = ANY($1) AND map_id = $2"""
+    """.format(MOVING_AVG_COUNT=int(MOVING_AVG_COUNT))
     async for row in con.cursor(query, steam_ids, map_id):
         steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), row[3])
         if steam_id not in players:
             players[steam_id] = {"steamid": steam_id}
-        players[steam_id][gametype] = {"games": n, "elo": rating}
-
-    # TODO: надобы это переписать
-    # TODO: для использование не годится. Надо добавить что-то вроде (1-w)*rating+w*map_rating. w = max(1, n/MOVING_AVG_COUNT)
-
-    query = """
-    SELECT
-        steam_id, gametype_short, mean
-    FROM
-        gametype_ratings gr
-    LEFT JOIN
-        gametypes gt ON gr.gametype_id = gt.gametype_id
-    WHERE
-        steam_id = ANY($1)"""
-    async for row in con.cursor(query, steam_ids):
-        steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), 0)
-        if steam_id in players:
-            continue
-        players[steam_id] = {"steamid": steam_id}
         players[steam_id][gametype] = {"games": n, "elo": rating}
 
     return prepare_result(players)

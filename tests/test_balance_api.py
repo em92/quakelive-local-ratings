@@ -47,15 +47,16 @@ class TestBalanceApi(AppTestCase):
         )
 
     def test_map_based1(self):
-        # TODO: тесты проваливаются, т.к. переписали
         # TODO: написать тесты, где используется среднее арифметическое
+        # TODO: слишком маленькая выборка. Результаты почти не отличаются от test_simple_ad_only_players
         self.assert_balance_api_data_equal(
             self.get(
-                "/elo/map_based/ad/japanesecastles/"
+                "/elo/map_based/ad/dividedcrossings/"
                 + self.steam_ids_as_string_with_plus()
+                + "+76561198257183089"  # played dividedcrossings at least 2 times
             ).json(),
 
-            self.read_json_sample("balance_api_ad_japanesecastles"),
+            self.read_json_sample("balance_api_ad_dividedcrossings"),
         )
         # TODO: add gametype check
 

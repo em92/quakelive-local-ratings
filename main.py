@@ -19,8 +19,9 @@ class TrustedProxiesMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-app.add_middleware(ProxyHeadersMiddleware)
-app.add_middleware(TrustedProxiesMiddleware)
+if TRUSTED_PROXIES:
+    app.add_middleware(ProxyHeadersMiddleware)
+    app.add_middleware(TrustedProxiesMiddleware)
 
 if __name__ == "__main__":
     uvicorn.run(app, host=HOST, port=PORT, lifespan="on")

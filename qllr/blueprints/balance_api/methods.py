@@ -123,8 +123,6 @@ async def for_certain_map(
 
     # checking, if map is played ever?
     map_id = await get_map_id(con, mapname, False)
-    if map_id is None:
-        raise KeyError("Unknown map: " + mapname)
 
     query = """
     SELECT

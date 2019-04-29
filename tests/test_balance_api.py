@@ -60,6 +60,25 @@ class TestBalanceApi(AppTestCase):
         )
         # TODO: add gametype check
 
+    def test_map_based_map_not_exists(self):
+        def set_games_zero(data: dict):
+            for key, value in data.items():
+                if isinstance(value, list):
+                    data[key] = [set_games_zero(x) for x in value]
+                elif isinstance(value, dict):
+                    data[key] = set_games_zero(value)
+                elif key == "games":
+                    data[key] = 0
+
+            return data
+
+        ratings_data = self.get("/elo/map_based/ad/this_map_does_not_exist/" + self.steam_ids_as_string_with_plus()).json()
+
+        self.assert_balance_api_data_equal(
+            ratings_data,
+            set_games_zero(self.read_json_sample("balance_api_ad_only_players")),
+        )
+
     def test_map_based2(self):
         response = self.get(
             "/elo/" + "+".join(self.steam_ids),

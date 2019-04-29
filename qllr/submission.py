@@ -671,7 +671,7 @@ async def _submit_match(data):
 
 
 async def run_post_process(con: Connection) -> None:
-    with await lock:
+    async with lock:
         await _run_post_process(con)
 
 

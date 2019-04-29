@@ -52,7 +52,7 @@ async def simple(con: Connection, steam_ids: typing.List[int]):
 
     query = """
     SELECT
-        steam_id, gametype_short, mean, n
+        steam_id, gametype_short, r1_mean, n
     FROM
         gametype_ratings gr
     LEFT JOIN
@@ -133,7 +133,7 @@ async def for_certain_map(
     FROM (
         SELECT
             gr.steam_id,
-            gr.mean AS rating, COALESCE(mgr.r1_mean, 0) AS map_rating,
+            gr.r1_mean AS rating, COALESCE(mgr.r1_mean, 0) AS map_rating,
             COALESCE(mgr.n, 0) AS n,
             LEAST(1, (COALESCE(mgr.n, 0)/{MOVING_AVG_COUNT})::integer) AS w,
             gr.gametype_id

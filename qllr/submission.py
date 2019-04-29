@@ -208,7 +208,7 @@ async def _calc_ratings_avg_perf(
 
     if map_id is None:
         ratings_subquery = """
-            SELECT steam_id, mean AS rating
+            SELECT steam_id, r2_value AS rating
             FROM gametype_ratings
             WHERE gametype_id = $1
         """
@@ -293,61 +293,6 @@ async def _calc_ratings_avg_perf(
     return result
 
 
-async def post_process_avg_perf(
-    con: Connection, match_id: str, gametype_id: int, match_timestamp: int
-):
-    """
-    Updates players' ratings after playing match_id (using avg. perfomance)
-
-    """
-    steam_ratings = await _calc_ratings_avg_perf(con, match_id, gametype_id)
-
-    if steam_ratings is None:
-        return
-
-    for steam_id, ratings in steam_ratings.items():
-        r = await con.execute(
-            """
-            UPDATE scoreboards
-            SET
-                old_mean = $1, old_deviation = 0,
-                new_mean = $2, new_deviation = 0
-            WHERE match_id = $3 AND steam_id = $4 AND team = $5
-            """,
-            ratings["old"],
-            ratings["new"],
-            match_id,
-            steam_id,
-            ratings["team"],
-        )
-        assert r == "UPDATE 1"
-
-        r = await con.execute(
-            """
-            UPDATE gametype_ratings
-            SET mean = $1, deviation = 0, n = n + 1, last_played_timestamp = $2
-            WHERE steam_id = $3 AND gametype_id = $4
-            """,
-            ratings["new"],
-            match_timestamp,
-            steam_id,
-            gametype_id,
-        )
-
-        if r == "UPDATE 0":
-            r = await con.execute(
-                """
-                INSERT INTO gametype_ratings (steam_id, gametype_id, mean, deviation, last_played_timestamp, n)
-                VALUES ($1, $2, $3, 0, $4, 1)
-                """,
-                steam_id,
-                gametype_id,
-                ratings["new"],
-                match_timestamp,
-            )
-        assert r == "UPDATE 1" or r == "INSERT 0 1"
-
-
 async def _calc_ratings_trueskill(
     con: Connection, match_id: str, gametype_id: int, map_id: Optional[int] = None
 ):
@@ -359,7 +304,7 @@ async def _calc_ratings_trueskill(
 
     if map_id is None:
         ratings_subquery = """
-            SELECT steam_id, mean, deviation
+            SELECT steam_id, r1_mean AS mean, r1_deviation AS deviation
             FROM gametype_ratings
             WHERE gametype_id = $1
         """
@@ -438,31 +383,35 @@ async def _calc_ratings_trueskill(
     return steam_ratings
 
 
-async def post_process_trueskill(
+async def _post_process(
     con: Connection, match_id: str, gametype_id: int, match_timestamp: int
 ):
     """
-    Updates players' ratings after playing match_id (using trueskill)
+    Updates players' ratings after playing match_id
 
     """
-    steam_ratings = await _calc_ratings_trueskill(con, match_id, gametype_id)
+    trueskill_ratings = await _calc_ratings_trueskill(con, match_id, gametype_id)
+    avg_pef_ratings = await _calc_ratings_avg_perf(con, match_id, gametype_id)
 
-    if steam_ratings is None:
+    if trueskill_ratings is None:
         return
 
-    for steam_id, ratings in steam_ratings.items():
+    for steam_id, ratings in trueskill_ratings.items():
         r = await con.execute(
             """
             UPDATE scoreboards
             SET
-                old_mean = $1, old_deviation = $2,
-                new_mean = $3, new_deviation = $4
-            WHERE match_id = $5 AND steam_id = $6 AND team = $7
+                old_r1_mean = $1, old_r1_deviation = $2,
+                new_r1_mean = $3, new_r1_deviation = $4,
+                old_r2_value = $5, new_r2_value = $6
+            WHERE match_id = $7 AND steam_id = $8 AND team = $9
             """,
             ratings["old"].mu,
             ratings["old"].sigma,
             ratings["new"].mu,
             ratings["new"].sigma,
+            avg_pef_ratings[steam_id]['old'],
+            avg_pef_ratings[steam_id]['new'],
             match_id,
             steam_id,
             ratings["team"],
@@ -472,11 +421,12 @@ async def post_process_trueskill(
         r = await con.execute(
             """
             UPDATE gametype_ratings
-            SET mean = $1, deviation = $2, n = n + 1, last_played_timestamp = $3
-            WHERE steam_id = $4 AND gametype_id = $5
+            SET r1_mean = $1, r1_deviation = $2, r2_value = $3, n = n + 1, last_played_timestamp = $4
+            WHERE steam_id = $5 AND gametype_id = $6
             """,
             ratings["new"].mu,
             ratings["new"].sigma,
+            avg_pef_ratings[steam_id]['new'],
             match_timestamp,
             steam_id,
             gametype_id,
@@ -485,13 +435,14 @@ async def post_process_trueskill(
         if r == "UPDATE 0":
             r = await con.execute(
                 """
-                INSERT INTO gametype_ratings (steam_id, gametype_id, mean, deviation, last_played_timestamp, n)
-                VALUES ($1, $2, $3, $4, $5, 1)
+                INSERT INTO gametype_ratings (steam_id, gametype_id, r1_mean, r1_deviation, r2_value, last_played_timestamp, n)
+                VALUES ($1, $2, $3, $4, $5, $6, 1)
                 """,
                 steam_id,
                 gametype_id,
                 ratings["new"].mu,
                 ratings["new"].sigma,
+                avg_pef_ratings[steam_id]['new'],
                 match_timestamp,
             )
         assert r == "UPDATE 1" or r == "INSERT 0 1"
@@ -545,11 +496,8 @@ async def post_process(
     con: Connection, match_id: str, gametype_id: int, match_timestamp: int, map_id: int
 ):
     global LAST_GAME_TIMESTAMPS
-    if USE_AVG_PERF[gametype_id]:
-        await post_process_avg_perf(con, match_id, gametype_id, match_timestamp)
-    else:
-        await post_process_trueskill(con, match_id, gametype_id, match_timestamp)
 
+    await _post_process(con, match_id, gametype_id, match_timestamp)
     await update_map_rating(con, match_id, gametype_id, match_timestamp, map_id)
 
     r = await con.execute(

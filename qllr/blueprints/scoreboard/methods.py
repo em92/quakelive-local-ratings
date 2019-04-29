@@ -36,7 +36,7 @@ async def get_scoreboard(con: Connection, match_id: str):
     LEFT JOIN (
         SELECT match_id, sum(rating) as diff
         FROM (
-            SELECT match_id, team, avg(old_mean)*(case when team = 1 then 1 else -1 end) as rating
+            SELECT match_id, team, avg(old_r1_mean)*(case when team = 1 then 1 else -1 end) as rating
             FROM scoreboards
             WHERE match_perf is not NULL AND match_id = $1
             GROUP by match_id, team
@@ -104,6 +104,7 @@ async def get_scoreboard(con: Connection, match_id: str):
     """
     player_medal_stats = await con.fetchval(query, match_id)
 
+    # TODO: тут надо использовать USE_AVG_PERF
     query = """
     SELECT
         array_agg(item)
@@ -122,10 +123,10 @@ async def get_scoreboard(con: Connection, match_id: str):
                     'alive_time',     t.alive_time
                 ),
                 'rating', json_build_object(
-                    'old',     CAST( ROUND( CAST(t.old_mean            AS NUMERIC), 2) AS REAL ),
-                    'old_d', CAST( ROUND( CAST(t.old_deviation AS NUMERIC), 2) AS REAL ),
-                    'new',     CAST( ROUND( CAST(t.new_mean            AS NUMERIC), 2) AS REAL ),
-                    'new_d', CAST( ROUND( CAST(t.new_deviation AS NUMERIC), 2) AS REAL )
+                    'old',   CAST( ROUND( CAST(t.old_r1_mean      AS NUMERIC), 2) AS REAL ),
+                    'old_d', CAST( ROUND( CAST(t.old_r1_deviation AS NUMERIC), 2) AS REAL ),
+                    'new',   CAST( ROUND( CAST(t.new_r1_mean      AS NUMERIC), 2) AS REAL ),
+                    'new_d', CAST( ROUND( CAST(t.new_r1_deviation AS NUMERIC), 2) AS REAL )
                 ),
                 'medal_stats', ms.medal_stats,
                 'weapon_stats', ws.weapon_stats

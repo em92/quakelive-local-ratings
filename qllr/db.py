@@ -154,3 +154,7 @@ class Cache:
 
 
 cache = Cache()
+
+
+def rating_column(gametype) -> str:
+    return "r2_value" if cache.USE_AVG_PERF[gametype] else "r1_mean"

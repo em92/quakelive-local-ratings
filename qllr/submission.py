@@ -12,7 +12,7 @@ from .common import log_exception
 from .db import cache, db_connect, get_db_pool
 from .exceptions import *
 from .settings import MIN_PLAYER_COUNT_IN_MATCH_TO_RATE as MIN_PLAYER_COUNT_TO_RATE
-from .settings import MOVING_AVG_COUNT, RUN_POST_PROCESS, USE_AVG_PERF
+from .settings import MOVING_AVG_COUNT, RUN_POST_PROCESS
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
@@ -21,10 +21,6 @@ MIN_DURATION_TO_ADD = 60 * 5
 WEAPON_IDS = cache.WEAPON_IDS
 
 lock = Lock()
-
-for gt, id in GAMETYPE_IDS.items():
-    USE_AVG_PERF[id] = USE_AVG_PERF[gt]
-
 
 # https://github.com/PredatH0r/XonStat/blob/380fbd4aeafb722c844f66920fb850a0ad6821d3/xonstat/views/submission.py#L19
 def parse_stats_submission(body):

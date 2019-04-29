@@ -8,7 +8,7 @@ from asyncpg import Connection, create_pool, pool
 
 import psycopg2
 
-from .settings import DATABASE_URL
+from .settings import DATABASE_URL, USE_AVG_PERF
 
 
 async def get_db_pool() -> pool:
@@ -144,6 +144,13 @@ class Cache:
             return max(self.LAST_GAME_TIMESTAMPS.values())
 
         return self.LAST_GAME_TIMESTAMPS[gametype]
+
+    @property
+    def USE_AVG_PERF(self):
+        result = USE_AVG_PERF.copy()
+        for gt, id in self._gametype_ids.items():
+            result[id] = result[gt]
+        return result
 
 
 cache = Cache()

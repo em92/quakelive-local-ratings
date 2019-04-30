@@ -387,10 +387,10 @@ async def _post_process(
 
     """
     trueskill_ratings = await _calc_ratings_trueskill(con, match_id, gametype_id)
-    avg_pef_ratings = await _calc_ratings_avg_perf(con, match_id, gametype_id)
-
     if trueskill_ratings is None:
         return
+
+    avg_perf_ratings = await _calc_ratings_avg_perf(con, match_id, gametype_id)
 
     for steam_id, ratings in trueskill_ratings.items():
         r = await con.execute(
@@ -406,8 +406,8 @@ async def _post_process(
             ratings["old"].sigma,
             ratings["new"].mu,
             ratings["new"].sigma,
-            avg_pef_ratings[steam_id]['old'],
-            avg_pef_ratings[steam_id]['new'],
+            avg_perf_ratings[steam_id]['old'],
+            avg_perf_ratings[steam_id]['new'],
             match_id,
             steam_id,
             ratings["team"],
@@ -422,7 +422,7 @@ async def _post_process(
             """,
             ratings["new"].mu,
             ratings["new"].sigma,
-            avg_pef_ratings[steam_id]['new'],
+            avg_perf_ratings[steam_id]['new'],
             match_timestamp,
             steam_id,
             gametype_id,
@@ -438,7 +438,7 @@ async def _post_process(
                 gametype_id,
                 ratings["new"].mu,
                 ratings["new"].sigma,
-                avg_pef_ratings[steam_id]['new'],
+                avg_perf_ratings[steam_id]['new'],
                 match_timestamp,
             )
         assert r == "UPDATE 1" or r == "INSERT 0 1"

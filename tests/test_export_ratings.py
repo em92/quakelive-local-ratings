@@ -3,8 +3,6 @@ from .fixture import AppTestCase
 
 class TestExportRatings(AppTestCase):
 
-    ORDER = 5
-
     def test_ratings_ad_redirect(self):
         resp = self.get("/export_rating/csv/ad", 302)
 

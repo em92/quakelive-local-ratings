@@ -3,8 +3,6 @@ from .fixture import AppTestCase
 
 class TestPlayer(AppTestCase):
 
-    maxDiff = None
-    ORDER = 3
     steam_ids = [
         "76561198043212328",  # shire
         "76561198257384619",  # HanzoHasashiSan

@@ -451,12 +451,13 @@ async def update_map_rating(
     Updates players' map-based ratings after playing match_id
 
     """
-    steam_ratings = await _calc_ratings_trueskill(con, match_id, gametype_id, map_id)
-
-    if steam_ratings is None:
+    trueskill_ratings = await _calc_ratings_trueskill(con, match_id, gametype_id, map_id)
+    if trueskill_ratings is None:
         return
 
-    for steam_id, ratings in steam_ratings.items():
+    avg_perf_ratings = await _calc_ratings_avg_perf(con, match_id, gametype_id, map_id)
+
+    for steam_id, ratings in trueskill_ratings.items():
         r = await con.execute(
             """
             UPDATE map_gametype_ratings
@@ -482,7 +483,7 @@ async def update_map_rating(
                 map_id,
                 ratings["new"].mu,
                 ratings["new"].sigma,
-                0,  # TODO: посчитать среднеее
+                avg_perf_ratings[steam_id]["new"],
                 match_timestamp,
             )
         assert r == "UPDATE 1" or r == "INSERT 0 1"

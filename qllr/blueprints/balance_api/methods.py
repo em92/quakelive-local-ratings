@@ -135,7 +135,7 @@ async def for_certain_map(
             gr.steam_id,
             gr.r1_mean AS rating, COALESCE(mgr.r1_mean, 0) AS map_rating,
             COALESCE(mgr.n, 0) AS n,
-            LEAST(1, (COALESCE(mgr.n, 0)/{MOVING_AVG_COUNT})::integer) AS w,
+            LEAST(1, (COALESCE(mgr.n, 0)/{MOVING_AVG_COUNT}::real)) AS w,
             gr.gametype_id
         FROM
             gametype_ratings gr

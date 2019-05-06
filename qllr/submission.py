@@ -727,6 +727,7 @@ async def _run_post_process(con: Connection) -> None:
         WHERE post_processed = FALSE
         ORDER BY timestamp ASC
     """
-    async for match_id, gametype_id, timestamp, map_id in con.cursor(query):
+    for match_id, gametype_id, timestamp, map_id in await con.fetch(query):
         print("running post process: {}\t{}".format(match_id, timestamp))
         await post_process(con, match_id, gametype_id, timestamp, map_id)
+        await con.execute("COMMIT")

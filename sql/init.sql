@@ -69,8 +69,9 @@ INSERT INTO medals (medal_id, medal_name, medal_short) VALUES
 CREATE TABLE gametype_ratings (
   steam_id BIGINT,
   gametype_id SMALLINT,
-  mean REAL,
-  deviation REAL,
+  r1_mean REAL,
+  r1_deviation REAL,
+  r2_value REAL,
   n BIGINT DEFAULT 0,
   last_played_timestamp BIGINT DEFAULT 0,
   FOREIGN KEY (steam_id)    REFERENCES players(steam_id),
@@ -93,6 +94,21 @@ CREATE TABLE maps (
 );
 
 CREATE SEQUENCE map_seq START 1;
+
+CREATE TABLE map_gametype_ratings(
+  steam_id BIGINT,
+  gametype_id SMALLINT,
+  map_id SMALLINT,
+  r1_mean REAL,
+  r1_deviation REAL,
+  r2_value REAL,
+  n BIGINT DEFAULT 0,
+  last_played_timestamp BIGINT DEFAULT 0,
+  FOREIGN KEY (steam_id)    REFERENCES players(steam_id),
+  FOREIGN KEY (gametype_id) REFERENCES gametypes(gametype_id),
+  FOREIGN KEY (map_id)      REFERENCES maps(map_id),
+  PRIMARY KEY (steam_id, gametype_id, map_id)
+);
 
 CREATE TABLE matches (
   match_id UUID,
@@ -121,10 +137,12 @@ CREATE TABLE scoreboards (
   score SMALLINT,
   alive_time INTEGER,
   match_perf REAL,
-  old_mean REAL DEFAULT NULL,
-  old_deviation REAL DEFAULT NULL,
-  new_mean REAL DEFAULT NULL,
-  new_deviation REAL DEFAULT NULL,
+  old_r1_mean REAL DEFAULT NULL,
+  old_r1_deviation REAL DEFAULT NULL,
+  old_r2_value REAL DEFAULT NULL,
+  new_r1_mean REAL DEFAULT NULL,
+  new_r1_deviation REAL DEFAULT NULL,
+  new_r2_value REAL DEFAULT NULL,
   FOREIGN KEY (match_id) REFERENCES matches(match_id) ON DELETE CASCADE,
   FOREIGN KEY (steam_id) REFERENCES players(steam_id),
   PRIMARY KEY (match_id, steam_id, team)

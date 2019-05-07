@@ -1,11 +1,7 @@
-from collections import OrderedDict
 from .fixture import AppTestCase
 
 
 class TestMatches(AppTestCase):
-
-    ORDER = 4
-    maxDiff = None
 
     def test_matches_all(self):
         cases = [

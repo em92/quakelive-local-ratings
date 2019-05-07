@@ -6,6 +6,7 @@ from asyncpg import Connection
 
 from qllr.common import DATETIME_FORMAT
 from qllr.exceptions import MatchNotFound
+from qllr.settings import USE_AVG_PERF
 
 
 async def get_scoreboard(con: Connection, match_id: str):
@@ -23,7 +24,6 @@ async def get_scoreboard(con: Connection, match_id: str):
             'map',         mm.map_name,
             'team1_score', m.team1_score,
             'team2_score', m.team2_score,
-            'rating_diff', CAST( ROUND( CAST(t.diff AS NUMERIC), 2) AS REAL ),
             'timestamp',   m.timestamp,
             'datetime',    TO_CHAR(to_timestamp(m.timestamp), '{DATETIME_FORMAT}'),
             'duration',    TO_CHAR((m.duration || ' second')::interval, 'MI:SS')
@@ -33,16 +33,6 @@ async def get_scoreboard(con: Connection, match_id: str):
     LEFT JOIN gametypes g ON g.gametype_id = m.gametype_id
     LEFT JOIN factories f ON f.factory_id = m.factory_id
     LEFT JOIN maps mm ON m.map_id = mm.map_id
-    LEFT JOIN (
-        SELECT match_id, sum(rating) as diff
-        FROM (
-            SELECT match_id, team, avg(old_mean)*(case when team = 1 then 1 else -1 end) as rating
-            FROM scoreboards
-            WHERE match_perf is not NULL AND match_id = $1
-            GROUP by match_id, team
-        ) t
-        GROUP by match_id
-    ) t ON t.match_id = m.match_id
     WHERE
         m.match_id = $1;
     """.format(
@@ -51,6 +41,20 @@ async def get_scoreboard(con: Connection, match_id: str):
     summary = await con.fetchval(query, match_id)
     if summary is None:
         raise MatchNotFound(match_id)
+
+    query = """
+    SELECT sum(rating) as diff
+    FROM (
+        SELECT team, avg({RATING_COLUMN})*(case when team = 1 then 1 else -1 end) as rating
+        FROM scoreboards
+        WHERE match_perf is not NULL AND match_id = $1
+        GROUP BY team
+    ) t
+
+    """.format(RATING_COLUMN="old_r2_value" if USE_AVG_PERF[summary['gt_short']] else "old_r1_mean")
+    summary["rating_diff"] = await con.fetchval(query, match_id)
+    if summary["rating_diff"] is not None:
+        summary["rating_diff"] = round(summary["rating_diff"], 2)
 
     query = """
     SELECT
@@ -104,6 +108,21 @@ async def get_scoreboard(con: Connection, match_id: str):
     """
     player_medal_stats = await con.fetchval(query, match_id)
 
+    if USE_AVG_PERF[summary['gt_short']]:
+        rating_columns = """
+            'old',   CAST( ROUND( CAST(t.old_r2_value AS NUMERIC), 2) AS REAL ),
+            'new',   CAST( ROUND( CAST(t.new_r2_value AS NUMERIC), 2) AS REAL ),
+            'old_d', 0,
+            'new_d', 0
+        """
+    else:
+        rating_columns = """
+            'old',   CAST( ROUND( CAST(t.old_r1_mean      AS NUMERIC), 2) AS REAL ),
+            'old_d', CAST( ROUND( CAST(t.old_r1_deviation AS NUMERIC), 2) AS REAL ),
+            'new',   CAST( ROUND( CAST(t.new_r1_mean      AS NUMERIC), 2) AS REAL ),
+            'new_d', CAST( ROUND( CAST(t.new_r1_deviation AS NUMERIC), 2) AS REAL )
+        """
+
     query = """
     SELECT
         array_agg(item)
@@ -114,19 +133,14 @@ async def get_scoreboard(con: Connection, match_id: str):
                 'team', t.team::text,
                 'name', p.name,
                 'stats', json_build_object(
-                    'score',                t.score,
-                    'frags',                t.frags,
-                    'deaths',             t.deaths,
+                    'score',        t.score,
+                    'frags',        t.frags,
+                    'deaths',       t.deaths,
                     'damage_dealt', t.damage_dealt,
                     'damage_taken', t.damage_taken,
-                    'alive_time',     t.alive_time
+                    'alive_time',   t.alive_time
                 ),
-                'rating', json_build_object(
-                    'old',     CAST( ROUND( CAST(t.old_mean            AS NUMERIC), 2) AS REAL ),
-                    'old_d', CAST( ROUND( CAST(t.old_deviation AS NUMERIC), 2) AS REAL ),
-                    'new',     CAST( ROUND( CAST(t.new_mean            AS NUMERIC), 2) AS REAL ),
-                    'new_d', CAST( ROUND( CAST(t.new_deviation AS NUMERIC), 2) AS REAL )
-                ),
+                'rating', json_build_object({RATING_COLUMNS}),
                 'medal_stats', ms.medal_stats,
                 'weapon_stats', ws.weapon_stats
             ) AS item
@@ -173,7 +187,9 @@ async def get_scoreboard(con: Connection, match_id: str):
             t.match_id = $1
         ORDER BY t.score DESC, t.steam_id ASC
     ) t
-    """
+    """.format(
+        RATING_COLUMNS=rating_columns
+    )
     overall_stats = await con.fetchval(query, match_id)
 
     query = """

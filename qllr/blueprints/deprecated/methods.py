@@ -1,8 +1,8 @@
 from asyncpg import Connection
 
-from qllr.db import cache
+from qllr.db import cache, rating_column
 
-from ..ratings.methods import KEEPING_TIME, SQL_TOP_PLAYERS_BY_GAMETYPE
+from ..ratings.methods import KEEPING_TIME, get_sql_top_players_query_by_gametype_id
 
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
 GAMETYPE_IDS = cache.GAMETYPE_IDS
@@ -18,11 +18,11 @@ async def get_player_info_old(con: Connection, steam_id: int):
             p.name,
             p.model,
             g.gametype_short,
-            gr.mean,
+            gr.{RATING_COLUMN},
             gr.n,
             m.match_id::text,
             m.timestamp,
-            m.old_mean,
+            m.old_{RATING_COLUMN},
             rt.rank,
             rt.count
         FROM
@@ -34,7 +34,7 @@ async def get_player_info_old(con: Connection, steam_id: int):
                 m.match_id,
                 m.timestamp,
                 m.gametype_id,
-                s.old_mean
+                s.old_{RATING_COLUMN}
             FROM
                 matches m
             LEFT JOIN scoreboards s ON s.match_id = m.match_id
@@ -50,7 +50,8 @@ async def get_player_info_old(con: Connection, steam_id: int):
             g.gametype_id = $2
         ORDER BY m.timestamp ASC
         """.format(
-            SQL_TOP_PLAYERS_BY_GAMETYPE=SQL_TOP_PLAYERS_BY_GAMETYPE
+            RATING_COLUMN=rating_column(gametype_id),
+            SQL_TOP_PLAYERS_BY_GAMETYPE=get_sql_top_players_query_by_gametype_id(gametype_id)
         )
 
         last_ratings = {}

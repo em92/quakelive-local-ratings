@@ -8,7 +8,7 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 70.3,
+          "elo": 32.29,
           "games": 0
         },
         "steamid": "76561197985202252"
@@ -20,8 +20,8 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 41.38,
-          "games": 0
+          "elo": 30.94,
+          "games": 1
         },
         "steamid": "76561198005116094"
       }
@@ -32,8 +32,8 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 44.14,
-          "games": 1
+          "elo": 21.83,
+          "games": 0
         },
         "steamid": "76561198043212328"
       }
@@ -44,10 +44,22 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 25.6,
+          "elo": 23.28,
           "games": 0
         },
         "steamid": "76561198077231066"
+      }
+    },
+    "76561198257183089": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "ad": {
+          "elo": 23.33,
+          "games": 2
+        },
+        "steamid": "76561198257183089"
       }
     },
     "76561198257327401": {
@@ -56,8 +68,8 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 50.7,
-          "games": 0
+          "elo": 26.23,
+          "games": 1
         },
         "steamid": "76561198257327401"
       }
@@ -68,8 +80,8 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 43.08,
-          "games": 1
+          "elo": 29.33,
+          "games": 0
         },
         "steamid": "76561198257338624"
       }
@@ -80,8 +92,8 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 42.81,
-          "games": 1
+          "elo": 27.26,
+          "games": 0
         },
         "steamid": "76561198257384619"
       }
@@ -92,7 +104,7 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 21.03,
+          "elo": 26.28,
           "games": 0
         },
         "steamid": "76561198308265738"
@@ -104,8 +116,8 @@
       "privacy": "public",
       "ratings": {
         "ad": {
-          "elo": 46.87,
-          "games": 1
+          "elo": 24.9,
+          "games": 0
         },
         "steamid": "76561198346199541"
       }
@@ -114,66 +126,73 @@
   "players": [
     {
       "ad": {
-        "elo": 21.03,
+        "elo": 23.33,
+        "games": 2
+      },
+      "steamid": "76561198257183089"
+    },
+    {
+      "ad": {
+        "elo": 23.28,
+        "games": 0
+      },
+      "steamid": "76561198077231066"
+    },
+    {
+      "ad": {
+        "elo": 26.23,
+        "games": 1
+      },
+      "steamid": "76561198257327401"
+    },
+    {
+      "ad": {
+        "elo": 26.28,
         "games": 0
       },
       "steamid": "76561198308265738"
     },
     {
       "ad": {
-        "elo": 70.3,
+        "elo": 30.94,
+        "games": 1
+      },
+      "steamid": "76561198005116094"
+    },
+    {
+      "ad": {
+        "elo": 29.33,
+        "games": 0
+      },
+      "steamid": "76561198257338624"
+    },
+    {
+      "ad": {
+        "elo": 24.9,
+        "games": 0
+      },
+      "steamid": "76561198346199541"
+    },
+    {
+      "ad": {
+        "elo": 27.26,
+        "games": 0
+      },
+      "steamid": "76561198257384619"
+    },
+    {
+      "ad": {
+        "elo": 32.29,
         "games": 0
       },
       "steamid": "76561197985202252"
     },
     {
       "ad": {
-        "elo": 41.38,
+        "elo": 21.83,
         "games": 0
-      },
-      "steamid": "76561198005116094"
-    },
-    {
-      "ad": {
-        "elo": 50.7,
-        "games": 0
-      },
-      "steamid": "76561198257327401"
-    },
-    {
-      "ad": {
-        "elo": 42.81,
-        "games": 1
-      },
-      "steamid": "76561198257384619"
-    },
-    {
-      "ad": {
-        "elo": 46.87,
-        "games": 1
-      },
-      "steamid": "76561198346199541"
-    },
-    {
-      "ad": {
-        "elo": 44.14,
-        "games": 1
       },
       "steamid": "76561198043212328"
-    },
-    {
-      "ad": {
-        "elo": 43.08,
-        "games": 1
-      },
-      "steamid": "76561198257338624"
-    },
-    {
-      "ad": {
-        "elo": 25.6,
-        "games": 0
-      },
-      "steamid": "76561198077231066"
     }
   ],
   "untracked": []

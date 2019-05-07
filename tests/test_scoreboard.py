@@ -4,9 +4,6 @@ from .fixture import AppTestCase
 
 class TestScoreboard(AppTestCase):
 
-    ORDER = 2
-    maxDiff = None
-
     def assert_scoreboard_html_equals_sample(self, match_id: str, sample_filename: str):
         resp = self.get("/scoreboard/{0}".format(match_id))
         self.assertEqual(resp.template.name, "scoreboard.html")

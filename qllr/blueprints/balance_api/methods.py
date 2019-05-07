@@ -52,7 +52,7 @@ async def simple(con: Connection, steam_ids: typing.List[int]):
 
     query = """
     SELECT
-        steam_id, gametype_short, mean, n
+        steam_id, gametype_short, r1_mean, n
     FROM
         gametype_ratings gr
     LEFT JOIN
@@ -114,6 +114,50 @@ async def for_certain_map(
             "deactivated": []
         }
     """
+    players = {}
+
+    try:
+        gametype_id = GAMETYPE_IDS[gametype]
+    except KeyError:
+        raise InvalidGametype(gametype)
+
+    # checking, if map is played ever?
+    map_id = await get_map_id(con, mapname, False)
+
+    query = """
+    SELECT
+        steam_id,
+        gametype_short,
+        (1-w)*rating+w*map_rating,
+        n
+    FROM (
+        SELECT
+            gr.steam_id,
+            gr.r1_mean AS rating, COALESCE(mgr.r1_mean, 0) AS map_rating,
+            COALESCE(mgr.n, 0) AS n,
+            LEAST(1, (COALESCE(mgr.n, 0)/{MOVING_AVG_COUNT}::real)) AS w,
+            gr.gametype_id
+        FROM
+            gametype_ratings gr
+        LEFT JOIN (
+            SELECT *
+            FROM map_gametype_ratings
+            WHERE map_id = $2
+        ) mgr ON mgr.gametype_id = gr.gametype_id AND mgr.steam_id = gr.steam_id
+        WHERE
+            gr.steam_id = ANY($1)
+    ) gr
+    LEFT JOIN
+        gametypes gt ON gr.gametype_id = gt.gametype_id
+    """.format(MOVING_AVG_COUNT=int(MOVING_AVG_COUNT))
+    async for row in con.cursor(query, steam_ids, map_id):
+        steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), row[3])
+        if steam_id not in players:
+            players[steam_id] = {"steamid": steam_id}
+        players[steam_id][gametype] = {"games": n, "elo": rating}
+
+    return prepare_result(players)
+
     # TODO: переписать. 8 игроков - 16 запросов
     players = {}
 

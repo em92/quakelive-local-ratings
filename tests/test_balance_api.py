@@ -3,8 +3,6 @@ from .fixture import AppTestCase
 
 class TestBalanceApi(AppTestCase):
 
-    ORDER = 2
-
     steam_ids = [
         "76561198043212328",  # shire
         "76561198257384619",  # HanzoHasashiSan
@@ -46,14 +44,37 @@ class TestBalanceApi(AppTestCase):
         )
 
     def test_map_based1(self):
+        # TODO: написать тесты, где используется среднее арифметическое
+        # TODO: слишком маленькая выборка. Результаты почти не отличаются от test_simple_ad_only_players
         self.assert_balance_api_data_equal(
             self.get(
-                "/elo/map_based/ad/japanesecastles/"
+                "/elo/map_based/ad/dividedcrossings/"
                 + self.steam_ids_as_string_with_plus()
+                + "+76561198257183089"  # played dividedcrossings at least 2 times
             ).json(),
-            self.read_json_sample("balance_api_ad_japanesecastles"),
+
+            self.read_json_sample("balance_api_ad_dividedcrossings"),
         )
         # TODO: add gametype check
+
+    def test_map_based_map_not_exists(self):
+        def set_games_zero(data: dict):
+            for key, value in data.items():
+                if isinstance(value, list):
+                    data[key] = [set_games_zero(x) for x in value]
+                elif isinstance(value, dict):
+                    data[key] = set_games_zero(value)
+                elif key == "games":
+                    data[key] = 0
+
+            return data
+
+        ratings_data = self.get("/elo/map_based/ad/this_map_does_not_exist/" + self.steam_ids_as_string_with_plus()).json()
+
+        self.assert_balance_api_data_equal(
+            ratings_data,
+            set_games_zero(self.read_json_sample("balance_api_ad_only_players")),
+        )
 
     def test_map_based2(self):
         response = self.get(

@@ -149,7 +149,7 @@ async def for_certain_map(
     ) gr
     LEFT JOIN
         gametypes gt ON gr.gametype_id = gt.gametype_id
-    """.format(MOVING_AVG_COUNT=int(MOVING_AVG_COUNT))
+    """.format(MOVING_AVG_COUNT=100)
     async for row in con.cursor(query, steam_ids, map_id):
         steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), row[3])
         if steam_id not in players:

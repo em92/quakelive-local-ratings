@@ -1,22 +1,27 @@
 from .fixture import AppTestCase
 
+STEAM_IDS_TDM_PLAYERS = "+".join([
+    "76561198273556024",  # trig
+    "76561198256352933",  # om3n
+    "76561198256203867",  # prestij
+    "76561198257561075",  # antonio_by
+])
+
+STEAM_IDS_AD_PLAYERS = "+".join([
+    "76561198043212328",  # shire
+    "76561198257384619",  # HanzoHasashiSan
+    "76561197985202252",  # carecry
+    "76561198308265738",  # lookaround
+    "76561198257327401",  # Jalepeno
+    "76561198005116094",  # Xaero
+    "76561198077231066",  # Mike_Litoris
+    "76561198346199541",  # Zigurun
+    "76561198257338624",  # indie
+])
+
 
 class TestBalanceApi(AppTestCase):
 
-    steam_ids = [
-        "76561198043212328",  # shire
-        "76561198257384619",  # HanzoHasashiSan
-        "76561197985202252",  # carecry
-        "76561198308265738",  # lookaround
-        "76561198257327401",  # Jalepeno
-        "76561198005116094",  # Xaero
-        "76561198077231066",  # Mike_Litoris
-        "76561198346199541",  # Zigurun
-        "76561198257338624",  # indie
-    ]
-
-    def steam_ids_as_string_with_plus(self):
-        return "+".join(self.steam_ids)
 
     def assert_balance_api_data_equal(self, first: dict, second: dict):
         self.assertIn("playerinfo", first)
@@ -39,23 +44,37 @@ class TestBalanceApi(AppTestCase):
 
     def test_simple_ad_only_players(self):
         self.assert_balance_api_data_equal(
-            self.get("/elo/" + self.steam_ids_as_string_with_plus()).json(),
+            self.get("/elo/" + STEAM_IDS_AD_PLAYERS).json(),
             self.read_json_sample("balance_api_ad_only_players"),
         )
 
-    def test_map_based1(self):
-        # TODO: написать тесты, где используется среднее арифметическое
-        # TODO: слишком маленькая выборка. Результаты почти не отличаются от test_simple_ad_only_players
+    def test_simple_tdm_only_players(self):
+        self.assert_balance_api_data_equal(
+            self.get("/elo/" + STEAM_IDS_TDM_PLAYERS).json(),
+            self.read_json_sample("balance_api_tdm_only_players"),
+        )
+
+    def test_map_based_tdm(self):
+        self.assert_balance_api_data_equal(
+            self.get(
+                "/elo/map_based/tdm/hiddenfortress/"
+                + STEAM_IDS_TDM_PLAYERS
+                + "+76561198125710191"
+            ).json(),
+
+            self.read_json_sample("balance_api_tdm_hiddenfortress"),
+        )
+
+    def test_map_based_ad(self):
         self.assert_balance_api_data_equal(
             self.get(
                 "/elo/map_based/ad/dividedcrossings/"
-                + self.steam_ids_as_string_with_plus()
+                + STEAM_IDS_AD_PLAYERS
                 + "+76561198257183089"  # played dividedcrossings at least 2 times
             ).json(),
 
             self.read_json_sample("balance_api_ad_dividedcrossings"),
         )
-        # TODO: add gametype check
 
     def test_map_based_map_not_exists(self):
         def set_games_zero(data: dict):
@@ -69,7 +88,7 @@ class TestBalanceApi(AppTestCase):
 
             return data
 
-        ratings_data = self.get("/elo/map_based/ad/this_map_does_not_exist/" + self.steam_ids_as_string_with_plus()).json()
+        ratings_data = self.get("/elo/map_based/ad/this_map_does_not_exist/" + STEAM_IDS_AD_PLAYERS).json()
 
         self.assert_balance_api_data_equal(
             ratings_data,
@@ -78,7 +97,7 @@ class TestBalanceApi(AppTestCase):
 
     def test_map_based2(self):
         response = self.get(
-            "/elo/" + "+".join(self.steam_ids),
+            "/elo/" + STEAM_IDS_AD_PLAYERS,
             302,
             headers={
                 "X-QuakeLive-Gametype": "ad",
@@ -90,7 +109,6 @@ class TestBalanceApi(AppTestCase):
         self.assertTrue(
             new_url.endswith(
                 "/elo/map_based/ad/japanesecastles/"
-                + self.steam_ids_as_string_with_plus()
+                + STEAM_IDS_AD_PLAYERS
             )
         )
-        # TODO: add gametype check

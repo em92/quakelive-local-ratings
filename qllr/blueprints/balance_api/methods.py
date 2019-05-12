@@ -12,6 +12,7 @@ from qllr.settings import MOVING_AVG_COUNT
 from qllr.submission import get_map_id
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
+USE_AVG_PERF = cache.USE_AVG_PERF
 
 
 def prepare_result(players):
@@ -52,7 +53,7 @@ async def simple(con: Connection, steam_ids: typing.List[int]):
 
     query = """
     SELECT
-        steam_id, gametype_short, r1_mean, n
+        steam_id, gametype_short, r1_mean, r2_value, n
     FROM
         gametype_ratings gr
     LEFT JOIN
@@ -60,7 +61,11 @@ async def simple(con: Connection, steam_ids: typing.List[int]):
     WHERE
         steam_id = ANY($1)"""
     async for row in con.cursor(query, steam_ids):
-        steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), row[3])
+        steam_id, gametype, n = (str(row[0]), row[1], row[4])
+        if USE_AVG_PERF[gametype]:
+            rating = round(row[3], 2)
+        else:
+            rating = round(row[2], 2)
         if steam_id not in players:
             players[steam_id] = {"steamid": steam_id}
         players[steam_id][gametype] = {"games": n, "elo": rating}

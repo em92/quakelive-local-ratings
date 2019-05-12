@@ -1,0 +1,85 @@
+{
+  "deactivated": [],
+  "ok": true,
+  "playerinfo": {
+    "76561198256203867": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198256203867",
+        "tdm": {
+          "elo": 34.12,
+          "games": 9
+        }
+      }
+    },
+    "76561198256352933": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198256352933",
+        "tdm": {
+          "elo": 51.02,
+          "games": 10
+        }
+      }
+    },
+    "76561198257561075": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198257561075",
+        "tdm": {
+          "elo": 34.62,
+          "games": 3
+        }
+      }
+    },
+    "76561198273556024": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198273556024",
+        "tdm": {
+          "elo": -1.68,
+          "games": 12
+        }
+      }
+    }
+  },
+  "players": [
+    {
+      "steamid": "76561198256352933",
+      "tdm": {
+        "elo": 51.02,
+        "games": 10
+      }
+    },
+    {
+      "steamid": "76561198256203867",
+      "tdm": {
+        "elo": 34.12,
+        "games": 9
+      }
+    },
+    {
+      "steamid": "76561198273556024",
+      "tdm": {
+        "elo": -1.68,
+        "games": 12
+      }
+    },
+    {
+      "steamid": "76561198257561075",
+      "tdm": {
+        "elo": 34.62,
+        "games": 3
+      }
+    }
+  ],
+  "untracked": []
+}

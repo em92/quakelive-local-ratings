@@ -57,7 +57,7 @@ class TestBalanceApi(AppTestCase):
     def test_map_based_tdm(self):
         self.assert_balance_api_data_equal(
             self.get(
-                "/elo/map_based/tdm/hiddenfortress/"
+                "/elo/map_based/hiddenfortress/"
                 + STEAM_IDS_TDM_PLAYERS
                 + "+76561198125710191"
             ).json(),
@@ -68,7 +68,7 @@ class TestBalanceApi(AppTestCase):
     def test_map_based_ad(self):
         self.assert_balance_api_data_equal(
             self.get(
-                "/elo/map_based/ad/dividedcrossings/"
+                "/elo/map_based/dividedcrossings/"
                 + STEAM_IDS_AD_PLAYERS
                 + "+76561198257183089"  # played dividedcrossings at least 2 times
             ).json(),
@@ -88,7 +88,7 @@ class TestBalanceApi(AppTestCase):
 
             return data
 
-        ratings_data = self.get("/elo/map_based/ad/this_map_does_not_exist/" + STEAM_IDS_AD_PLAYERS).json()
+        ratings_data = self.get("/elo/map_based/this_map_does_not_exist/" + STEAM_IDS_AD_PLAYERS).json()
 
         self.assert_balance_api_data_equal(
             ratings_data,
@@ -100,7 +100,6 @@ class TestBalanceApi(AppTestCase):
             "/elo/" + STEAM_IDS_AD_PLAYERS,
             302,
             headers={
-                "X-QuakeLive-Gametype": "ad",
                 "X-QuakeLive-Map": "japanesecastles",
             },
         )
@@ -108,7 +107,7 @@ class TestBalanceApi(AppTestCase):
         new_url = response.headers["Location"]
         self.assertTrue(
             new_url.endswith(
-                "/elo/map_based/ad/japanesecastles/"
+                "/elo/map_based/japanesecastles/"
                 + STEAM_IDS_AD_PLAYERS
             )
         )

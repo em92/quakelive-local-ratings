@@ -131,7 +131,7 @@ async def for_certain_map(
             gr.steam_id,
             gr.r1_mean AS rating, COALESCE(mgr.r1_mean, 0) AS map_rating,
             COALESCE(mgr.n, 0) AS n,
-            LEAST(1, (COALESCE(mgr.n, 0)/{MOVING_AVG_COUNT}::real)) AS w,
+            LEAST(0.25, (COALESCE(mgr.n, 0)/100.0)) AS w,
             gr.gametype_id
         FROM
             gametype_ratings gr
@@ -145,7 +145,7 @@ async def for_certain_map(
     ) gr
     LEFT JOIN
         gametypes gt ON gr.gametype_id = gt.gametype_id
-    """.format(MOVING_AVG_COUNT=100)
+    """
     async for row in con.cursor(query, steam_ids, map_id):
         steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), row[3])
         if steam_id not in players:

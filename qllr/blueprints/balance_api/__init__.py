@@ -9,7 +9,7 @@ from starlette.responses import JSONResponse, RedirectResponse, Response
 from qllr.app import App
 from qllr.endpoints import Endpoint
 
-from .methods import for_certain_map, simple, with_player_info_from_qlstats
+from .methods import fetch, with_player_info_from_qlstats
 
 bp = App()
 bp.json_only_mode = True
@@ -30,7 +30,7 @@ class BalanceSimple(Endpoint):
 
     async def _get(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
-        return JSONResponse(await simple(con, ids))
+        return JSONResponse(await fetch(con, ids))
 
 
 @bp.route("/map_based/{mapname}/{ids:steam_ids}")
@@ -41,7 +41,7 @@ class BalanceMapBased(Endpoint):
     async def _get(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
         mapname = request.path_params["mapname"]
-        return JSONResponse(await for_certain_map(con, ids, mapname))
+        return JSONResponse(await fetch(con, ids, mapname))
 
 
 @bp.route("/with_qlstats_playerinfo/{ids:steam_ids}")

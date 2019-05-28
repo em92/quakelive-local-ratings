@@ -2,6 +2,7 @@
 #
 
 from collections import MutableMapping, OrderedDict
+from typing import List
 from urllib.parse import urlparse
 
 from asyncpg import Connection, create_pool, pool
@@ -150,6 +151,14 @@ class Cache:
         result = USE_AVG_PERF.copy()
         for gt, id in self._gametype_ids.items():
             result[id] = result[gt]
+        return result
+
+    @property
+    def AVG_PERF_GAMETYPE_IDS(self) -> List[int]:
+        result = []
+        for gt, id in self._gametype_ids.items():
+            if USE_AVG_PERF[gt]:
+                result.append(id)
         return result
 
 

@@ -22,6 +22,7 @@ STEAM_IDS_AD_PLAYERS = "+".join([
 
 class TestBalanceApi(AppTestCase):
 
+    maxDiff = None
 
     def assert_balance_api_data_equal(self, first: dict, second: dict):
         self.assertIn("playerinfo", first)
@@ -42,6 +43,19 @@ class TestBalanceApi(AppTestCase):
         self.assertIn("untracked", second)
         self.assert_lists_have_same_elements(first["untracked"], second["untracked"])
 
+    def test_bigger_numbers(self):
+        response = self.get(
+            "/elo/" + STEAM_IDS_AD_PLAYERS,
+            200,
+            headers={
+                "X-Balance-Bigger-Numbers": "1",
+            },
+        )
+        self.assert_balance_api_data_equal(
+            response.json(),
+            self.read_json_sample("balance_api_ad_bigger_numbers"),
+        )
+
     def test_simple_ad_only_players(self):
         self.assert_balance_api_data_equal(
             self.get("/elo/" + STEAM_IDS_AD_PLAYERS).json(),
@@ -55,24 +69,30 @@ class TestBalanceApi(AppTestCase):
         )
 
     def test_map_based_tdm(self):
-        self.assert_balance_api_data_equal(
-            self.get(
-                "/elo/map_based/hiddenfortress/"
-                + STEAM_IDS_TDM_PLAYERS
-                + "+76561198125710191"
-            ).json(),
+        response = self.get(
+            "/elo/" + STEAM_IDS_TDM_PLAYERS + "+76561198125710191",
+            200,
+            headers={
+                "X-QuakeLive-Map": "hiddenfortress",
+            },
+        )
 
+        self.assert_balance_api_data_equal(
+            response.json(),
             self.read_json_sample("balance_api_tdm_hiddenfortress"),
         )
 
     def test_map_based_ad(self):
-        self.assert_balance_api_data_equal(
-            self.get(
-                "/elo/map_based/dividedcrossings/"
-                + STEAM_IDS_AD_PLAYERS
-                + "+76561198257183089"  # played dividedcrossings at least 2 times
-            ).json(),
+        response = self.get(
+            "/elo/" + STEAM_IDS_AD_PLAYERS + "+76561198257183089",  # played dividedcrossings at least 2 times
+            200,
+            headers={
+                "X-QuakeLive-Map": "dividedcrossings",
+            },
+        )
 
+        self.assert_balance_api_data_equal(
+            response.json(),
             self.read_json_sample("balance_api_ad_dividedcrossings"),
         )
 
@@ -88,26 +108,17 @@ class TestBalanceApi(AppTestCase):
 
             return data
 
-        ratings_data = self.get("/elo/map_based/this_map_does_not_exist/" + STEAM_IDS_AD_PLAYERS).json()
+        response = self.get(
+            "/elo/" + STEAM_IDS_AD_PLAYERS,
+            200,
+            headers={
+                "X-QuakeLive-Map": "this_map_does_not_exist",
+            },
+        )
+
+        ratings_data = response.json()
 
         self.assert_balance_api_data_equal(
             ratings_data,
             set_games_zero(self.read_json_sample("balance_api_ad_only_players")),
-        )
-
-    def test_map_based2(self):
-        response = self.get(
-            "/elo/" + STEAM_IDS_AD_PLAYERS,
-            302,
-            headers={
-                "X-QuakeLive-Map": "japanesecastles",
-            },
-        )
-
-        new_url = response.headers["Location"]
-        self.assertTrue(
-            new_url.endswith(
-                "/elo/map_based/japanesecastles/"
-                + STEAM_IDS_AD_PLAYERS
-            )
         )

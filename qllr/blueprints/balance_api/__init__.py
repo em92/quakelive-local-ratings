@@ -4,7 +4,7 @@ from typing import Optional
 
 from asyncpg import Connection
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse, Response
+from starlette.responses import JSONResponse, Response
 
 from qllr.app import App
 from qllr.endpoints import Endpoint
@@ -16,33 +16,12 @@ bp.json_only_mode = True
 
 
 @bp.route("/{ids:steam_ids}")
-class BalanceSimple(Endpoint):
-    def try_very_fast_response(self, request: Request) -> Optional[Response]:
+class BalanceCommon(Endpoint):
+    async def _get(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
         mapname = request.headers.get("X-QuakeLive-Map")
-
-        if mapname is not None:
-            return RedirectResponse(
-                request.url_for(
-                    "BalanceMapBased", mapname=mapname, ids=ids
-                )
-            )
-
-    async def _get(self, request: Request, con: Connection):
-        ids = request.path_params["ids"]
         bigger_numbers = request.headers.get("X-Balance-Bigger-Numbers", False)
-        return JSONResponse(await fetch(con, ids, bigger_numbers=bigger_numbers))
-
-
-@bp.route("/map_based/{mapname}/{ids:steam_ids}")
-class BalanceMapBased(Endpoint):
-    def try_very_fast_response(self, request: Request) -> Optional[Response]:
-        pass
-
-    async def _get(self, request: Request, con: Connection):
-        ids = request.path_params["ids"]
-        mapname = request.path_params["mapname"]
-        return JSONResponse(await fetch(con, ids, mapname))
+        return JSONResponse(await fetch(con, ids, mapname=mapname, bigger_numbers=bigger_numbers))
 
 
 @bp.route("/with_qlstats_playerinfo/{ids:steam_ids}")

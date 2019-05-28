@@ -13,7 +13,7 @@ AVG_PERF_GAMETYPE_IDS = cache.AVG_PERF_GAMETYPE_IDS
 USE_AVG_PERF = cache.USE_AVG_PERF
 
 
-COMMON_RATINGS_SQL = '''
+COMMON_RATINGS_SQL = """
 SELECT
     steam_id,
     gametype_short,
@@ -25,9 +25,9 @@ LEFT JOIN
     gametypes gt ON gr.gametype_id = gt.gametype_id
 WHERE
     steam_id = ANY($1)
-'''
+"""
 
-MAP_BASED_RATINGS_SQL = '''
+MAP_BASED_RATINGS_SQL = """
 SELECT
     steam_id,
     gametype_short,
@@ -63,7 +63,7 @@ FROM (
 ) gr
 LEFT JOIN
     gametypes gt ON gr.gametype_id = gt.gametype_id
-'''
+"""
 
 
 def prepare_result(players):
@@ -86,7 +86,12 @@ def prepare_result(players):
     }
 
 
-async def fetch(con: Connection, steam_ids: typing.List[int], mapname: typing.Optional[str] = None):
+async def fetch(
+    con: Connection,
+    steam_ids: typing.List[int],
+    mapname: typing.Optional[str] = None,
+    bigger_numbers: bool = False,
+):
     """
     Outputs player ratings compatible with balance.py plugin from minqlx-plugins
     """
@@ -101,7 +106,12 @@ async def fetch(con: Connection, steam_ids: typing.List[int], mapname: typing.Op
         query_args = (steam_ids, AVG_PERF_GAMETYPE_IDS)
 
     async for row in con.cursor(query, *query_args):
-        steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), row[3])
+        steam_id, gametype, rating, n = (
+            str(row[0]),
+            row[1],
+            round(row[2], 2) if bigger_numbers is False else int(row[2] * 60),
+            row[3],
+        )
         if steam_id not in players:
             players[steam_id] = {"steamid": steam_id}
         players[steam_id][gametype] = {"games": n, "elo": rating}

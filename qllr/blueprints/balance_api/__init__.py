@@ -30,7 +30,8 @@ class BalanceSimple(Endpoint):
 
     async def _get(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
-        return JSONResponse(await fetch(con, ids))
+        bigger_numbers = request.headers.get("X-Balance-Bigger-Numbers", False)
+        return JSONResponse(await fetch(con, ids, bigger_numbers=bigger_numbers))
 
 
 @bp.route("/map_based/{mapname}/{ids:steam_ids}")

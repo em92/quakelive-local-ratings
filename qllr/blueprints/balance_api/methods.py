@@ -9,6 +9,7 @@ from qllr.common import log_exception
 from qllr.db import cache
 from qllr.submission import get_map_id
 
+AVG_PERF_GAMETYPE_IDS = cache.AVG_PERF_GAMETYPE_IDS
 USE_AVG_PERF = cache.USE_AVG_PERF
 
 
@@ -35,16 +36,6 @@ def prepare_result(players):
 async def simple(con: Connection, steam_ids: typing.List[int]):
     """
     Outputs player ratings compatible with balance.py plugin from minqlx-plugins
-
-    Args:
-        steam_ids (list): array of steam ids
-
-    Returns:
-        {
-            "ok": True
-            "players": [...],
-            "deactivated": []
-        }
     """
     players = {}
 
@@ -102,18 +93,6 @@ async def for_certain_map(
 ):
     """
     Outputs player ratings compatible with balance.py plugin from minqlx-plugins
-
-    Args:
-        steam_ids (list): array of steam ids
-        mapname (str): short mapname
-
-    Returns:
-        on success:
-        {
-            "ok": True
-            "players": [...],
-            "deactivated": []
-        }
     """
     players = {}
 
@@ -129,14 +108,25 @@ async def for_certain_map(
     FROM (
         SELECT
             gr.steam_id,
-            gr.r1_mean AS rating, COALESCE(mgr.r1_mean, 0) AS map_rating,
+            gr.rating, COALESCE(mgr.rating, 0) AS map_rating,
             COALESCE(mgr.n, 0) AS n,
             LEAST(0.25, (COALESCE(mgr.n, 0)/100.0)) AS w,
             gr.gametype_id
-        FROM
-            gametype_ratings gr
+        FROM (
+            SELECT
+                steam_id,
+                gametype_id,
+                CASE WHEN gametype_id = ANY($3) THEN r2_value ELSE r1_mean END AS rating,
+                n
+            FROM
+                gametype_ratings
+        ) gr
         LEFT JOIN (
-            SELECT *
+            SELECT
+                steam_id,
+                gametype_id,
+                CASE WHEN gametype_id = ANY($3) THEN r2_value ELSE r1_mean END AS rating,
+                n
             FROM map_gametype_ratings
             WHERE map_id = $2
         ) mgr ON mgr.gametype_id = gr.gametype_id AND mgr.steam_id = gr.steam_id
@@ -146,7 +136,7 @@ async def for_certain_map(
     LEFT JOIN
         gametypes gt ON gr.gametype_id = gt.gametype_id
     """
-    async for row in con.cursor(query, steam_ids, map_id):
+    async for row in con.cursor(query, steam_ids, map_id, AVG_PERF_GAMETYPE_IDS):
         steam_id, gametype, rating, n = (str(row[0]), row[1], round(row[2], 2), row[3])
         if steam_id not in players:
             players[steam_id] = {"steamid": steam_id}

@@ -64,6 +64,8 @@ async def simple(con: Connection, steam_ids: typing.List[int]):
 async def with_player_info_from_qlstats(con: Connection, steam_ids: typing.List[int]):
     result = await simple(con, steam_ids)
 
+    # TODO: need async version of this call
+    # TODO: use request.Session() with adapter for testing
     try:
         r = requests.get(
             "http://qlstats.net/elo/" + "+".join(map(lambda id_: str(id_), steam_ids)),

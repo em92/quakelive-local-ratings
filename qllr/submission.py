@@ -510,7 +510,7 @@ def filter_insignificant_players(players):
 
 
 async def submit_match(data):
-    with await lock:
+    async with lock:
         return await _submit_match(data)
 
 

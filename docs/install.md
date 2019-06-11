@@ -45,8 +45,7 @@ in postgresql shell:
 That's it. Now run in separate screen.
 
 ```
-source .env
-uvicorn qllr:app --PORT $PORT
+./main.py
 ```
 
 By default it is running on port 8000.

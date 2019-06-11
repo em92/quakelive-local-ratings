@@ -51,7 +51,11 @@ async def get_scoreboard(con: Connection, match_id: str):
         GROUP BY team
     ) t
 
-    """.format(RATING_COLUMN="old_r2_value" if USE_AVG_PERF[summary['gt_short']] else "old_r1_mean")
+    """.format(
+        RATING_COLUMN="old_r2_value"
+        if USE_AVG_PERF[summary["gt_short"]]
+        else "old_r1_mean"
+    )
     summary["rating_diff"] = await con.fetchval(query, match_id)
     if summary["rating_diff"] is not None:
         summary["rating_diff"] = round(summary["rating_diff"], 2)
@@ -108,7 +112,7 @@ async def get_scoreboard(con: Connection, match_id: str):
     """
     player_medal_stats = await con.fetchval(query, match_id)
 
-    if USE_AVG_PERF[summary['gt_short']]:
+    if USE_AVG_PERF[summary["gt_short"]]:
         rating_columns = """
             'old',   CAST( ROUND( CAST(t.old_r2_value AS NUMERIC), 2) AS REAL ),
             'new',   CAST( ROUND( CAST(t.new_r2_value AS NUMERIC), 2) AS REAL ),

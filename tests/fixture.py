@@ -1,15 +1,15 @@
+import asyncio
 import gzip
 import json
 import os
 import typing
 import unittest
-import asyncio
 from collections import OrderedDict
 
+from requests import Response
 from starlette.testclient import TestClient
 
 from qllr import app
-from requests import Response
 
 
 def unasync(f):

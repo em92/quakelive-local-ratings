@@ -21,7 +21,9 @@ class BalanceCommon(Endpoint):
         ids = request.path_params["ids"]
         mapname = request.headers.get("X-QuakeLive-Map")
         bigger_numbers = request.headers.get("X-Balance-Bigger-Numbers", False)
-        return JSONResponse(await fetch(con, ids, mapname=mapname, bigger_numbers=bigger_numbers))
+        return JSONResponse(
+            await fetch(con, ids, mapname=mapname, bigger_numbers=bigger_numbers)
+        )
 
 
 @bp.route("/with_qlstats_playerinfo/{ids:steam_ids}")

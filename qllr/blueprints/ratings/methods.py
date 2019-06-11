@@ -39,7 +39,9 @@ SQL_TOP_PLAYERS_BY_GAMETYPE = """
     ORDER BY gr.rating DESC
 """.format(
     OFFSET=int(MATCH_LIST_ITEM_COUNT)
-).replace("(SUBQUERY)", "({SUBQUERY})")
+).replace(
+    "(SUBQUERY)", "({SUBQUERY})"
+)
 
 SQL_TOP_PLAYERS_BY_GAMETYPE_R1 = SQL_TOP_PLAYERS_BY_GAMETYPE.format(
     SUBQUERY="""
@@ -83,7 +85,9 @@ async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=F
         "json", encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
     )
 
-    query = get_sql_top_players_query_by_gametype_id(gametype_id) + "LIMIT {LIMIT} OFFSET {OFFSET}".format(
+    query = get_sql_top_players_query_by_gametype_id(
+        gametype_id
+    ) + "LIMIT {LIMIT} OFFSET {OFFSET}".format(
         LIMIT=int(PLAYER_COUNT_PER_PAGE), OFFSET=int(PLAYER_COUNT_PER_PAGE * page)
     )
 

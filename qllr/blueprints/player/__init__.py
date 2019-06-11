@@ -51,11 +51,6 @@ class PlayerMatchesDeprecatedRoute(HTTPEndpoint):
 class BestMatchOfPlayerRedirect(Endpoint):
     async def _get(self, request: Request, con: Connection):
         steam_id = request.path_params["steam_id"]
-        gametype_id = request.path_params['gametype_id']
+        gametype_id = request.path_params["gametype_id"]
         match_id = await get_best_match_of_player(con, steam_id, gametype_id)
-        return RedirectResponse(
-            request.url_for(
-                "ScoreboardHtml",
-                match_id=match_id
-            )
-        )
+        return RedirectResponse(request.url_for("ScoreboardHtml", match_id=match_id))

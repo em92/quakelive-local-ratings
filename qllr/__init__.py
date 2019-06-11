@@ -4,8 +4,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 
-from . import blueprints as bp
-from . import submission
+from . import blueprints as bp, submission
 from .app import App
 from .db import get_db_pool
 from .settings import RUN_POST_PROCESS
@@ -23,7 +22,7 @@ app.mount("/export_rating", bp.export_rating)
 app.mount("/deprecated", bp.deprecated)
 
 
-@app.on_event('startup')
+@app.on_event("startup")
 async def on_startup():
     if RUN_POST_PROCESS is False:
         return

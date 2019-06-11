@@ -3,8 +3,8 @@ from functools import reduce
 
 from asyncpg import Connection
 
-from qllr.db import cache
 from qllr.common import DATETIME_FORMAT, clean_name
+from qllr.db import cache
 from qllr.exceptions import MatchNotFound, PlayerNotFound
 from qllr.settings import MOVING_AVG_COUNT
 
@@ -57,9 +57,7 @@ async def get_player_info(con: Connection, steam_id: int):
     if result is None:
         raise PlayerNotFound(steam_id)
 
-    result["ratings"] = list(map(
-        choose_rating_values, result["ratings"]
-    ))
+    result["ratings"] = list(map(choose_rating_values, result["ratings"]))
 
     # weapon stats (frags + acc)
     query = """
@@ -170,7 +168,9 @@ async def get_player_info(con: Connection, steam_id: int):
     return {"response": result, "title": clean_name(result["name"]), "ok": True}
 
 
-async def get_best_match_of_player(con: Connection, steam_id: int, gametype_id: int) -> str:
+async def get_best_match_of_player(
+    con: Connection, steam_id: int, gametype_id: int
+) -> str:
 
     query = """
     SELECT s.match_id::text

@@ -51,7 +51,9 @@ async def get_player_info_old(con: Connection, steam_id: int):
         ORDER BY m.timestamp ASC
         """.format(
             RATING_COLUMN=rating_column(gametype_id),
-            SQL_TOP_PLAYERS_BY_GAMETYPE=get_sql_top_players_query_by_gametype_id(gametype_id)
+            SQL_TOP_PLAYERS_BY_GAMETYPE=get_sql_top_players_query_by_gametype_id(
+                gametype_id
+            ),
         )
 
         last_ratings = {}

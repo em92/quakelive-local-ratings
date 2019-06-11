@@ -1,23 +1,27 @@
 from .fixture import AppTestCase
 
-STEAM_IDS_TDM_PLAYERS = "+".join([
-    "76561198273556024",  # trig
-    "76561198256352933",  # om3n
-    "76561198256203867",  # prestij
-    "76561198257561075",  # antonio_by
-])
+STEAM_IDS_TDM_PLAYERS = "+".join(
+    [
+        "76561198273556024",  # trig
+        "76561198256352933",  # om3n
+        "76561198256203867",  # prestij
+        "76561198257561075",  # antonio_by
+    ]
+)
 
-STEAM_IDS_AD_PLAYERS = "+".join([
-    "76561198043212328",  # shire
-    "76561198257384619",  # HanzoHasashiSan
-    "76561197985202252",  # carecry
-    "76561198308265738",  # lookaround
-    "76561198257327401",  # Jalepeno
-    "76561198005116094",  # Xaero
-    "76561198077231066",  # Mike_Litoris
-    "76561198346199541",  # Zigurun
-    "76561198257338624",  # indie
-])
+STEAM_IDS_AD_PLAYERS = "+".join(
+    [
+        "76561198043212328",  # shire
+        "76561198257384619",  # HanzoHasashiSan
+        "76561197985202252",  # carecry
+        "76561198308265738",  # lookaround
+        "76561198257327401",  # Jalepeno
+        "76561198005116094",  # Xaero
+        "76561198077231066",  # Mike_Litoris
+        "76561198346199541",  # Zigurun
+        "76561198257338624",  # indie
+    ]
+)
 
 
 class TestBalanceApi(AppTestCase):
@@ -47,13 +51,10 @@ class TestBalanceApi(AppTestCase):
         response = self.get(
             "/elo/" + STEAM_IDS_AD_PLAYERS,
             200,
-            headers={
-                "X-Balance-Bigger-Numbers": "1",
-            },
+            headers={"X-Balance-Bigger-Numbers": "1"},
         )
         self.assert_balance_api_data_equal(
-            response.json(),
-            self.read_json_sample("balance_api_ad_bigger_numbers"),
+            response.json(), self.read_json_sample("balance_api_ad_bigger_numbers")
         )
 
     def test_simple_ad_only_players(self):
@@ -72,28 +73,24 @@ class TestBalanceApi(AppTestCase):
         response = self.get(
             "/elo/" + STEAM_IDS_TDM_PLAYERS + "+76561198125710191",
             200,
-            headers={
-                "X-QuakeLive-Map": "hiddenfortress",
-            },
+            headers={"X-QuakeLive-Map": "hiddenfortress"},
         )
 
         self.assert_balance_api_data_equal(
-            response.json(),
-            self.read_json_sample("balance_api_tdm_hiddenfortress"),
+            response.json(), self.read_json_sample("balance_api_tdm_hiddenfortress")
         )
 
     def test_map_based_ad(self):
         response = self.get(
-            "/elo/" + STEAM_IDS_AD_PLAYERS + "+76561198257183089",  # played dividedcrossings at least 2 times
+            "/elo/"
+            + STEAM_IDS_AD_PLAYERS
+            + "+76561198257183089",  # played dividedcrossings at least 2 times
             200,
-            headers={
-                "X-QuakeLive-Map": "dividedcrossings",
-            },
+            headers={"X-QuakeLive-Map": "dividedcrossings"},
         )
 
         self.assert_balance_api_data_equal(
-            response.json(),
-            self.read_json_sample("balance_api_ad_dividedcrossings"),
+            response.json(), self.read_json_sample("balance_api_ad_dividedcrossings")
         )
 
     def test_map_based_map_not_exists(self):
@@ -111,9 +108,7 @@ class TestBalanceApi(AppTestCase):
         response = self.get(
             "/elo/" + STEAM_IDS_AD_PLAYERS,
             200,
-            headers={
-                "X-QuakeLive-Map": "this_map_does_not_exist",
-            },
+            headers={"X-QuakeLive-Map": "this_map_does_not_exist"},
         )
 
         ratings_data = response.json()

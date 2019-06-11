@@ -2,7 +2,6 @@ from .fixture import AppTestCase
 
 
 class TestMatches(AppTestCase):
-
     def test_matches_all(self):
         cases = [
             ("/matches/", 0, None, 2),

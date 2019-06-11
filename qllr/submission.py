@@ -11,8 +11,11 @@ from asyncpg.exceptions import UniqueViolationError
 from .common import log_exception
 from .db import cache, db_connect, get_db_pool
 from .exceptions import *
-from .settings import MIN_PLAYER_COUNT_IN_MATCH_TO_RATE as MIN_PLAYER_COUNT_TO_RATE
-from .settings import MOVING_AVG_COUNT, RUN_POST_PROCESS
+from .settings import (
+    MIN_PLAYER_COUNT_IN_MATCH_TO_RATE as MIN_PLAYER_COUNT_TO_RATE,
+    MOVING_AVG_COUNT,
+    RUN_POST_PROCESS,
+)
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
@@ -229,7 +232,9 @@ async def _calc_ratings_avg_perf(
         WHERE
             match_perf IS NOT NULL AND
             match_id = $2
-    """.format(SUBQUERY=ratings_subquery)
+    """.format(
+        SUBQUERY=ratings_subquery
+    )
 
     result = {}
 
@@ -280,11 +285,7 @@ async def _calc_ratings_avg_perf(
             gametype = [k for k, v in GAMETYPE_IDS.items() if v == gametype_id][0]
             new_rating = row[3] * extra_factor(gametype, row[0], row[1], row[2])
 
-        result[steam_id] = {
-            "old": old_rating,
-            "new": new_rating,
-            "team": team,
-        }
+        result[steam_id] = {"old": old_rating, "new": new_rating, "team": team}
 
     return result
 
@@ -327,7 +328,9 @@ async def _calc_ratings_trueskill(
         WHERE
             match_perf IS NOT NULL AND
             match_id = $2
-        """.format(SUBQUERY=ratings_subquery),
+        """.format(
+            SUBQUERY=ratings_subquery
+        ),
         *query_params
     )
 
@@ -406,8 +409,8 @@ async def _post_process(
             ratings["old"].sigma,
             ratings["new"].mu,
             ratings["new"].sigma,
-            avg_perf_ratings[steam_id]['old'],
-            avg_perf_ratings[steam_id]['new'],
+            avg_perf_ratings[steam_id]["old"],
+            avg_perf_ratings[steam_id]["new"],
             match_id,
             steam_id,
             ratings["team"],
@@ -422,7 +425,7 @@ async def _post_process(
             """,
             ratings["new"].mu,
             ratings["new"].sigma,
-            avg_perf_ratings[steam_id]['new'],
+            avg_perf_ratings[steam_id]["new"],
             match_timestamp,
             steam_id,
             gametype_id,
@@ -438,20 +441,22 @@ async def _post_process(
                 gametype_id,
                 ratings["new"].mu,
                 ratings["new"].sigma,
-                avg_perf_ratings[steam_id]['new'],
+                avg_perf_ratings[steam_id]["new"],
                 match_timestamp,
             )
         assert r == "UPDATE 1" or r == "INSERT 0 1"
 
 
 async def update_map_rating(
-    con: Connection, match_id: str, gametype_id: int, match_timestamp: int, map_id: int,
+    con: Connection, match_id: str, gametype_id: int, match_timestamp: int, map_id: int
 ):
     """
     Updates players' map-based ratings after playing match_id
 
     """
-    trueskill_ratings = await _calc_ratings_trueskill(con, match_id, gametype_id, map_id)
+    trueskill_ratings = await _calc_ratings_trueskill(
+        con, match_id, gametype_id, map_id
+    )
     if trueskill_ratings is None:
         return
 

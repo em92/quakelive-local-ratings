@@ -1,6 +1,7 @@
-from .fixture import AppTestCase, unasync
-from qllr.submission import get_map_id
 from qllr.db import get_db_pool
+from qllr.submission import get_map_id
+
+from .fixture import AppTestCase, unasync
 
 
 class TestSubmissionHelpers(AppTestCase):

@@ -5,9 +5,8 @@ from collections import MutableMapping, OrderedDict
 from typing import List
 from urllib.parse import urlparse
 
-from asyncpg import Connection, create_pool, pool
-
 import psycopg2
+from asyncpg import Connection, create_pool, pool
 
 from .settings import DATABASE_URL, USE_AVG_PERF
 

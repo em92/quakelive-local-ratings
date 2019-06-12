@@ -60,6 +60,7 @@ class BalanceOptionsConvertor(cm.Convertor):
 
 cm.CONVERTOR_TYPES["steam_ids"] = SteamIdsConvertor()
 cm.CONVERTOR_TYPES["match_id"] = MatchIdConvertor()
+cm.CONVERTOR_TYPES["balance_options"] = BalanceOptionsConvertor()
 
 from .balance_api import bp as balance_api  # noqa: F401
 from .deprecated import bp as deprecated  # noqa: F401

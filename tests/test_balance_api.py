@@ -49,9 +49,8 @@ class TestBalanceApi(AppTestCase):
 
     def test_bigger_numbers(self):
         response = self.get(
-            "/elo/" + STEAM_IDS_AD_PLAYERS,
-            200,
-            headers={"X-Balance-Bigger-Numbers": "1"},
+            "/elo/bn/" + STEAM_IDS_AD_PLAYERS,
+            200
         )
         self.assert_balance_api_data_equal(
             response.json(), self.read_json_sample("balance_api_ad_bigger_numbers")
@@ -71,7 +70,7 @@ class TestBalanceApi(AppTestCase):
 
     def test_map_based_tdm(self):
         response = self.get(
-            "/elo/" + STEAM_IDS_TDM_PLAYERS + "+76561198125710191",
+            "/elo/map_based/" + STEAM_IDS_TDM_PLAYERS + "+76561198125710191",
             200,
             headers={"X-QuakeLive-Map": "hiddenfortress"},
         )
@@ -82,7 +81,7 @@ class TestBalanceApi(AppTestCase):
 
     def test_map_based_ad(self):
         response = self.get(
-            "/elo/"
+            "/elo/map_based/"
             + STEAM_IDS_AD_PLAYERS
             + "+76561198257183089",  # played dividedcrossings at least 2 times
             200,
@@ -106,7 +105,7 @@ class TestBalanceApi(AppTestCase):
             return data
 
         response = self.get(
-            "/elo/" + STEAM_IDS_AD_PLAYERS,
+            "/elo/map_based/" + STEAM_IDS_AD_PLAYERS,
             200,
             headers={"X-QuakeLive-Map": "this_map_does_not_exist"},
         )

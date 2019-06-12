@@ -19,18 +19,24 @@ bp.json_only_mode = True
 class BalanceCommon(Endpoint):
     async def _get(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
-        mapname = request.headers.get("X-QuakeLive-Map")
-        bigger_numbers = request.headers.get("X-Balance-Bigger-Numbers", False)
-        return JSONResponse(
-            await fetch(con, ids, mapname=mapname, bigger_numbers=bigger_numbers)
-        )
+        return JSONResponse(await fetch(con, ids))
 
 
-@bp.route("/with_qlstats_playerinfo/{ids:steam_ids}")
-class BalanceWithQLStatsPlayerinfo(Endpoint):
-    def try_very_fast_response(self, request: Request) -> Optional[Response]:
-        pass
-
+@bp.route("/{options:balance_options}/{ids:steam_ids}")
+class BalanceAdvanced(Endpoint):
     async def _get(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
-        return JSONResponse(await with_player_info_from_qlstats(con, ids))
+        options = request.path_params["options"]
+
+        # TODO: implement with_qlstats_policy
+        #  also try_very_fast_response and try_fast_respone must return none
+        return JSONResponse(
+            await fetch(
+                con,
+                ids,
+                mapname=request.headers.get("X-QuakeLive-Map")
+                if "map_based" in options
+                else None,
+                bigger_numbers="bn" in options,
+            )
+        )

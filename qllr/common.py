@@ -2,8 +2,11 @@
 #
 
 import asyncio
+import functools
 import logging
 import traceback
+
+import requests
 
 DATETIME_FORMAT = "YYYY-MM-DD HH24:MI TZ"
 MATCH_LIST_ITEM_COUNT = 25
@@ -22,7 +25,7 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-def log_exception(e):
+def log_exception(e):  # pragma: no cover
     logger.warn(traceback.format_exc())
 
 
@@ -36,8 +39,15 @@ def clean_name(name):
     return name
 
 
-def run_sync(f, *args, **kwargs):
+def run_sync(f, *args, **kwargs):  # pragma: no cover
     annoying_event_loop = asyncio.get_event_loop()
     future = asyncio.ensure_future(f, loop=annoying_event_loop)
     annoying_event_loop.run_until_complete(future)
     return future.result()
+
+
+async def request(url: str) -> requests.Response:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        None, functools.partial(requests.get, url, timeout=5)
+    )

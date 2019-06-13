@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex, nofollow"/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="{{ url_for('static', path='helpers.js') }}"></script>
-<script type="text/javascript">if ( location.hash.substr(1, 1) == "/" ) { var path = location.hash.substr(1); location.hash = ""; location.pathname = path; } </script>
+<script>if ( location.hash.substr(1, 1) == "/" ) { var path = location.hash.substr(1); location.hash = ""; location.pathname = path; } </script>
 {% if title %}
 <title>{{ title }} - Quake Live Local Ratings</title>
 {% else %}

@@ -40,6 +40,7 @@ class TestMatches(AppTestCase):
                 "/player/123/matches/blablabla/456/",
                 "/matches/player/123/blablabla/456/",
             ),
+            ("/", "/matches/"),
         ]
         for pair in pairs:
             old_uri = pair[0]

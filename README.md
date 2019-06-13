@@ -38,3 +38,7 @@ For feeder:
 * [Installation (on Debian Stretch)](docs/install.md)
 * [Backing up database](docs/backup.md)
 * [qlds/minqlx configuration](docs/minqlx_config.md)
+
+### Note to European A&D and #qlpickup.ru communities
+
+Backups of database and feeder config are [here](https://yadi.sk/d/uTqMDxzb3JPpiJ)

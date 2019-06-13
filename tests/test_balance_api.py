@@ -189,39 +189,26 @@ class TestBalanceApi(AppTestCase):
             response.json(), self.read_json_sample("balance_api_with_qlstats_policy")
         )
 
-    @patch(
+    def _test_with_qlstats_policy_with_error(self, mock):
+        response = self.get(
+            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+        )
+
+        self.assert_balance_api_data_equal(
+            response.json(),
+            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
+        )
+
+    test_with_qlstats_policy_request_exception = patch(
         "requests.get",
         return_value=FakeQLStatsResponse(),
         side_effect=requests.exceptions.RequestException("something bad happened"),
-    )
-    def test_with_qlstats_policy_request_exception(self, mock):
-        response = self.get(
-            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
-        )
+    )(_test_with_qlstats_policy_with_error)
 
-        self.assert_balance_api_data_equal(
-            response.json(),
-            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
-        )
+    test_with_qlstats_policy_request_exception_not_ok = patch(
+        "requests.get", return_value=FakeQLStatsResponse(False)
+    )(_test_with_qlstats_policy_with_error)
 
-    @patch("requests.get", return_value=FakeQLStatsResponse(False))
-    def test_with_qlstats_policy_request_exception_not_ok(self, mock):
-        response = self.get(
-            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
-        )
-
-        self.assert_balance_api_data_equal(
-            response.json(),
-            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
-        )
-
-    @patch("requests.get", return_value=FakeQLStatsResponse(True, True))
-    def test_with_qlstats_policy_request_exception_bad_json(self, mock):
-        response = self.get(
-            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
-        )
-
-        self.assert_balance_api_data_equal(
-            response.json(),
-            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
-        )
+    test_with_qlstats_policy_request_exception_bad_json = patch(
+        "requests.get", return_value=FakeQLStatsResponse(True, True)
+    )(_test_with_qlstats_policy_with_error)

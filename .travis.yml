@@ -1,4 +1,3 @@
-sudo: required
 dist: xenial
 language: python
 
@@ -10,14 +9,11 @@ python:
     - "3.7"
     - "3.8-dev"
 
-env:
-  - POSTGRESQL_VERSION=9.5
-  - POSTGRESQL_VERSION=9.6
-  - POSTGRESQL_VERSION=10
-  - POSTGRESQL_VERSION=11
+addons:
+    postgresql: "9.5"
 
-before_install:
-  - sudo service postgresql stop && sudo service postgresql start $POSTGRESQL_VERSION
+services:
+  - postgresql
 
 install:
     - pip install -U -r requirements.txt

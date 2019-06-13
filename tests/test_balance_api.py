@@ -1,3 +1,7 @@
+from unittest.mock import patch
+
+import requests
+
 from .fixture import AppTestCase
 
 STEAM_IDS_TDM_PLAYERS = "+".join(
@@ -24,6 +28,67 @@ STEAM_IDS_AD_PLAYERS = "+".join(
 )
 
 
+class FakeQLStatsResponse:
+    def __init__(self, ok: bool = True, bad_json: bool = False):
+        self.ok = ok
+        self.bad_json = bad_json
+
+    def json(self):
+        if self.bad_json:
+            raise ValueError("bad json")
+        return {
+            "untracked": [],
+            "players": [
+                {
+                    "steamid": "76561198043212328",
+                    "ft": {"games": 0, "elo": 900},
+                    "ad": {"games": 1, "elo": 1788},
+                    "tdm": {"games": 0, "elo": 900},
+                    "ca": {"games": 97, "elo": 1255},
+                    "ctf": {"games": 20, "elo": 1865},
+                    "ffa": {"games": 4, "elo": 1791},
+                },
+                {
+                    "steamid": "76561198260599288",
+                    "duel": {"games": 32, "elo": 1386},
+                    "ft": {"games": 96, "elo": 1594},
+                    "ad": {"games": 5, "elo": 1648},
+                    "tdm": {"games": 4, "elo": 1146},
+                    "ca": {"games": 1297, "elo": 1373},
+                    "ctf": {"games": 58, "elo": 1406},
+                    "ffa": {"games": 342, "elo": 1938},
+                },
+            ],
+            "playerinfo": {
+                "76561198043212328": {
+                    "deactivated": False,
+                    "ratings": {
+                        "ctf": {"games": 20, "elo": 1865},
+                        "ca": {"games": 97, "elo": 1255},
+                        "ft": {"games": 0, "elo": 900},
+                        "tdm": {"games": 0, "elo": 900},
+                        "ffa": {"games": 4, "elo": 1791},
+                    },
+                    "allowRating": True,
+                    "privacy": "anonymous",
+                },
+                "76561198260599288": {
+                    "deactivated": False,
+                    "ratings": {
+                        "ctf": {"games": 58, "elo": 1406},
+                        "ca": {"games": 1297, "elo": 1373},
+                        "ft": {"games": 96, "elo": 1594},
+                        "tdm": {"games": 4, "elo": 1146},
+                        "ffa": {"games": 342, "elo": 1938},
+                    },
+                    "allowRating": True,
+                    "privacy": "what?",
+                },
+            },
+            "deactivated": [],
+        }
+
+
 class TestBalanceApi(AppTestCase):
 
     maxDiff = None
@@ -48,10 +113,7 @@ class TestBalanceApi(AppTestCase):
         self.assert_lists_have_same_elements(first["untracked"], second["untracked"])
 
     def test_bigger_numbers(self):
-        response = self.get(
-            "/elo/bn/" + STEAM_IDS_AD_PLAYERS,
-            200
-        )
+        response = self.get("/elo/bn/" + STEAM_IDS_AD_PLAYERS, 200)
         self.assert_balance_api_data_equal(
             response.json(), self.read_json_sample("balance_api_ad_bigger_numbers")
         )
@@ -115,4 +177,51 @@ class TestBalanceApi(AppTestCase):
         self.assert_balance_api_data_equal(
             ratings_data,
             set_games_zero(self.read_json_sample("balance_api_ad_only_players")),
+        )
+
+    @patch("requests.get", return_value=FakeQLStatsResponse())
+    def test_with_qlstats_policy(self, mock):
+        response = self.get(
+            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+        )
+
+        self.assert_balance_api_data_equal(
+            response.json(), self.read_json_sample("balance_api_with_qlstats_policy")
+        )
+
+    @patch(
+        "requests.get",
+        return_value=FakeQLStatsResponse(),
+        side_effect=requests.exceptions.RequestException("something bad happened"),
+    )
+    def test_with_qlstats_policy_request_exception(self, mock):
+        response = self.get(
+            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+        )
+
+        self.assert_balance_api_data_equal(
+            response.json(),
+            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
+        )
+
+    @patch("requests.get", return_value=FakeQLStatsResponse(False))
+    def test_with_qlstats_policy_request_exception_not_ok(self, mock):
+        response = self.get(
+            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+        )
+
+        self.assert_balance_api_data_equal(
+            response.json(),
+            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
+        )
+
+    @patch("requests.get", return_value=FakeQLStatsResponse(True, True))
+    def test_with_qlstats_policy_request_exception_bad_json(self, mock):
+        response = self.get(
+            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+        )
+
+        self.assert_balance_api_data_equal(
+            response.json(),
+            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
         )

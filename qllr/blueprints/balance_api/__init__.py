@@ -9,7 +9,7 @@ from starlette.responses import JSONResponse, Response
 from qllr.app import App
 from qllr.endpoints import Endpoint
 
-from .methods import fetch, with_player_info_from_qlstats
+from .methods import fetch
 
 bp = App()
 bp.json_only_mode = True
@@ -38,5 +38,6 @@ class BalanceAdvanced(Endpoint):
                 if "map_based" in options
                 else None,
                 bigger_numbers="bn" in options,
+                with_qlstats_policy=True if "with_qlstats_policy" in options else False,
             )
         )

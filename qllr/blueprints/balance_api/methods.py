@@ -5,7 +5,7 @@ import typing
 import requests
 from asyncpg import Connection
 
-from qllr.common import log_exception
+from qllr.common import log_exception, request
 from qllr.db import cache
 from qllr.submission import get_map_id
 
@@ -91,6 +91,7 @@ async def fetch(
     steam_ids: typing.List[int],
     mapname: typing.Optional[str] = None,
     bigger_numbers: bool = False,
+    with_qlstats_policy: bool = False,
 ):
     """
     Outputs player ratings compatible with balance.py plugin from minqlx-plugins
@@ -116,18 +117,14 @@ async def fetch(
             players[steam_id] = {"steamid": steam_id}
         players[steam_id][gametype] = {"games": n, "elo": rating}
 
-    return prepare_result(players)
+    result = prepare_result(players)
 
+    if with_qlstats_policy is False:
+        return result
 
-async def with_player_info_from_qlstats(con: Connection, steam_ids: typing.List[int]):
-    result = await fetch(con, steam_ids)
-
-    # TODO: need async version of this call
-    # TODO: use request.Session() with adapter for testing
     try:
-        r = requests.get(
-            "http://qlstats.net/elo/" + "+".join(map(lambda id_: str(id_), steam_ids)),
-            timeout=5,
+        r = await request(
+            "http://qlstats.net/elo/" + "+".join(map(lambda id_: str(id_), steam_ids))
         )
     except requests.exceptions.RequestException:
         return result

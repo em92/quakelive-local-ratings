@@ -198,7 +198,7 @@ async def get_scoreboard(con: Connection, match_id: str):
 
     query = """
     SELECT
-        array_agg(m.medal_short)
+        array_agg(m.medal_short ORDER BY m.medal_id ASC)
     FROM (
         SELECT DISTINCT medal_id
         FROM scoreboards_medals
@@ -210,7 +210,7 @@ async def get_scoreboard(con: Connection, match_id: str):
 
     query = """
     SELECT
-        array_agg(w.weapon_short)
+        array_agg(w.weapon_short ORDER BY w.weapon_id ASC)
     FROM (
         SELECT DISTINCT weapon_id
         FROM scoreboards_weapons

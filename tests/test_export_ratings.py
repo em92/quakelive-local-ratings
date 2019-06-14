@@ -2,14 +2,20 @@ from .fixture import AppTestCase
 
 
 class TestExportRatings(AppTestCase):
-
-    ORDER = 5
-
     def test_ratings_ad_redirect(self):
         resp = self.get("/export_rating/csv/ad", 302)
 
         new_url = resp.headers["Location"]
         self.assertTrue(new_url.endswith("/export_rating/ad.csv"))
+
+    def test_ratings_ad_redirect_json(self):
+        resp = self.get("/export_rating/json/ad", 302)
+
+        new_url = resp.headers["Location"]
+        self.assertTrue(new_url.endswith("/export_rating/ad.json"))
+
+    def test_ratings_ad_redirect_bad_format(self):
+        self.get("/export_rating/blablabla/ad", 404)
 
     def test_ratings_ad_csv(self):
         resp = self.get("/export_rating/ad.csv")

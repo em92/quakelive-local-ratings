@@ -4,53 +4,40 @@ from typing import Optional
 
 from asyncpg import Connection
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse, Response
+from starlette.responses import JSONResponse, Response
 
 from qllr.app import App
 from qllr.endpoints import Endpoint
 
-from .methods import for_certain_map, simple, with_player_info_from_qlstats
+from .methods import fetch
 
 bp = App()
 bp.json_only_mode = True
 
 
 @bp.route("/{ids:steam_ids}")
-class BalanceSimple(Endpoint):
-    def try_very_fast_response(self, request: Request) -> Optional[Response]:
+class BalanceCommon(Endpoint):
+    async def _get(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
-        gametype = request.headers.get("X-QuakeLive-Gametype")
-        mapname = request.headers.get("X-QuakeLive-Map")
+        return JSONResponse(await fetch(con, ids))
 
-        if gametype is not None and mapname is not None:
-            return RedirectResponse(
-                request.url_for(
-                    "BalanceMapBased", gametype=gametype, mapname=mapname, ids=ids
-                )
+
+@bp.route("/{options:balance_options}/{ids:steam_ids}")
+class BalanceAdvanced(Endpoint):
+    async def _get(self, request: Request, con: Connection):
+        ids = request.path_params["ids"]
+        options = request.path_params["options"]
+
+        # TODO: implement with_qlstats_policy
+        #  also try_very_fast_response and try_fast_respone must return none
+        return JSONResponse(
+            await fetch(
+                con,
+                ids,
+                mapname=request.headers.get("X-QuakeLive-Map")
+                if "map_based" in options
+                else None,
+                bigger_numbers="bn" in options,
+                with_qlstats_policy=True if "with_qlstats_policy" in options else False,
             )
-
-    async def _get(self, request: Request, con: Connection):
-        ids = request.path_params["ids"]
-        return JSONResponse(await simple(con, ids))
-
-
-@bp.route("/map_based/{gametype}/{mapname}/{ids:steam_ids}")
-class BalanceMapBased(Endpoint):
-    def try_very_fast_response(self, request: Request) -> Optional[Response]:
-        pass
-
-    async def _get(self, request: Request, con: Connection):
-        ids = request.path_params["ids"]
-        gametype = request.path_params["gametype"]
-        mapname = request.path_params["mapname"]
-        return JSONResponse(await for_certain_map(con, ids, gametype, mapname))
-
-
-@bp.route("/with_qlstats_playerinfo/{ids:steam_ids}")
-class BalanceWithQLStatsPlayerinfo(Endpoint):
-    def try_very_fast_response(self, request: Request) -> Optional[Response]:
-        pass
-
-    async def _get(self, request: Request, con: Connection):
-        ids = request.path_params["ids"]
-        return JSONResponse(await with_player_info_from_qlstats(con, ids))
+        )

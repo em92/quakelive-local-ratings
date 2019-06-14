@@ -1,15 +1,15 @@
+import asyncio
 import gzip
 import json
 import os
 import typing
 import unittest
-import asyncio
 from collections import OrderedDict
 
+from requests import Response
 from starlette.testclient import TestClient
 
 from qllr import app
-from requests import Response
 
 
 def unasync(f):
@@ -26,6 +26,7 @@ class AppTestCase(unittest.TestCase):
     _test_cli = TestClient(app, raise_server_exceptions=False)
     module_path = os.path.dirname(os.path.realpath(__file__))
     is_set_up = False
+    maxDiff = None
 
     def setUp(self):
         if AppTestCase.is_set_up:

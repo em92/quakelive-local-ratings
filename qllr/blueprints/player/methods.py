@@ -4,8 +4,11 @@ from functools import reduce
 from asyncpg import Connection
 
 from qllr.common import DATETIME_FORMAT, clean_name
+from qllr.db import cache
 from qllr.exceptions import MatchNotFound, PlayerNotFound
 from qllr.settings import MOVING_AVG_COUNT
+
+USE_AVG_PERF = cache.USE_AVG_PERF
 
 
 async def get_player_info(con: Connection, steam_id: int):
@@ -13,6 +16,19 @@ async def get_player_info(con: Connection, steam_id: int):
     await con.set_type_codec(
         "json", encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
     )
+
+    def choose_rating_values(item: dict):
+        if USE_AVG_PERF[item["gametype_short"]]:
+            item["rating"] = item["r2_value"]
+            item["rating_d"] = 0
+        else:
+            item["rating"] = item["r1_mean"]
+            item["rating_d"] = item["r1_deviation"]
+
+        del item["r1_mean"]
+        del item["r1_deviation"]
+        del item["r2_value"]
+        return item
 
     # player name, rating and games played
     query = """
@@ -23,8 +39,9 @@ async def get_player_info(con: Connection, steam_id: int):
     FROM players p
     LEFT JOIN (
         SELECT gr.steam_id, array_agg( json_build_object(
-            'rating',   CAST( ROUND( CAST(gr.mean      AS NUMERIC), 2) AS REAL ),
-            'rating_d', CAST( ROUND( CAST(gr.deviation AS NUMERIC), 2) AS REAL ),
+            'r1_mean',      CAST( ROUND( CAST(gr.r1_mean      AS NUMERIC), 2) AS REAL ),
+            'r1_deviation', CAST( ROUND( CAST(gr.r1_deviation AS NUMERIC), 2) AS REAL ),
+            'r2_value',     CAST( ROUND( CAST(gr.r2_value     AS NUMERIC), 2) AS REAL ),
             'n', gr.n,
             'gametype_short', g.gametype_short,
             'gametype', g.gametype_name
@@ -37,9 +54,10 @@ async def get_player_info(con: Connection, steam_id: int):
     WHERE p.steam_id = $1
     """
     result = await con.fetchval(query, steam_id)
-
     if result is None:
         raise PlayerNotFound(steam_id)
+
+    result["ratings"] = list(map(choose_rating_values, result["ratings"]))
 
     # weapon stats (frags + acc)
     query = """
@@ -92,7 +110,7 @@ async def get_player_info(con: Connection, steam_id: int):
         GROUP BY map_id
     ) t
     LEFT JOIN maps ON maps.map_id = t.map_id
-    ORDER BY maps.map_id ASC, n DESC
+    ORDER BY n DESC, maps.map_id ASC
     LIMIT 1
     """
     row = await con.fetchval(query, steam_id)
@@ -150,7 +168,9 @@ async def get_player_info(con: Connection, steam_id: int):
     return {"response": result, "title": clean_name(result["name"]), "ok": True}
 
 
-async def get_best_match_of_player(con: Connection, steam_id: int, gametype_id: int) -> str:
+async def get_best_match_of_player(
+    con: Connection, steam_id: int, gametype_id: int
+) -> str:
 
     query = """
     SELECT s.match_id::text

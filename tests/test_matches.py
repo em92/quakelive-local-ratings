@@ -1,12 +1,7 @@
-from collections import OrderedDict
 from .fixture import AppTestCase
 
 
 class TestMatches(AppTestCase):
-
-    ORDER = 4
-    maxDiff = None
-
     def test_matches_all(self):
         cases = [
             ("/matches/", 0, None, 2),
@@ -45,6 +40,7 @@ class TestMatches(AppTestCase):
                 "/player/123/matches/blablabla/456/",
                 "/matches/player/123/blablabla/456/",
             ),
+            ("/", "/matches/"),
         ]
         for pair in pairs:
             old_uri = pair[0]

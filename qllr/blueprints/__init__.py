@@ -43,8 +43,24 @@ class MatchIdConvertor(cm.Convertor):
         return value
 
 
+class BalanceOptionsConvertor(cm.Convertor):
+    regex = r"[A-Za-z_,]+"
+
+    def convert(self, value: str) -> Any:
+        result = set(value.lower().split(","))
+        valid_options = set(["bn", "map_based", "with_qlstats_policy"])
+        invalid_options = ", ".join(list(result.difference(valid_options)))
+        if invalid_options:
+            raise ValueError("invalid options: {}".format(invalid_options))
+        return result
+
+    def to_string(self, value: Any) -> str:
+        return ",".join(list(value))
+
+
 cm.CONVERTOR_TYPES["steam_ids"] = SteamIdsConvertor()
 cm.CONVERTOR_TYPES["match_id"] = MatchIdConvertor()
+cm.CONVERTOR_TYPES["balance_options"] = BalanceOptionsConvertor()
 
 from .balance_api import bp as balance_api  # noqa: F401
 from .deprecated import bp as deprecated  # noqa: F401

@@ -10,20 +10,21 @@ from qllr.settings import PLAYER_COUNT_PER_PAGE
 KEEPING_TIME = 60 * 60 * 24 * 30
 
 LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
+USE_AVG_PERF = cache.USE_AVG_PERF
 
 SQL_TOP_PLAYERS_BY_GAMETYPE = """
     SELECT
         p.steam_id,
         p.name,
         p.model,
-        gr.mean AS rating,
+        gr.rating,
         gr.deviation,
         gr.n,
         count(*) OVER () AS count,
-        ROW_NUMBER() OVER (ORDER BY gr.mean DESC) AS rank
+        ROW_NUMBER() OVER (ORDER BY gr.rating DESC) AS rank
     FROM
         players p
-    LEFT JOIN gametype_ratings gr ON
+    LEFT JOIN (SUBQUERY) gr ON
         gr.steam_id = p.steam_id
     WHERE
         gr.n >= 10 AND
@@ -32,13 +33,50 @@ SQL_TOP_PLAYERS_BY_GAMETYPE = """
             FROM matches
             WHERE gametype_id = $2
             ORDER BY timestamp DESC
-            LIMIT 1 OFFSET {}
+            LIMIT 1 OFFSET {OFFSET}
         )) AND
         gr.gametype_id = $2
-    ORDER BY gr.mean DESC
+    ORDER BY gr.rating DESC
 """.format(
-    int(MATCH_LIST_ITEM_COUNT)
+    OFFSET=int(MATCH_LIST_ITEM_COUNT)
+).replace(
+    "(SUBQUERY)", "({SUBQUERY})"
 )
+
+SQL_TOP_PLAYERS_BY_GAMETYPE_R1 = SQL_TOP_PLAYERS_BY_GAMETYPE.format(
+    SUBQUERY="""
+    SELECT
+        steam_id,
+        r1_mean AS rating,
+        r1_deviation AS deviation,
+        last_played_timestamp,
+        gametype_id,
+        n
+    FROM
+         gametype_ratings
+    """
+)
+
+SQL_TOP_PLAYERS_BY_GAMETYPE_R2 = SQL_TOP_PLAYERS_BY_GAMETYPE.format(
+    SUBQUERY="""
+    SELECT
+        steam_id,
+        r2_value AS rating,
+        0 AS deviation,
+        last_played_timestamp,
+        gametype_id,
+        n
+    FROM
+         gametype_ratings
+    """
+)
+
+
+def get_sql_top_players_query_by_gametype_id(gametype_id: int):
+    if USE_AVG_PERF[gametype_id]:
+        return SQL_TOP_PLAYERS_BY_GAMETYPE_R2
+    else:
+        return SQL_TOP_PLAYERS_BY_GAMETYPE_R1
 
 
 async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=False):
@@ -47,7 +85,9 @@ async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=F
         "json", encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
     )
 
-    query = SQL_TOP_PLAYERS_BY_GAMETYPE + "LIMIT {LIMIT} OFFSET {OFFSET}".format(
+    query = get_sql_top_players_query_by_gametype_id(
+        gametype_id
+    ) + "LIMIT {LIMIT} OFFSET {OFFSET}".format(
         LIMIT=int(PLAYER_COUNT_PER_PAGE), OFFSET=int(PLAYER_COUNT_PER_PAGE * page)
     )
 

@@ -1,0 +1,104 @@
+{
+  "deactivated": [],
+  "ok": true,
+  "playerinfo": {
+    "76561198125710191": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198125710191",
+        "tdm": {
+          "elo": 10.84,
+          "games": 0
+        }
+      }
+    },
+    "76561198256203867": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198256203867",
+        "tdm": {
+          "elo": 34.23,
+          "games": 2
+        }
+      }
+    },
+    "76561198256352933": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198256352933",
+        "tdm": {
+          "elo": 51.19,
+          "games": 2
+        }
+      }
+    },
+    "76561198257561075": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198257561075",
+        "tdm": {
+          "elo": 34.82,
+          "games": 1
+        }
+      }
+    },
+    "76561198273556024": {
+      "allowRating": true,
+      "deactivated": false,
+      "privacy": "public",
+      "ratings": {
+        "steamid": "76561198273556024",
+        "tdm": {
+          "elo": -1.77,
+          "games": 2
+        }
+      }
+    }
+  },
+  "players": [
+    {
+      "steamid": "76561198256203867",
+      "tdm": {
+        "elo": 34.23,
+        "games": 2
+      }
+    },
+    {
+      "steamid": "76561198256352933",
+      "tdm": {
+        "elo": 51.19,
+        "games": 2
+      }
+    },
+    {
+      "steamid": "76561198125710191",
+      "tdm": {
+        "elo": 10.84,
+        "games": 0
+      }
+    },
+    {
+      "steamid": "76561198257561075",
+      "tdm": {
+        "elo": 34.82,
+        "games": 1
+      }
+    },
+    {
+      "steamid": "76561198273556024",
+      "tdm": {
+        "elo": -1.77,
+        "games": 2
+      }
+    }
+  ],
+  "untracked": []
+}

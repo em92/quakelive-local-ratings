@@ -3,9 +3,12 @@
 
 # quakelive-local-ratings (qllr)
 
-QLLR is quake live match stats database that can be used to generate ratings for players.
+QLLR is webservice that:
+- stores match results
+- generates player's ratings
+- gives API to be used in [minqlx](https://github.com/MinoMino/minqlx) with [balance](https://github.com/MinoMino/minqlx-plugins/blob/master/balance.py) plugin to give **balanced teams**
+
 Usually it is used with [feeder](https://github.com/em92/qlstats-feeder-mini) based on [Predath0r's](https://github.com/PredatH0r) [QLStats feeder](https://github.com/PredatH0r/XonStat/feeder) in order to collect match data from online quake live servers.
-On quake live server side with minqlx [balance.py](https://github.com/MinoMino/minqlx-plugins/blob/master/balance.py) plugin it can be used to generate balanced teams.
 
 ### Supported gametypes
 
@@ -18,8 +21,8 @@ On quake live server side with minqlx [balance.py](https://github.com/MinoMino/m
 
 ### Differences between QLLR and [QLStats](http://qlstats.net/)
 
-* common player ratings support (based on TrueSkill or optinonally average player performance)
-* player ratings per map support (based on average player perfomance)
+* supports TrueSkill-based rating and average player performance based rating (TODO: note in configuration)
+* player ratings per map support (TODO: note in minqlx configuration)
 * limited supported gametypes
 * [GDPR](http://eur-lex.europa.eu/eli/reg/2016/679/oj) incompatible
 
@@ -38,3 +41,7 @@ For feeder:
 * [Installation (on Debian Stretch)](docs/install.md)
 * [Backing up database](docs/backup.md)
 * [qlds/minqlx configuration](docs/minqlx_config.md)
+
+### Note to European A&D and #qlpickup.ru communities
+
+Backups of database and feeder config are [here](https://yadi.sk/d/uTqMDxzb3JPpiJ)

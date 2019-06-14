@@ -1,0 +1,24 @@
+#!/bin/sh -e
+
+export PREFIX=""
+export TARGET="qllr tests"
+
+if [ -d 'venv' ] ; then
+    export PREFIX="venv/bin/"
+fi
+
+if [ '$VIRTUAL_ENV' != '' ] ; then
+    export PREFIX="$VIRTUAL_ENV/bin/"
+fi
+
+export VERSION_SCRIPT="import sys; print('%s.%s' % sys.version_info[0:2])"
+export PYTHON_VERSION=`python -c "$VERSION_SCRIPT"`
+
+set -x
+
+PYTHONPATH=. ${PREFIX}pytest --ignore venv -W ignore::DeprecationWarning --cov=qllr --cov=tests --cov-report=term-missing ${@}
+if [ "${PYTHON_VERSION}" = '3.5' ]; then
+    echo "Skipping 'black' on 3.5"
+else
+    ${PREFIX}black qllr tests main.py --check
+fi

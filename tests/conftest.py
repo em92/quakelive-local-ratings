@@ -1,8 +1,9 @@
-import sys
-import psycopg2
 import os
-from testing import postgresql as pgsql_test
+import sys
+
+import psycopg2
 from starlette.config import environ
+from testing import postgresql as pgsql_test
 
 
 def handler(postgresql):

@@ -1,11 +1,9 @@
 from collections import OrderedDict
+
 from .fixture import AppTestCase
 
 
 class TestRatings(AppTestCase):
-
-    ORDER = 5
-
     def test_ratings_ad(self):
         resp = self.get("/ratings/ad/")
         context = resp.context

@@ -1,0 +1,46 @@
+{
+    "deactivated": [],
+    "playerinfo": {
+        "76561198043212328": {
+            "allowRating": true,
+            "deactivated": false,
+            "privacy": "public",
+            "ratings": {
+                "ad": {
+                    "elo": 21.83,
+                    "games": 6
+                },
+                "steamid": "76561198043212328"
+            }
+        },
+        "76561198260599288": {
+            "allowRating": true,
+            "deactivated": false,
+            "privacy": "public",
+            "ratings": {
+                "ad": {
+                    "elo": 24.26,
+                    "games": 2
+                },
+                "steamid": "76561198260599288"
+            }
+        }
+    },
+    "players": [
+        {
+            "ad": {
+                "elo": 24.26,
+                "games": 2
+            },
+            "steamid": "76561198260599288"
+        },
+        {
+            "ad": {
+                "elo": 21.83,
+                "games": 6
+            },
+            "steamid": "76561198043212328"
+        }
+    ],
+    "untracked": []
+}

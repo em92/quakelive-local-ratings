@@ -1,6 +1,6 @@
 import unittest
 
-from qllr.db import cache
+from qllr.db import cache, rating_column
 
 
 class TestCache(unittest.TestCase):
@@ -22,3 +22,9 @@ class TestCache(unittest.TestCase):
         set1 = set(cache.GAMETYPE_IDS.keys())
         set2 = set(cache.GAMETYPE_NAMES.keys())
         self.assertEqual(set1, set2)
+
+    def test_rating_column_avg_perf(self):
+        self.assertEqual(rating_column("tdm"), "r2_value")
+
+    def test_rating_column_avg_trueskill(self):
+        self.assertEqual(rating_column("ad"), "r1_mean")

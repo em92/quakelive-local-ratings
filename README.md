@@ -1,3 +1,6 @@
+[![Build status](https://travis-ci.org/em92/quakelive-local-ratings.svg?branch=master)](https://travis-ci.org/em92/quakelive-local-ratings)
+[![Coverage](https://codecov.io/gh/em92/quakelive-local-ratings/branch/master/graph/badge.svg)](https://codecov.io/gh/em92/quakelive-local-ratings)
+
 # quakelive-local-ratings (qllr)
 
 QLLR is quake live match stats database that can be used to generate ratings for players.

@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from json import dumps
 
 import requests
 
@@ -89,43 +90,46 @@ class FakeQLStatsResponse:
         }
 
 
+def stringify_dicts_in_list(l):
+    return list(map(lambda item: dumps(item, sort_keys=True, indent=2), l))
+
+
+def assert_balance_api_data_equal(first: dict, second: dict):
+    assert "playerinfo" in first
+    assert "playerinfo" in second
+    assert set(first["playerinfo"]) == set(second["playerinfo"])
+
+    assert "players" in first
+    assert "players" in second
+    assert set(stringify_dicts_in_list(first["players"])) == set(stringify_dicts_in_list(second["players"]))
+
+    assert "deactivated" in first
+    assert "deactivated" in second
+    assert set(first["deactivated"]) == set(second["deactivated"])
+
+    assert "untracked" in first
+    assert "untracked" in second
+    assert set(first["untracked"]) == set(second["untracked"])
+
+
 class TestBalanceApi(AppTestCase):
 
     maxDiff = None
 
-    def assert_balance_api_data_equal(self, first: dict, second: dict):
-        self.assertIn("playerinfo", first)
-        self.assertIn("playerinfo", second)
-        self.assertDictEqual(first["playerinfo"], second["playerinfo"])
-
-        self.assertIn("players", first)
-        self.assertIn("players", second)
-        self.assert_lists_have_same_elements(first["players"], second["players"])
-
-        self.assertIn("deactivated", first)
-        self.assertIn("deactivated", second)
-        self.assert_lists_have_same_elements(
-            first["deactivated"], second["deactivated"]
-        )
-
-        self.assertIn("untracked", first)
-        self.assertIn("untracked", second)
-        self.assert_lists_have_same_elements(first["untracked"], second["untracked"])
-
     def test_bigger_numbers(self):
         response = self.get("/elo/bn/" + STEAM_IDS_AD_PLAYERS, 200)
-        self.assert_balance_api_data_equal(
+        assert_balance_api_data_equal(
             response.json(), self.read_json_sample("balance_api_ad_bigger_numbers")
         )
 
     def test_simple_ad_only_players(self):
-        self.assert_balance_api_data_equal(
+        assert_balance_api_data_equal(
             self.get("/elo/" + STEAM_IDS_AD_PLAYERS).json(),
             self.read_json_sample("balance_api_ad_only_players"),
         )
 
     def test_simple_tdm_only_players(self):
-        self.assert_balance_api_data_equal(
+        assert_balance_api_data_equal(
             self.get("/elo/" + STEAM_IDS_TDM_PLAYERS).json(),
             self.read_json_sample("balance_api_tdm_only_players"),
         )
@@ -137,7 +141,7 @@ class TestBalanceApi(AppTestCase):
             headers={"X-QuakeLive-Map": "hiddenfortress"},
         )
 
-        self.assert_balance_api_data_equal(
+        assert_balance_api_data_equal(
             response.json(), self.read_json_sample("balance_api_tdm_hiddenfortress")
         )
 
@@ -150,7 +154,7 @@ class TestBalanceApi(AppTestCase):
             headers={"X-QuakeLive-Map": "dividedcrossings"},
         )
 
-        self.assert_balance_api_data_equal(
+        assert_balance_api_data_equal(
             response.json(), self.read_json_sample("balance_api_ad_dividedcrossings")
         )
 
@@ -174,7 +178,7 @@ class TestBalanceApi(AppTestCase):
 
         ratings_data = response.json()
 
-        self.assert_balance_api_data_equal(
+        assert_balance_api_data_equal(
             ratings_data,
             set_games_zero(self.read_json_sample("balance_api_ad_only_players")),
         )
@@ -185,7 +189,7 @@ class TestBalanceApi(AppTestCase):
             "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
         )
 
-        self.assert_balance_api_data_equal(
+        assert_balance_api_data_equal(
             response.json(), self.read_json_sample("balance_api_with_qlstats_policy")
         )
 
@@ -194,7 +198,7 @@ class TestBalanceApi(AppTestCase):
             "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
         )
 
-        self.assert_balance_api_data_equal(
+        assert_balance_api_data_equal(
             response.json(),
             self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
         )

@@ -6,12 +6,13 @@ from typing import List
 from urllib.parse import urlparse
 
 import psycopg2
-from asyncpg import Connection, create_pool, pool
+from asyncpg import Connection, create_pool
+from asyncpg.pool import Pool
 
 from .settings import DATABASE_URL, USE_AVG_PERF
 
 
-async def get_db_pool() -> pool:
+async def get_db_pool() -> Pool:
     try:
         return get_db_pool.cache
     except AttributeError:
@@ -83,37 +84,30 @@ class Cache:
         self._medals = []
         self._weapon_ids = {}
         self._weapons = []
+        self.LAST_GAME_TIMESTAMPS = {}
 
-        db = db_connect()
-        cu = db.cursor()
-        cu.execute("SELECT gametype_id, gametype_short, gametype_name FROM gametypes")
-        for row in cu.fetchall():
+    async def init(self):
+        dbpool = await get_db_pool()
+        con = await dbpool.acquire()
+
+        for row in await con.fetch("SELECT gametype_id, gametype_short, gametype_name FROM gametypes"):
             self._gametype_ids[row[1]] = row[0]
             self._gametype_names[row[1]] = row[2]
 
         self.LAST_GAME_TIMESTAMPS = SurjectionDict(self._gametype_ids)
 
-        cu.execute("SELECT medal_id, medal_short FROM medals ORDER BY medal_id")
-        for row in cu.fetchall():
+        for row in await con.fetch("SELECT gametype_id, gametype_short, gametype_name FROM gametypes"):
             self._medal_ids[row[1]] = row[0]
             self._medals.append(row[1])
 
-        cu.execute("SELECT weapon_id, weapon_short FROM weapons ORDER BY weapon_id")
-        for row in cu.fetchall():
+        for row in await con.fetch("SELECT gametype_id, gametype_short, gametype_name FROM gametypes"):
             self._weapon_ids[row[1]] = row[0]
             self._weapons.append(row[1])
 
         for gametype_short, gametype_id in self._gametype_ids.items():
             self.LAST_GAME_TIMESTAMPS[gametype_id] = 0
-            cu.execute(
-                "SELECT timestamp FROM matches WHERE gametype_id = %s ORDER BY timestamp DESC LIMIT 1",
-                [gametype_id],
-            )
-            for row in cu.fetchall():
-                self.LAST_GAME_TIMESTAMPS[gametype_id] = row[0]
-
-        cu.close()
-        db.close()
+            r = await con.fetchval("SELECT timestamp FROM matches WHERE gametype_id = $1 ORDER BY timestamp DESC LIMIT 1", gametype_id)
+            self.LAST_GAME_TIMESTAMPS[gametype_id] = r
 
     @property
     def GAMETYPE_IDS(self):

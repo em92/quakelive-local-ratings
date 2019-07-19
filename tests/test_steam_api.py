@@ -22,7 +22,7 @@ class TestSteamApi(AppTestCase):
                 "+".join(self.steam_ids)
             )
         )
-        self.assertDictEqual(resp.json(), self.read_json_sample("steam_api_1"))
+        assert resp.json() == self.read_json_sample("steam_api_1")
 
     def test_players_ad_with_comma(self):
         resp = self.get(
@@ -30,4 +30,4 @@ class TestSteamApi(AppTestCase):
                 ",".join(self.steam_ids)
             )
         )
-        self.assertDictEqual(resp.json(), self.read_json_sample("steam_api_1"))
+        assert resp.json() == self.read_json_sample("steam_api_1")

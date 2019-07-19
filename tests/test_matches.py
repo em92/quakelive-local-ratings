@@ -17,19 +17,19 @@ class TestMatches(AppTestCase):
             gametype = case[2]
             page_count = case[3]
             resp = self.get(uri)
-            self.assertEqual(resp.template.name, "match_list.html")
+            assert resp.template.name == "match_list.html"
 
             context = resp.context
-            self.assertIn("request", context)
-            self.assertIn("current_page", context)
-            self.assertIn("gametype", context)
-            self.assertIn("page_count", context)
-            self.assertEqual(context["current_page"], page)
-            self.assertEqual(context["gametype"], gametype)
-            self.assertEqual(context["page_count"], page_count)
+            assert "request" in context
+            assert "current_page" in context
+            assert "gametype" in context
+            assert "page_count" in context
+            assert context["current_page"] == page
+            assert context["gametype"] == gametype
+            assert context["page_count"] == page_count
 
             sample_filename = "match_list_{}".format(cases.index(case) + 1)
-            self.assertEqual(context["matches"], self.read_json_sample(sample_filename))
+            assert context["matches"] == self.read_json_sample(sample_filename)
 
     def test_old_routes(self):
         pairs = [
@@ -46,4 +46,4 @@ class TestMatches(AppTestCase):
             old_uri = pair[0]
             new_uri = pair[1]
             resp = self.get(old_uri, 302)
-            self.assertTrue(resp.headers["Location"].endswith(new_uri))
+            assert resp.headers["Location"].endswith(new_uri)

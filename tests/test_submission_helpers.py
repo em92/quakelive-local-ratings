@@ -16,5 +16,5 @@ class TestSubmissionHelpers(AppTestCase):
 
     @unasync
     async def test_get_map_id(self):
-        self.assertIsInstance(await get_map_id(self.conn, "testmap1"), int)
-        self.assertIsNone(await get_map_id(self.conn, "testmap2", False))
+        assert isinstance(await get_map_id(self.conn, "testmap1"), int)
+        assert await get_map_id(self.conn, "testmap2", False) is None

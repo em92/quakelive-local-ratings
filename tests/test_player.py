@@ -22,24 +22,22 @@ class TestPlayer(AppTestCase):
 
             obj_defacto = resp.json()
             obj_expected = self.read_json_sample("player_{}".format(steam_id))
-            self.assertDictEqual(obj_defacto, obj_expected)
+            assert obj_defacto == obj_expected
 
             resp = self.get("/player/{0}".format(steam_id))
-            self.assertEqual(resp.template.name, "player_stats.html")
+            assert resp.template.name == "player_stats.html"
             context = resp.context
-            self.assertIn("request", context)
-            self.assertIn("steam_id", context)
-            self.assertEqual(context["steam_id"], steam_id)
+            assert "request" in context
+            assert "steam_id" in context
+            assert context["steam_id"] == steam_id
 
             del context["request"]
             del context["steam_id"]
             obj_defacto = context
-            self.assertDictEqual(obj_defacto, obj_expected)
+            assert obj_defacto == obj_expected
 
     def test_deprecated_player_json(self):
         for steam_id in self.steam_ids:
             resp = self.get("/deprecated/player/{0}.json".format(steam_id))
-            self.assertDictEqual(
-                resp.json(),
-                self.read_json_sample("deprecated_player_{0}".format(steam_id)),
-            )
+            assert resp.json() == \
+                self.read_json_sample("deprecated_player_{0}".format(steam_id))

@@ -10,7 +10,9 @@ from starlette.config import environ
 from starlette.testclient import TestClient
 from testing import postgresql as pgsql_test
 
+postgresql = None
 module_path = os.path.dirname(os.path.realpath(__file__))
+
 
 def pytest_configure(config):
     def handler(postgresql):
@@ -24,6 +26,7 @@ def pytest_configure(config):
         conn.commit()
         conn.close()
 
+    global postgresql
     # force default timezone to pass tests on os with different local timezone setting
     pgsql_test.Postgresql.DEFAULT_SETTINGS["postgres_args"] += " -c timezone=+5"
 
@@ -34,6 +37,7 @@ def pytest_configure(config):
     postgresql = PGSQLFactory()
     environ["DATABASE_URL"] = postgresql.url()
     environ["USE_AVG_PERF_TDM"] = "TRUE"
+
 
 def read_sample(sample_filename: str) -> str:
     try:
@@ -52,9 +56,8 @@ def read_json_sample(sample_filename: str) -> typing.Dict:
 
 
 class Service:
-    def __init__(self):
-        from qllr import app
-        self._test_cli = TestClient(app, raise_server_exceptions=False)
+    def __init__(self, test_cli):
+        self._test_cli = test_cli
 
         cases = (
             ("sample01", "69770ca5-943c-491d-931e-720c5474d33b"),
@@ -141,6 +144,13 @@ class Service:
         return resp
 
 
+@fixture(scope="session")
+def test_cli():
+    from qllr import app
+    with TestClient(app, raise_server_exceptions=False) as client:
+        yield client
+
+
 @fixture
 def mock_requests_get(monkeypatch):
     def wrapped(return_value=None, side_effect=None):
@@ -155,7 +165,5 @@ def mock_requests_get(monkeypatch):
 
 
 @fixture(scope="session")
-def service():
-    yield Service()
-
-    #postgresql.stop()
+def service(test_cli):
+    yield Service(test_cli)

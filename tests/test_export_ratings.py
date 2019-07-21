@@ -2,14 +2,14 @@ from .conftest import read_json_sample, read_sample
 
 
 def test_ratings_ad_redirect(service):
-    resp = service.get("/export_rating/csv/ad", 302)
+    resp = service.get("/export_rating/csv/ad", 308)
 
     new_url = resp.headers["Location"]
     assert new_url.endswith("/export_rating/ad.csv")
 
 
 def test_ratings_ad_redirect_json(service):
-    resp = service.get("/export_rating/json/ad", 302)
+    resp = service.get("/export_rating/json/ad", 308)
 
     new_url = resp.headers["Location"]
     assert new_url.endswith("/export_rating/ad.json")

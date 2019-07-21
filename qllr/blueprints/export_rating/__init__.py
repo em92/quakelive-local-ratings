@@ -63,11 +63,11 @@ class ExportRatingsOldRoute(Endpoint):
 
         if frmt == "csv":
             return RedirectResponse(
-                request.url_for("ExportRatingCsv", gametype=gametype)
+                request.url_for("ExportRatingCsv", gametype=gametype), status_code=308
             )
         if frmt == "json":
             return RedirectResponse(
-                request.url_for("ExportRatingJson", gametype=gametype)
+                request.url_for("ExportRatingJson", gametype=gametype), status_code=308
             )
         else:
             raise HTTPException(404, "Invalid format: {}".format(frmt))

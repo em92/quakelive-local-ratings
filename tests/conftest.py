@@ -4,6 +4,7 @@ import os
 import typing
 
 import psycopg2
+from async_generator import yield_, async_generator
 from pytest import fixture
 from requests import Response
 from starlette.config import environ
@@ -167,3 +168,20 @@ def mock_requests_get(monkeypatch):
 @fixture(scope="session")
 def service(test_cli):
     yield Service(test_cli)
+
+
+@fixture
+@async_generator
+async def db(event_loop):
+    from qllr.db import get_db_pool
+
+    pool = await get_db_pool(event_loop)
+    con = await pool.acquire()
+
+    tr = con.transaction()
+    await tr.start()
+
+    await yield_(con)
+
+    await tr.rollback()
+    await pool.release(con)

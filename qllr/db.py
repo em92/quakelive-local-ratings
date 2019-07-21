@@ -12,12 +12,17 @@ from asyncpg.pool import Pool
 from .settings import DATABASE_URL, USE_AVG_PERF
 
 
-async def get_db_pool() -> Pool:
+async def get_db_pool(event_loop=None) -> Pool:
     try:
-        return get_db_pool.cache
+        get_db_pool.cache
     except AttributeError:
-        get_db_pool.cache = await create_pool(dsn=DATABASE_URL)
-        return get_db_pool.cache
+        get_db_pool.cache = {}
+
+    try:
+        return get_db_pool.cache[event_loop]
+    except KeyError:
+        get_db_pool.cache[event_loop] = await create_pool(dsn=DATABASE_URL, loop = event_loop)
+        return get_db_pool.cache[event_loop]
 
 
 def take_away_null_values(params: OrderedDict) -> OrderedDict:

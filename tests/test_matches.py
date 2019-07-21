@@ -1,15 +1,19 @@
+from pytest import mark, param
+
 from .conftest import read_json_sample
-from pytest import param, mark
 
 
-@mark.parametrize("index,uri,page,gametype,page_count", [
-    param(0, "/matches/", 0, None, 2),
-    param(1, "/matches/1/", 1, None, 2),
-    param(2, "/matches/ad/", 0, "ad", 1),
-    param(3, "/matches/ad/1/", 1, "ad", 1),
-    param(4, "/matches/tdm/", 0, "tdm", 1),
-    param(5, "/matches/player/76561198260599288/", 0, None, 1),
-])
+@mark.parametrize(
+    "index,uri,page,gametype,page_count",
+    [
+        param(0, "/matches/", 0, None, 2),
+        param(1, "/matches/1/", 1, None, 2),
+        param(2, "/matches/ad/", 0, "ad", 1),
+        param(3, "/matches/ad/1/", 1, "ad", 1),
+        param(4, "/matches/tdm/", 0, "tdm", 1),
+        param(5, "/matches/player/76561198260599288/", 0, None, 1),
+    ],
+)
 def test_matches_all(service, index, uri, page, gametype, page_count):
     resp = service.get(uri)
     assert resp.template.name == "match_list.html"
@@ -27,15 +31,17 @@ def test_matches_all(service, index, uri, page, gametype, page_count):
     assert context["matches"] == read_json_sample(sample_filename)
 
 
-@mark.parametrize("old_uri,new_uri", [
-    param("/player/123/matches", "/matches/player/123/"),
-    param("/player/123/matches/", "/matches/player/123/"),
-    param("/player/123/matches/456/", "/matches/player/123/456/"),
-    param(
-            "/player/123/matches/blablabla/456/",
-            "/matches/player/123/blablabla/456/",
-    ),
-])
+@mark.parametrize(
+    "old_uri,new_uri",
+    [
+        param("/player/123/matches", "/matches/player/123/"),
+        param("/player/123/matches/", "/matches/player/123/"),
+        param("/player/123/matches/456/", "/matches/player/123/456/"),
+        param(
+            "/player/123/matches/blablabla/456/", "/matches/player/123/blablabla/456/"
+        ),
+    ],
+)
 def test_old_routes(service, old_uri, new_uri):
     resp = service.get(old_uri, 308)
     assert resp.headers["Location"].endswith(new_uri)

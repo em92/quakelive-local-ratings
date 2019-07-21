@@ -3,13 +3,14 @@ import json
 import os
 import typing
 
-import psycopg2
-from async_generator import yield_, async_generator
 from pytest import fixture
 from requests import Response
 from starlette.config import environ
 from starlette.testclient import TestClient
 from testing import postgresql as pgsql_test
+
+import psycopg2
+from async_generator import async_generator, yield_
 
 postgresql = None
 module_path = os.path.dirname(os.path.realpath(__file__))
@@ -45,9 +46,7 @@ def read_sample(sample_filename: str) -> str:
         with open(module_path + "/samples/" + sample_filename, "rb") as f:
             result = f.read()
     except FileNotFoundError:
-        with gzip.open(
-            module_path + "/samples/" + sample_filename + ".gz"
-        ) as f:
+        with gzip.open(module_path + "/samples/" + sample_filename + ".gz") as f:
             result = f.read()
     return result.decode("utf-8")
 
@@ -148,6 +147,7 @@ class Service:
 @fixture(scope="session")
 def test_cli():
     from qllr import app
+
     with TestClient(app, raise_server_exceptions=False) as client:
         yield client
 

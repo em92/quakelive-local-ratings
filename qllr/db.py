@@ -5,9 +5,10 @@ from collections import MutableMapping, OrderedDict
 from typing import List
 from urllib.parse import urlparse
 
-import psycopg2
 from asyncpg import Connection, create_pool
 from asyncpg.pool import Pool
+
+import psycopg2
 
 from .settings import DATABASE_URL, USE_AVG_PERF
 
@@ -21,7 +22,9 @@ async def get_db_pool(event_loop=None) -> Pool:
     try:
         return get_db_pool.cache[event_loop]
     except KeyError:
-        get_db_pool.cache[event_loop] = await create_pool(dsn=DATABASE_URL, loop = event_loop)
+        get_db_pool.cache[event_loop] = await create_pool(
+            dsn=DATABASE_URL, loop=event_loop
+        )
         return get_db_pool.cache[event_loop]
 
 
@@ -95,24 +98,33 @@ class Cache:
         dbpool = await get_db_pool()
         con = await dbpool.acquire()
 
-        for row in await con.fetch("SELECT gametype_id, gametype_short, gametype_name FROM gametypes"):
+        for row in await con.fetch(
+            "SELECT gametype_id, gametype_short, gametype_name FROM gametypes"
+        ):
             self._gametype_ids[row[1]] = row[0]
             self._gametype_names[row[1]] = row[2]
 
         self.LAST_GAME_TIMESTAMPS = SurjectionDict(self._gametype_ids)
 
-        for row in await con.fetch("SELECT medal_id, medal_short FROM medals ORDER BY medal_id"):
+        for row in await con.fetch(
+            "SELECT medal_id, medal_short FROM medals ORDER BY medal_id"
+        ):
             self._medal_ids[row[1]] = row[0]
             self._medals.append(row[1])
 
-        for row in await con.fetch("SELECT weapon_id, weapon_short FROM weapons ORDER BY weapon_id"):
+        for row in await con.fetch(
+            "SELECT weapon_id, weapon_short FROM weapons ORDER BY weapon_id"
+        ):
             self._weapon_ids[row[1]] = row[0]
             self._weapons.append(row[1])
 
         for gametype_short, gametype_id in self._gametype_ids.items():
             self.LAST_GAME_TIMESTAMPS[gametype_id] = 0
             # running several sql queries looks stupid, isn't it?
-            r = await con.fetchval("SELECT timestamp FROM matches WHERE gametype_id = $1 ORDER BY timestamp DESC LIMIT 1", gametype_id)
+            r = await con.fetchval(
+                "SELECT timestamp FROM matches WHERE gametype_id = $1 ORDER BY timestamp DESC LIMIT 1",
+                gametype_id,
+            )
             if r:
                 self.LAST_GAME_TIMESTAMPS[gametype_id] = r
 

@@ -43,8 +43,7 @@ def test_scoreboards(service):
                 match_id, "scoreboard_{}".format(sample_name)
             )
             assert_scoreboard_html_equals_sample(
-                service,
-                match_id, "scoreboard_{}".format(sample_name)
+                service, match_id, "scoreboard_{}".format(sample_name)
             )
         except AssertionError as e:
             raise AssertionError("{}: {}".format(sample_name, e))

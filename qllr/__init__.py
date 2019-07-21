@@ -6,7 +6,7 @@ from starlette.staticfiles import StaticFiles
 
 from . import blueprints as bp, submission
 from .app import App
-from .db import get_db_pool, cache
+from .db import cache, get_db_pool
 from .settings import RUN_POST_PROCESS
 
 app = App(debug=True)

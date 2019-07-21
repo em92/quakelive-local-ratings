@@ -1,5 +1,6 @@
 from .conftest import read_json_sample
 
+
 def test_ratings_ad(service):
     resp = service.get("/ratings/ad/")
     context = resp.context

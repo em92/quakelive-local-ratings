@@ -9,7 +9,6 @@ from qllr.common import log_exception, request
 from qllr.db import cache
 from qllr.submission import get_map_id
 
-
 COMMON_RATINGS_SQL = """
 SELECT
     steam_id,

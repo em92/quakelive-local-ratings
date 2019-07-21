@@ -16,17 +16,13 @@ steam_ids = [
 
 def test_players_ad_with_plus(service):
     resp = service.get(
-        "/steam_api/GetPlayerSummaries/?steamids={}".format(
-            "+".join(steam_ids)
-        )
+        "/steam_api/GetPlayerSummaries/?steamids={}".format("+".join(steam_ids))
     )
     assert resp.json() == read_json_sample("steam_api_1")
 
 
 def test_players_ad_with_comma(service):
     resp = service.get(
-        "/steam_api/GetPlayerSummaries/?steamids={}".format(
-            ",".join(steam_ids)
-        )
+        "/steam_api/GetPlayerSummaries/?steamids={}".format(",".join(steam_ids))
     )
     assert resp.json() == read_json_sample("steam_api_1")

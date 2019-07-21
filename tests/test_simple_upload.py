@@ -6,6 +6,7 @@ def test_upload_no_signature(service):
     json = resp.json()
     assert "signature" in json["message"].lower()
 
+
 # TODO:
 # shit posting examples
 # 202 or 200

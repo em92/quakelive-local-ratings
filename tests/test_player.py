@@ -1,3 +1,5 @@
+from pytest import mark
+
 from .conftest import read_json_sample
 
 steam_ids = [
@@ -14,30 +16,28 @@ steam_ids = [
 ]
 
 
-def test_player_json(service):
-    for steam_id in steam_ids:
-        resp = service.get("/player/{0}.json".format(steam_id))
+@mark.parametrize("steam_id", steam_ids)
+def test_player_json(service, steam_id):
+    resp = service.get("/player/{0}.json".format(steam_id))
 
-        obj_defacto = resp.json()
-        obj_expected = read_json_sample("player_{}".format(steam_id))
-        assert obj_defacto == obj_expected
+    obj_defacto = resp.json()
+    obj_expected = read_json_sample("player_{}".format(steam_id))
+    assert obj_defacto == obj_expected
 
-        resp = service.get("/player/{0}".format(steam_id))
-        assert resp.template.name == "player_stats.html"
-        context = resp.context
-        assert "request" in context
-        assert "steam_id" in context
-        assert context["steam_id"] == steam_id
+    resp = service.get("/player/{0}".format(steam_id))
+    assert resp.template.name == "player_stats.html"
+    context = resp.context
+    assert "request" in context
+    assert "steam_id" in context
+    assert context["steam_id"] == steam_id
 
-        del context["request"]
-        del context["steam_id"]
-        obj_defacto = context
-        assert obj_defacto == obj_expected
+    del context["request"]
+    del context["steam_id"]
+    obj_defacto = context
+    assert obj_defacto == obj_expected
 
 
-# TODO: use steam_ids as params
-def test_deprecated_player_json(service):
-    for steam_id in steam_ids:
-        resp = service.get("/deprecated/player/{0}.json".format(steam_id))
-        assert resp.json() == \
-            read_json_sample("deprecated_player_{0}".format(steam_id))
+@mark.parametrize("steam_id", steam_ids)
+def test_deprecated_player_json(service, steam_id):
+    resp = service.get("/deprecated/player/{0}.json".format(steam_id))
+    assert resp.json() == read_json_sample("deprecated_player_{0}".format(steam_id))

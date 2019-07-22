@@ -43,7 +43,8 @@ class PlayerMatchesDeprecatedRoute(HTTPEndpoint):
                 steam_id=request.path_params["steam_id"],
                 page=request.path_params.get("page"),
                 gametype=request.path_params.get("gametype"),
-            )
+            ),
+            status_code=308,
         )
 
 

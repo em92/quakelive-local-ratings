@@ -7,8 +7,6 @@ from qllr.common import DATETIME_FORMAT, clean_name
 from qllr.db import cache
 from qllr.exceptions import InvalidGametype, PlayerNotFound
 
-GAMETYPE_IDS = cache.GAMETYPE_IDS
-GAMETYPE_NAMES = cache.GAMETYPE_NAMES
 MATCH_LIST_ITEM_COUNT = 25
 
 
@@ -31,7 +29,7 @@ async def get_last_matches(
         ]
     }
     """
-    if gametype != None and gametype not in GAMETYPE_IDS:
+    if gametype != None and gametype not in cache.GAMETYPE_IDS:
         raise InvalidGametype(gametype)
 
     title = "Recent games"
@@ -58,9 +56,9 @@ async def get_last_matches(
         limit = 1000  # TODO: fix this
 
     if gametype:
-        params.append(GAMETYPE_IDS[gametype])
+        params.append(cache.GAMETYPE_IDS[gametype])
         where_clauses.append("m.gametype_id = ${}".format(len(params)))
-        title = "Recent {} games".format(GAMETYPE_NAMES[gametype])
+        title = "Recent {} games".format(cache.GAMETYPE_NAMES[gametype])
 
     if steam_id:
         row = await con.fetchval(
@@ -71,7 +69,7 @@ async def get_last_matches(
 
         player_name = clean_name(row)
         title = "Recent games with {}".format(player_name) + (
-            " (" + GAMETYPE_NAMES[gametype] + ")" if gametype else ""
+            " (" + cache.GAMETYPE_NAMES[gametype] + ")" if gametype else ""
         )
         params.append(steam_id)
         where_clauses.append(

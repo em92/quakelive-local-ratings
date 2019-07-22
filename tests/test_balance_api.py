@@ -1,9 +1,9 @@
-from unittest.mock import patch
 from json import dumps
 
 import requests
+from pytest import mark, param
 
-from .fixture import AppTestCase
+from .conftest import Service, read_json_sample
 
 STEAM_IDS_TDM_PLAYERS = "+".join(
     [
@@ -101,7 +101,9 @@ def assert_balance_api_data_equal(first: dict, second: dict):
 
     assert "players" in first
     assert "players" in second
-    assert set(stringify_dicts_in_list(first["players"])) == set(stringify_dicts_in_list(second["players"]))
+    assert set(stringify_dicts_in_list(first["players"])) == set(
+        stringify_dicts_in_list(second["players"])
+    )
 
     assert "deactivated" in first
     assert "deactivated" in second
@@ -112,107 +114,108 @@ def assert_balance_api_data_equal(first: dict, second: dict):
     assert set(first["untracked"]) == set(second["untracked"])
 
 
-class TestBalanceApi(AppTestCase):
+def test_bigger_numbers(service: Service):
+    response = service.get("/elo/bn/" + STEAM_IDS_AD_PLAYERS, 200)
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_ad_bigger_numbers")
+    )
 
-    maxDiff = None
 
-    def test_bigger_numbers(self):
-        response = self.get("/elo/bn/" + STEAM_IDS_AD_PLAYERS, 200)
-        assert_balance_api_data_equal(
-            response.json(), self.read_json_sample("balance_api_ad_bigger_numbers")
-        )
+def test_simple_ad_only_players(service: Service):
+    assert_balance_api_data_equal(
+        service.get("/elo/" + STEAM_IDS_AD_PLAYERS).json(),
+        read_json_sample("balance_api_ad_only_players"),
+    )
 
-    def test_simple_ad_only_players(self):
-        assert_balance_api_data_equal(
-            self.get("/elo/" + STEAM_IDS_AD_PLAYERS).json(),
-            self.read_json_sample("balance_api_ad_only_players"),
-        )
 
-    def test_simple_tdm_only_players(self):
-        assert_balance_api_data_equal(
-            self.get("/elo/" + STEAM_IDS_TDM_PLAYERS).json(),
-            self.read_json_sample("balance_api_tdm_only_players"),
-        )
+def test_simple_tdm_only_players(service):
+    assert_balance_api_data_equal(
+        service.get("/elo/" + STEAM_IDS_TDM_PLAYERS).json(),
+        read_json_sample("balance_api_tdm_only_players"),
+    )
 
-    def test_map_based_tdm(self):
-        response = self.get(
-            "/elo/map_based/" + STEAM_IDS_TDM_PLAYERS + "+76561198125710191",
-            200,
-            headers={"X-QuakeLive-Map": "hiddenfortress"},
-        )
 
-        assert_balance_api_data_equal(
-            response.json(), self.read_json_sample("balance_api_tdm_hiddenfortress")
-        )
+def test_map_based_tdm(service):
+    response = service.get(
+        "/elo/map_based/" + STEAM_IDS_TDM_PLAYERS + "+76561198125710191",
+        200,
+        headers={"X-QuakeLive-Map": "hiddenfortress"},
+    )
 
-    def test_map_based_ad(self):
-        response = self.get(
-            "/elo/map_based/"
-            + STEAM_IDS_AD_PLAYERS
-            + "+76561198257183089",  # played dividedcrossings at least 2 times
-            200,
-            headers={"X-QuakeLive-Map": "dividedcrossings"},
-        )
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_tdm_hiddenfortress")
+    )
 
-        assert_balance_api_data_equal(
-            response.json(), self.read_json_sample("balance_api_ad_dividedcrossings")
-        )
 
-    def test_map_based_map_not_exists(self):
-        def set_games_zero(data: dict):
-            for key, value in data.items():
-                if isinstance(value, list):
-                    data[key] = [set_games_zero(x) for x in value]
-                elif isinstance(value, dict):
-                    data[key] = set_games_zero(value)
-                elif key == "games":
-                    data[key] = 0
+def test_map_based_ad(service):
+    response = service.get(
+        "/elo/map_based/"
+        + STEAM_IDS_AD_PLAYERS
+        + "+76561198257183089",  # played dividedcrossings at least 2 times
+        200,
+        headers={"X-QuakeLive-Map": "dividedcrossings"},
+    )
 
-            return data
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_ad_dividedcrossings")
+    )
 
-        response = self.get(
-            "/elo/map_based/" + STEAM_IDS_AD_PLAYERS,
-            200,
-            headers={"X-QuakeLive-Map": "this_map_does_not_exist"},
-        )
 
-        ratings_data = response.json()
+def test_map_based_map_not_exists(service: Service):
+    def set_games_zero(data: dict):
+        for key, value in data.items():
+            if isinstance(value, list):
+                data[key] = [set_games_zero(x) for x in value]
+            elif isinstance(value, dict):
+                data[key] = set_games_zero(value)
+            elif key == "games":
+                data[key] = 0
 
-        assert_balance_api_data_equal(
-            ratings_data,
-            set_games_zero(self.read_json_sample("balance_api_ad_only_players")),
-        )
+        return data
 
-    @patch("requests.get", return_value=FakeQLStatsResponse())
-    def test_with_qlstats_policy(self, mock):
-        response = self.get(
-            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
-        )
+    response = service.get(
+        "/elo/map_based/" + STEAM_IDS_AD_PLAYERS,
+        200,
+        headers={"X-QuakeLive-Map": "this_map_does_not_exist"},
+    )
 
-        assert_balance_api_data_equal(
-            response.json(), self.read_json_sample("balance_api_with_qlstats_policy")
-        )
+    ratings_data = response.json()
 
-    def _test_with_qlstats_policy_with_error(self, mock):
-        response = self.get(
-            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
-        )
+    assert_balance_api_data_equal(
+        ratings_data, set_games_zero(read_json_sample("balance_api_ad_only_players"))
+    )
 
-        assert_balance_api_data_equal(
-            response.json(),
-            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
-        )
 
-    test_with_qlstats_policy_request_exception = patch(
-        "requests.get",
-        return_value=FakeQLStatsResponse(),
-        side_effect=requests.exceptions.RequestException("something bad happened"),
-    )(_test_with_qlstats_policy_with_error)
+def test_with_qlstats_policy(service: Service, mock_requests_get):
+    mock_requests_get(FakeQLStatsResponse())
+    response = service.get(
+        "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+    )
 
-    test_with_qlstats_policy_request_exception_not_ok = patch(
-        "requests.get", return_value=FakeQLStatsResponse(False)
-    )(_test_with_qlstats_policy_with_error)
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_with_qlstats_policy")
+    )
 
-    test_with_qlstats_policy_request_exception_bad_json = patch(
-        "requests.get", return_value=FakeQLStatsResponse(True, True)
-    )(_test_with_qlstats_policy_with_error)
+
+@mark.parametrize(
+    "return_value,side_effect",
+    [
+        param(
+            FakeQLStatsResponse(),
+            requests.exceptions.RequestException("something bad happened"),
+        ),
+        param(FakeQLStatsResponse(False), None),
+        param(FakeQLStatsResponse(True, True), None),
+    ],
+)
+def test_with_qlstats_policy_with_error(
+    service: Service, mock_requests_get, return_value, side_effect
+):
+    mock_requests_get(return_value, side_effect)
+    response = service.get(
+        "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+    )
+
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_with_qlstats_policy_fallback")
+    )

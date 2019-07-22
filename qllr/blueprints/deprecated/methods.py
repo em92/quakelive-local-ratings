@@ -4,14 +4,11 @@ from qllr.db import cache, rating_column
 
 from ..ratings.methods import KEEPING_TIME, get_sql_top_players_query_by_gametype_id
 
-LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
-GAMETYPE_IDS = cache.GAMETYPE_IDS
-
 
 async def get_player_info_old(con: Connection, steam_id: int):
 
     result = {}
-    for gametype, gametype_id in GAMETYPE_IDS.items():
+    for gametype, gametype_id in cache.GAMETYPE_IDS.items():
         query = """
         SELECT
             p.steam_id,
@@ -59,7 +56,7 @@ async def get_player_info_old(con: Connection, steam_id: int):
         last_ratings = {}
         async for row in con.cursor(
             query,
-            LAST_GAME_TIMESTAMPS[gametype_id] - KEEPING_TIME,
+            cache.LAST_GAME_TIMESTAMPS[gametype_id] - KEEPING_TIME,
             gametype_id,
             steam_id,
         ):

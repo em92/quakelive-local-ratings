@@ -3,14 +3,13 @@ import json
 import os
 import typing
 
+import psycopg2
+from async_generator import async_generator, yield_
 from pytest import fixture
 from requests import Response
 from starlette.config import environ
 from starlette.testclient import TestClient
 from testing import postgresql as pgsql_test
-
-import psycopg2
-from async_generator import async_generator, yield_
 
 postgresql = None
 module_path = os.path.dirname(os.path.realpath(__file__))

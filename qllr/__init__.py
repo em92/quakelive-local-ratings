@@ -8,6 +8,7 @@ from . import blueprints as bp, submission
 from .app import App
 from .db import cache, get_db_pool
 from .settings import RUN_POST_PROCESS
+from .templating import templates
 
 app = App(debug=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -28,6 +29,7 @@ async def on_startup():
         return
 
     await cache.init()
+    templates.env.globals["gametype_names"] = cache.GAMETYPE_NAMES
 
     dbpool = await get_db_pool()
     con = await dbpool.acquire()

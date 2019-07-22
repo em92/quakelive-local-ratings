@@ -3,6 +3,8 @@ from json import dumps
 import requests
 from pytest import mark, param
 
+from qllr.blueprints.balance_api.methods import fetch
+
 from .conftest import Service, read_json_sample
 
 STEAM_IDS_TDM_PLAYERS = "+".join(
@@ -219,3 +221,24 @@ def test_with_qlstats_policy_with_error(
     assert_balance_api_data_equal(
         response.json(), read_json_sample("balance_api_with_qlstats_policy_fallback")
     )
+
+
+@mark.parametrize("mapname", [None, "shiningforces"])
+@mark.asyncio
+async def test_nulled_ratings(db, mapname):
+    """
+    Make sure, that rows with null ratings are handled correctly
+    """
+    await db.execute(
+        "INSERT INTO players(steam_id, name, model, last_played_timestamp) VALUES (76561198051160294, 'h.dogan', 'visor/default', 1543095331)"
+    )
+    await db.execute(
+        "INSERT INTO gametype_ratings(steam_id, gametype_id, n, last_played_timestamp) VALUES (76561198051160294, 1, 0, 1477510451)"
+    )
+    assert await fetch(db, [76561198051160294], mapname) == {
+        "untracked": [],
+        "players": [],
+        "ok": True,
+        "playerinfo": {},
+        "deactivated": [],
+    }

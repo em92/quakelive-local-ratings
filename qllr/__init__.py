@@ -23,8 +23,8 @@ app.mount("/deprecated", bp.deprecated)
 
 
 @app.on_event("startup")
-async def on_startup():  # pragma: nocover
-    if RUN_POST_PROCESS is False:
+async def on_startup():
+    if RUN_POST_PROCESS is False:  # pragma: nocover
         return
 
     await cache.init()

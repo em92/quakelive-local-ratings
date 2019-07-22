@@ -8,8 +8,6 @@ from qllr.db import cache
 from qllr.exceptions import MatchNotFound, PlayerNotFound
 from qllr.settings import MOVING_AVG_COUNT
 
-USE_AVG_PERF = cache.USE_AVG_PERF
-
 
 async def get_player_info(con: Connection, steam_id: int):
 
@@ -18,7 +16,7 @@ async def get_player_info(con: Connection, steam_id: int):
     )
 
     def choose_rating_values(item: dict):
-        if USE_AVG_PERF[item["gametype_short"]]:
+        if cache.USE_AVG_PERF[item["gametype_short"]]:
             item["rating"] = item["r2_value"]
             item["rating_d"] = 0
         else:

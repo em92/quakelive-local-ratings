@@ -17,11 +17,7 @@ from .settings import (
     RUN_POST_PROCESS,
 )
 
-GAMETYPE_IDS = cache.GAMETYPE_IDS
-LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
-MEDAL_IDS = cache.MEDAL_IDS
 MIN_DURATION_TO_ADD = 60 * 5
-WEAPON_IDS = cache.WEAPON_IDS
 
 lock = Lock()
 
@@ -282,7 +278,7 @@ async def _calc_ratings_avg_perf(
             )
 
             row = await con.fetchrow(query, steam_id, gametype_id, match_id)
-            gametype = [k for k, v in GAMETYPE_IDS.items() if v == gametype_id][0]
+            gametype = [k for k, v in cache.GAMETYPE_IDS.items() if v == gametype_id][0]
             new_rating = row[3] * extra_factor(gametype, row[0], row[1], row[2])
 
         result[steam_id] = {"old": old_rating, "new": new_rating, "team": team}
@@ -497,8 +493,6 @@ async def update_map_rating(
 async def post_process(
     con: Connection, match_id: str, gametype_id: int, match_timestamp: int, map_id: int
 ):
-    global LAST_GAME_TIMESTAMPS
-
     await _post_process(con, match_id, gametype_id, match_timestamp)
     await update_map_rating(con, match_id, gametype_id, match_timestamp, map_id)
 
@@ -507,7 +501,7 @@ async def post_process(
     )
     assert r == "UPDATE 1"
 
-    LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
+    cache.LAST_GAME_TIMESTAMPS[gametype_id] = match_timestamp
 
 
 def filter_insignificant_players(players):
@@ -554,7 +548,7 @@ async def _submit_match(data):
     if is_tdm2v2(data):
         gametype = "tdm2v2"
 
-    if gametype not in GAMETYPE_IDS:
+    if gametype not in cache.GAMETYPE_IDS:
         raise InvalidMatchReport("Gametype not accepted: {}".format(gametype))
 
     try:
@@ -594,7 +588,7 @@ async def _submit_match(data):
             await con.execute(
                 "INSERT INTO matches (match_id, gametype_id, factory_id, map_id, timestamp, duration, team1_score, team2_score, post_processed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
                 match_id,
-                GAMETYPE_IDS[gametype],
+                cache.GAMETYPE_IDS[gametype],
                 await get_factory_id(con, data["game_meta"]["O"]),
                 map_id,
                 match_timestamp,
@@ -659,7 +653,7 @@ async def _submit_match(data):
                 team,
             )
 
-            for weapon, weapon_id in WEAPON_IDS.items():
+            for weapon, weapon_id in cache.WEAPON_IDS.items():
                 frags = int(player["acc-" + weapon + "-frags"])
                 shots = int(player["acc-" + weapon + "-cnt-fired"])
                 if frags + shots == 0:
@@ -679,7 +673,7 @@ async def _submit_match(data):
                     shots,
                 )
 
-            for medal, medal_id in MEDAL_IDS.items():
+            for medal, medal_id in cache.MEDAL_IDS.items():
                 medal_count = int(player["medal-" + medal])
                 if medal_count == 0:
                     continue
@@ -699,7 +693,7 @@ async def _submit_match(data):
         # post processing
         if RUN_POST_PROCESS:
             await post_process(
-                con, match_id, GAMETYPE_IDS[gametype], match_timestamp, map_id
+                con, match_id, cache.GAMETYPE_IDS[gametype], match_timestamp, map_id
             )
             result = {"ok": True, "message": "done", "match_id": match_id}
         else:

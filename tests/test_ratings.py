@@ -1,23 +1,21 @@
-from collections import OrderedDict
-
-from .fixture import AppTestCase
+from .conftest import read_json_sample
 
 
-class TestRatings(AppTestCase):
-    def test_ratings_ad(self):
-        resp = self.get("/ratings/ad/")
-        context = resp.context
+def test_ratings_ad(service):
+    resp = service.get("/ratings/ad/")
+    context = resp.context
 
-        self.assertIn("request", context)
-        self.assertIn("current_page", context)
-        self.assertIn("response", context)
-        self.assertIn("gametype", context)
+    assert "request" in context
+    assert "current_page" in context
+    assert "response" in context
+    assert "gametype" in context
 
-        self.assertEqual(context["gametype"], "ad")
-        self.assertEqual(context["current_page"], 0)
+    assert context["gametype"] == "ad"
+    assert context["current_page"] == 0
 
-        self.assertEqual(context["response"], self.read_json_sample("ratings_ad"))
+    assert context["response"] == read_json_sample("ratings_ad")
 
-    def test_ratings_ad_json(self):
-        resp = self.get("/ratings/ad/0.json")
-        self.assertEqual(resp.json()["response"], self.read_json_sample("ratings_ad"))
+
+def test_ratings_ad_json(service):
+    resp = service.get("/ratings/ad/0.json")
+    assert resp.json()["response"] == read_json_sample("ratings_ad")

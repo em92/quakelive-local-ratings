@@ -6,7 +6,7 @@ from starlette.staticfiles import StaticFiles
 
 from . import blueprints as bp, submission
 from .app import App
-from .db import get_db_pool
+from .db import cache, get_db_pool
 from .settings import RUN_POST_PROCESS
 
 app = App(debug=True)
@@ -23,9 +23,11 @@ app.mount("/deprecated", bp.deprecated)
 
 
 @app.on_event("startup")
-async def on_startup():  # pragma: nocover
-    if RUN_POST_PROCESS is False:
+async def on_startup():
+    if RUN_POST_PROCESS is False:  # pragma: nocover
         return
+
+    await cache.init()
 
     dbpool = await get_db_pool()
     con = await dbpool.acquire()

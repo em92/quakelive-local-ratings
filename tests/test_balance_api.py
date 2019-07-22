@@ -1,8 +1,11 @@
-from unittest.mock import patch
+from json import dumps
 
 import requests
+from pytest import mark, param
 
-from .fixture import AppTestCase
+from qllr.blueprints.balance_api.methods import fetch
+
+from .conftest import Service, read_json_sample
 
 STEAM_IDS_TDM_PLAYERS = "+".join(
     [
@@ -89,126 +92,153 @@ class FakeQLStatsResponse:
         }
 
 
-class TestBalanceApi(AppTestCase):
+def stringify_dicts_in_list(l):
+    return list(map(lambda item: dumps(item, sort_keys=True, indent=2), l))
 
-    maxDiff = None
 
-    def assert_balance_api_data_equal(self, first: dict, second: dict):
-        self.assertIn("playerinfo", first)
-        self.assertIn("playerinfo", second)
-        self.assertDictEqual(first["playerinfo"], second["playerinfo"])
+def assert_balance_api_data_equal(first: dict, second: dict):
+    assert "playerinfo" in first
+    assert "playerinfo" in second
+    assert set(first["playerinfo"]) == set(second["playerinfo"])
 
-        self.assertIn("players", first)
-        self.assertIn("players", second)
-        self.assert_lists_have_same_elements(first["players"], second["players"])
+    assert "players" in first
+    assert "players" in second
+    assert set(stringify_dicts_in_list(first["players"])) == set(
+        stringify_dicts_in_list(second["players"])
+    )
 
-        self.assertIn("deactivated", first)
-        self.assertIn("deactivated", second)
-        self.assert_lists_have_same_elements(
-            first["deactivated"], second["deactivated"]
-        )
+    assert "deactivated" in first
+    assert "deactivated" in second
+    assert set(first["deactivated"]) == set(second["deactivated"])
 
-        self.assertIn("untracked", first)
-        self.assertIn("untracked", second)
-        self.assert_lists_have_same_elements(first["untracked"], second["untracked"])
+    assert "untracked" in first
+    assert "untracked" in second
+    assert set(first["untracked"]) == set(second["untracked"])
 
-    def test_bigger_numbers(self):
-        response = self.get("/elo/bn/" + STEAM_IDS_AD_PLAYERS, 200)
-        self.assert_balance_api_data_equal(
-            response.json(), self.read_json_sample("balance_api_ad_bigger_numbers")
-        )
 
-    def test_simple_ad_only_players(self):
-        self.assert_balance_api_data_equal(
-            self.get("/elo/" + STEAM_IDS_AD_PLAYERS).json(),
-            self.read_json_sample("balance_api_ad_only_players"),
-        )
+def test_bigger_numbers(service: Service):
+    response = service.get("/elo/bn/" + STEAM_IDS_AD_PLAYERS, 200)
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_ad_bigger_numbers")
+    )
 
-    def test_simple_tdm_only_players(self):
-        self.assert_balance_api_data_equal(
-            self.get("/elo/" + STEAM_IDS_TDM_PLAYERS).json(),
-            self.read_json_sample("balance_api_tdm_only_players"),
-        )
 
-    def test_map_based_tdm(self):
-        response = self.get(
-            "/elo/map_based/" + STEAM_IDS_TDM_PLAYERS + "+76561198125710191",
-            200,
-            headers={"X-QuakeLive-Map": "hiddenfortress"},
-        )
+def test_simple_ad_only_players(service: Service):
+    assert_balance_api_data_equal(
+        service.get("/elo/" + STEAM_IDS_AD_PLAYERS).json(),
+        read_json_sample("balance_api_ad_only_players"),
+    )
 
-        self.assert_balance_api_data_equal(
-            response.json(), self.read_json_sample("balance_api_tdm_hiddenfortress")
-        )
 
-    def test_map_based_ad(self):
-        response = self.get(
-            "/elo/map_based/"
-            + STEAM_IDS_AD_PLAYERS
-            + "+76561198257183089",  # played dividedcrossings at least 2 times
-            200,
-            headers={"X-QuakeLive-Map": "dividedcrossings"},
-        )
+def test_simple_tdm_only_players(service):
+    assert_balance_api_data_equal(
+        service.get("/elo/" + STEAM_IDS_TDM_PLAYERS).json(),
+        read_json_sample("balance_api_tdm_only_players"),
+    )
 
-        self.assert_balance_api_data_equal(
-            response.json(), self.read_json_sample("balance_api_ad_dividedcrossings")
-        )
 
-    def test_map_based_map_not_exists(self):
-        def set_games_zero(data: dict):
-            for key, value in data.items():
-                if isinstance(value, list):
-                    data[key] = [set_games_zero(x) for x in value]
-                elif isinstance(value, dict):
-                    data[key] = set_games_zero(value)
-                elif key == "games":
-                    data[key] = 0
+def test_map_based_tdm(service):
+    response = service.get(
+        "/elo/map_based/" + STEAM_IDS_TDM_PLAYERS + "+76561198125710191",
+        200,
+        headers={"X-QuakeLive-Map": "hiddenfortress"},
+    )
 
-            return data
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_tdm_hiddenfortress")
+    )
 
-        response = self.get(
-            "/elo/map_based/" + STEAM_IDS_AD_PLAYERS,
-            200,
-            headers={"X-QuakeLive-Map": "this_map_does_not_exist"},
-        )
 
-        ratings_data = response.json()
+def test_map_based_ad(service):
+    response = service.get(
+        "/elo/map_based/"
+        + STEAM_IDS_AD_PLAYERS
+        + "+76561198257183089",  # played dividedcrossings at least 2 times
+        200,
+        headers={"X-QuakeLive-Map": "dividedcrossings"},
+    )
 
-        self.assert_balance_api_data_equal(
-            ratings_data,
-            set_games_zero(self.read_json_sample("balance_api_ad_only_players")),
-        )
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_ad_dividedcrossings")
+    )
 
-    @patch("requests.get", return_value=FakeQLStatsResponse())
-    def test_with_qlstats_policy(self, mock):
-        response = self.get(
-            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
-        )
 
-        self.assert_balance_api_data_equal(
-            response.json(), self.read_json_sample("balance_api_with_qlstats_policy")
-        )
+def test_map_based_map_not_exists(service: Service):
+    def set_games_zero(data: dict):
+        for key, value in data.items():
+            if isinstance(value, list):
+                data[key] = [set_games_zero(x) for x in value]
+            elif isinstance(value, dict):
+                data[key] = set_games_zero(value)
+            elif key == "games":
+                data[key] = 0
 
-    def _test_with_qlstats_policy_with_error(self, mock):
-        response = self.get(
-            "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
-        )
+        return data
 
-        self.assert_balance_api_data_equal(
-            response.json(),
-            self.read_json_sample("balance_api_with_qlstats_policy_fallback"),
-        )
+    response = service.get(
+        "/elo/map_based/" + STEAM_IDS_AD_PLAYERS,
+        200,
+        headers={"X-QuakeLive-Map": "this_map_does_not_exist"},
+    )
 
-    test_with_qlstats_policy_request_exception = patch(
-        "requests.get",
-        return_value=FakeQLStatsResponse(),
-        side_effect=requests.exceptions.RequestException("something bad happened"),
-    )(_test_with_qlstats_policy_with_error)
+    ratings_data = response.json()
 
-    test_with_qlstats_policy_request_exception_not_ok = patch(
-        "requests.get", return_value=FakeQLStatsResponse(False)
-    )(_test_with_qlstats_policy_with_error)
+    assert_balance_api_data_equal(
+        ratings_data, set_games_zero(read_json_sample("balance_api_ad_only_players"))
+    )
 
-    test_with_qlstats_policy_request_exception_bad_json = patch(
-        "requests.get", return_value=FakeQLStatsResponse(True, True)
-    )(_test_with_qlstats_policy_with_error)
+
+def test_with_qlstats_policy(service: Service, mock_requests_get):
+    mock_requests_get(FakeQLStatsResponse())
+    response = service.get(
+        "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+    )
+
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_with_qlstats_policy")
+    )
+
+
+@mark.parametrize(
+    "return_value,side_effect",
+    [
+        param(
+            FakeQLStatsResponse(),
+            requests.exceptions.RequestException("something bad happened"),
+        ),
+        param(FakeQLStatsResponse(False), None),
+        param(FakeQLStatsResponse(True, True), None),
+    ],
+)
+def test_with_qlstats_policy_with_error(
+    service: Service, mock_requests_get, return_value, side_effect
+):
+    mock_requests_get(return_value, side_effect)
+    response = service.get(
+        "/elo/with_qlstats_policy/76561198260599288+76561198043212328"
+    )
+
+    assert_balance_api_data_equal(
+        response.json(), read_json_sample("balance_api_with_qlstats_policy_fallback")
+    )
+
+
+@mark.parametrize("mapname", [None, "shiningforces"])
+@mark.asyncio
+async def test_nulled_ratings(db, mapname):
+    """
+    Make sure, that rows with null ratings are handled correctly
+    """
+    await db.execute(
+        "INSERT INTO players(steam_id, name, model, last_played_timestamp) VALUES (76561198051160294, 'h.dogan', 'visor/default', 1543095331)"
+    )
+    await db.execute(
+        "INSERT INTO gametype_ratings(steam_id, gametype_id, n, last_played_timestamp) VALUES (76561198051160294, 1, 0, 1477510451)"
+    )
+    assert await fetch(db, [76561198051160294], mapname) == {
+        "untracked": [],
+        "players": [],
+        "ok": True,
+        "playerinfo": {},
+        "deactivated": [],
+    }

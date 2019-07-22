@@ -9,9 +9,6 @@ from qllr.settings import PLAYER_COUNT_PER_PAGE
 
 KEEPING_TIME = 60 * 60 * 24 * 30
 
-LAST_GAME_TIMESTAMPS = cache.LAST_GAME_TIMESTAMPS
-USE_AVG_PERF = cache.USE_AVG_PERF
-
 SQL_TOP_PLAYERS_BY_GAMETYPE = """
     SELECT
         p.steam_id,
@@ -73,7 +70,7 @@ SQL_TOP_PLAYERS_BY_GAMETYPE_R2 = SQL_TOP_PLAYERS_BY_GAMETYPE.format(
 
 
 def get_sql_top_players_query_by_gametype_id(gametype_id: int):
-    if USE_AVG_PERF[gametype_id]:
+    if cache.USE_AVG_PERF[gametype_id]:
         return SQL_TOP_PLAYERS_BY_GAMETYPE_R2
     else:
         return SQL_TOP_PLAYERS_BY_GAMETYPE_R1
@@ -93,7 +90,7 @@ async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=F
 
     start_timestamp = 0
     if show_inactive is False:
-        start_timestamp = LAST_GAME_TIMESTAMPS[gametype_id] - KEEPING_TIME
+        start_timestamp = cache.LAST_GAME_TIMESTAMPS[gametype_id] - KEEPING_TIME
 
     result = []
     player_count = 0

@@ -1,4 +1,5 @@
 from qllr.db import cache, rating_column
+from qllr.templating import templates
 
 
 def _test_lengths(a, b):
@@ -30,3 +31,7 @@ def test_rating_column_avg_perf():
 
 def test_rating_column_avg_trueskill():
     assert rating_column("ad") == "r1_mean"
+
+
+def test_ensure_gametype_names_in_template_globals():
+    assert templates.env.globals['gametype_names'] == cache.GAMETYPE_NAMES

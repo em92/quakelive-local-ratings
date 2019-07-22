@@ -106,10 +106,12 @@ class Service:
 
     def upload_match_report(self, sample_name=None, sample=None, headers=None):
         if sample_name is None and sample is None:
-            raise AssertionError("Both sample_name and sample are NOT given")
+            raise AssertionError(  # pragma: nocover
+                "Both sample_name and sample are NOT given"
+            )
 
         if sample_name is not None and sample is not None:
-            raise AssertionError(
+            raise AssertionError(  # pragma: nocover
                 "sample_name and sample are BOTH given. Only one of them is required"
             )
 

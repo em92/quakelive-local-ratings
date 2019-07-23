@@ -34,4 +34,4 @@ def test_rating_column_avg_trueskill():
 
 
 def test_ensure_gametype_names_in_template_globals():
-    assert templates.env.globals['gametype_names'] == cache.GAMETYPE_NAMES
+    assert templates.env.globals["gametype_names"] == cache.GAMETYPE_NAMES

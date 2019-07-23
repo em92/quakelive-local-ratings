@@ -25,11 +25,11 @@ app.mount("/deprecated", bp.deprecated)
 
 @app.on_event("startup")
 async def on_startup():
-    if RUN_POST_PROCESS is False:  # pragma: nocover
-        return
-
     await cache.init()
     templates.env.globals["gametype_names"] = cache.GAMETYPE_NAMES
+
+    if RUN_POST_PROCESS is False:  # pragma: nocover
+        return
 
     dbpool = await get_db_pool()
     con = await dbpool.acquire()

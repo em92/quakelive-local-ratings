@@ -35,4 +35,5 @@ class RatingsHtml(Endpoint):
         context["request"] = request
         context["current_page"] = page
         context["gametype"] = request.path_params["gametype"]
+        context["show_inactive"] = show_inactive
         return templates.TemplateResponse("ratings_list.html", context)

@@ -15,14 +15,14 @@ bp = App()
 
 @bp.route("/{match_id:match_id}.json")
 class ScoreboardJson(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         match_id = request.path_params["match_id"]
         return JSONResponse(await get_scoreboard(con, match_id))
 
 
 @bp.route("/{match_id:match_id}")
 class ScoreboardHtml(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         match_id = request.path_params["match_id"]
         context = await get_scoreboard(con, match_id)
         context["request"] = request

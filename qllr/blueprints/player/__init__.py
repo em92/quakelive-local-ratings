@@ -15,14 +15,14 @@ bp = App()
 
 @bp.route("/{steam_id:int}.json")
 class PlayerJson(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         steam_id = request.path_params["steam_id"]
         return JSONResponse(await get_player_info(con, steam_id))
 
 
 @bp.route("/{steam_id:int}")
 class PlayerHtml(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         steam_id = request.path_params["steam_id"]
         context = await get_player_info(con, steam_id)
         context["request"] = request
@@ -50,7 +50,7 @@ class PlayerMatchesDeprecatedRoute(HTTPEndpoint):
 
 @bp.route("/{steam_id:int}/best_match/{gametype}")
 class BestMatchOfPlayerRedirect(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         steam_id = request.path_params["steam_id"]
         gametype_id = request.path_params["gametype_id"]
         match_id = await get_best_match_of_player(con, steam_id, gametype_id)

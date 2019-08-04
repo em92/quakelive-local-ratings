@@ -17,14 +17,14 @@ bp.json_only_mode = True
 
 @bp.route("/{ids:steam_ids}")
 class BalanceCommon(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
         return JSONResponse(await fetch(con, ids))
 
 
 @bp.route("/{options:balance_options}/{ids:steam_ids}")
 class BalanceAdvanced(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
         options = request.path_params["options"]
 

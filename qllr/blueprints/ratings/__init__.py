@@ -15,7 +15,7 @@ bp = App()
 
 @bp.route("/{gametype}/{page:int}.json")
 class RatingsJson(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         page = request.path_params.get("page", 0)
         gametype_id = request.path_params.get("gametype_id")
         return JSONResponse(await get_list(con, gametype_id, page))
@@ -24,7 +24,7 @@ class RatingsJson(Endpoint):
 @bp.route("/{gametype}/")
 @bp.route("/{gametype}/{page:int}/")
 class RatingsHtml(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         page = request.path_params.get("page", 0)
         gametype_id = request.path_params.get("gametype_id")
         show_inactive = request.query_params.get("show_inactive", False)

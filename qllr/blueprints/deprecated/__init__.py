@@ -14,6 +14,6 @@ bp = App()
 
 @bp.route("/player/{steam_id:int}.json")
 class DeprecatedPlayerJson(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         steam_id = request.path_params["steam_id"]
         return JSONResponse(await get_player_info_old(con, steam_id))

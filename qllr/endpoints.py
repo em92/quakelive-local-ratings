@@ -22,7 +22,7 @@ class Endpoint(HTTPEndpoint):
         last_modified = self.get_last_doc_modified_without_db(request)
 
         if request.state.if_mod_since >= last_modified:
-            return Response(None, 304)
+            return request.state.fast_response
 
     async def try_fast_response(
         self, request: Request, conn: Connection
@@ -35,7 +35,7 @@ class Endpoint(HTTPEndpoint):
             return
 
         if request.state.if_mod_since >= last_modified:
-            return Response(None, 304)
+            return request.state.fast_response
 
     async def get(self, request: Request) -> Response:
         # check for valid gametype
@@ -48,8 +48,18 @@ class Endpoint(HTTPEndpoint):
             else:
                 request.path_params["gametype_id"] = cache.GAMETYPE_IDS[gametype]
 
+        cached_response_key = str(request.url)
+        cached_response = cache.store.get(cached_response_key)
+
+        if cached_response and request.headers.get("if-modified-since") is None:
+            request.state.fast_response = cached_response
+            cache_response_last_doc_modified = cached_response.headers["Last-Modified"]
+        else:
+            request.state.fast_response = Response(None, 304)
+            cache_response_last_doc_modified = None
+
         request.state.doc_mod_time = None
-        request.state.if_mod_since = parsedate(request.headers.get("if-modified-since"))
+        request.state.if_mod_since = parsedate(request.headers.get("if-modified-since", cache_response_last_doc_modified))
         if request.state.if_mod_since:
             request.state.if_mod_since = request.state.if_mod_since[0:6]
 
@@ -75,6 +85,7 @@ class Endpoint(HTTPEndpoint):
             resp.headers["Last-Modified"] = formatdate(
                 timegm(await self.get_last_doc_modified(request, con)), usegmt=True
             )
+            cache.store[cached_response_key] = resp
             return resp
         finally:
             await tr.rollback()

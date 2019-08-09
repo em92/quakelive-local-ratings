@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 import psycopg2
 from asyncpg import Connection, create_pool
 from asyncpg.pool import Pool
+from cachetools import LRUCache
 
 from .settings import DATABASE_URL, USE_AVG_PERF
 
@@ -78,6 +79,7 @@ class SurjectionDict(MutableMapping):
 
 class Cache:
     _instance = None
+    store = LRUCache(maxsize=100)
 
     def __new__(cls):
         if not isinstance(cls._instance, cls):

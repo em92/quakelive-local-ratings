@@ -158,7 +158,7 @@ def mock_requests_get(monkeypatch):
     def wrapped(return_value=None, side_effect=None):
         def what_to_return(*args, **kwargs):
             if side_effect:
-                raise side_effect
+                raise side_effect  # pragma: nocover
             return return_value
 
         monkeypatch.setattr("requests.get", what_to_return)

@@ -59,7 +59,9 @@ class Endpoint(HTTPEndpoint):
             cache_response_last_doc_modified = None
 
         request.state.doc_mod_time = None
-        request.state.if_mod_since = parsedate(request.headers.get("if-modified-since", cache_response_last_doc_modified))
+        request.state.if_mod_since = parsedate(
+            request.headers.get("if-modified-since", cache_response_last_doc_modified)
+        )
         if request.state.if_mod_since:
             request.state.if_mod_since = request.state.if_mod_since[0:6]
 
@@ -103,4 +105,4 @@ class Endpoint(HTTPEndpoint):
         return None
 
     async def get_document(self, request: Request, con: Connection) -> Response:
-        raise HTTPException(501)
+        raise HTTPException(501)  # pragma: nocover

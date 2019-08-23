@@ -5,6 +5,7 @@ import asyncio
 import functools
 import logging
 import traceback
+from datetime import datetime
 
 import requests
 
@@ -51,3 +52,9 @@ async def request(url: str) -> requests.Response:
     return await loop.run_in_executor(
         None, functools.partial(requests.get, url, timeout=5)
     )
+
+
+def convert_timestamp_to_tuple(timestamp):
+    if timestamp is None:
+        return Noneq
+    return datetime.utcfromtimestamp(timestamp).timetuple()[0:6]

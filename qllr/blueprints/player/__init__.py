@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from typing import Tuple
+
 from asyncpg import Connection
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse
@@ -8,7 +10,7 @@ from qllr.app import App
 from qllr.endpoints import Endpoint, HTTPEndpoint
 from qllr.templating import templates
 
-from .methods import get_best_match_of_player, get_player_info
+from .methods import get_best_match_of_player, get_player_info, get_player_info_mod_date
 
 bp = App()
 
@@ -28,6 +30,9 @@ class PlayerHtml(Endpoint):
         context["request"] = request
         context["steam_id"] = str(steam_id)
         return templates.TemplateResponse("player_stats.html", context)
+
+    async def get_last_doc_modified(self, request: Request, con: Connection) -> Tuple:
+        return await get_player_info_mod_date(con, request.path_params["steam_id"])
 
 
 @bp.route("/{steam_id:int}/matches")

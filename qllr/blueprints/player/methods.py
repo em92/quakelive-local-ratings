@@ -3,10 +3,21 @@ from functools import reduce
 
 from asyncpg import Connection
 
-from qllr.common import DATETIME_FORMAT, clean_name
+from qllr.common import DATETIME_FORMAT, clean_name, convert_timestamp_to_tuple
 from qllr.db import cache
 from qllr.exceptions import MatchNotFound, PlayerNotFound
 from qllr.settings import MOVING_AVG_COUNT
+
+
+async def get_player_info_mod_date(con: Connection, steam_id: int):
+
+    query = """
+    SELECT MAX(last_played_timestamp)
+    FROM gametype_ratings
+    WHERE steam_id = $1
+    """
+
+    return convert_timestamp_to_tuple(await con.fetchval(query, steam_id))
 
 
 async def get_player_info(con: Connection, steam_id: int):

@@ -28,14 +28,6 @@ async def get_db_pool(event_loop=None) -> Pool:
         return get_db_pool.cache[event_loop]
 
 
-def take_away_null_values(params: OrderedDict) -> OrderedDict:
-    result = params.copy()
-    for key, value in params.items():
-        if value is None:
-            del result[key]
-    return result
-
-
 def db_connect():
     result = urlparse(DATABASE_URL)
     username = result.username

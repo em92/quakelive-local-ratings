@@ -15,14 +15,6 @@ from .methods import get_last_matches
 bp = App()
 
 
-"""
-@app.route("/player/<int:steam_id>/matches/")
-@app.route("/player/<int:steam_id>/matches/<int:page>/")
-@app.route("/player/<int:steam_id>/matches/<gametype>/")
-@app.route("/player/<int:steam_id>/matches/<gametype>/<int:page>/")
-"""
-
-
 @bp.route("/")
 @bp.route("/{gametype}/")
 @bp.route("/{gametype}/{page:int}/")

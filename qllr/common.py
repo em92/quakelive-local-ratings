@@ -56,5 +56,5 @@ async def request(url: str) -> requests.Response:
 
 def convert_timestamp_to_tuple(timestamp):
     if timestamp is None:
-        return Noneq
+        return None
     return datetime.utcfromtimestamp(timestamp).timetuple()[0:6]

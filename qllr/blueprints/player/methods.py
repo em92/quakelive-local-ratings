@@ -1,5 +1,6 @@
 import json
 from functools import reduce
+from typing import Optional
 
 from asyncpg import Connection
 
@@ -9,7 +10,9 @@ from qllr.exceptions import MatchNotFound, PlayerNotFound
 from qllr.settings import MOVING_AVG_COUNT
 
 
-async def get_player_info_mod_date(con: Connection, steam_id: int):
+async def get_player_info_mod_date(
+    con: Connection, steam_id: int, gametype_id: Optional[int] = None
+):
 
     query = """
     SELECT MAX(last_played_timestamp)
@@ -17,7 +20,13 @@ async def get_player_info_mod_date(con: Connection, steam_id: int):
     WHERE steam_id = $1
     """
 
-    return convert_timestamp_to_tuple(await con.fetchval(query, steam_id))
+    params = [steam_id]
+
+    if gametype_id is not None:
+        query += " AND gametype_id = $2"
+        params.append(gametype_id)
+
+    return convert_timestamp_to_tuple(await con.fetchval(query, *params))
 
 
 async def get_player_info(con: Connection, steam_id: int):

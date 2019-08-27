@@ -40,6 +40,12 @@ def test_player_json(service, steam_id, mod_date):
 
     assert resp.headers["last-modified"] == mod_date
 
+    service.get(
+        "/player/{0}.json".format(steam_id),
+        304,
+        headers={"If-Modified-Since": mod_date},
+    )
+
 
 @mark.parametrize("steam_id", steam_ids)
 def test_deprecated_player_json(service, steam_id):

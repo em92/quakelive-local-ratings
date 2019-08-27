@@ -166,6 +166,9 @@ class Cache:
                 result.append(id)
         return result
 
+    def key(self, suffix, gametype=None):
+        return "{0}_{1}_{2}".format(self.LAST_GAME_TIMESTAMP(gametype), gametype, suffix)
+
 
 cache = Cache()
 

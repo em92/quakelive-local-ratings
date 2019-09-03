@@ -16,8 +16,6 @@ data = (
     ("76561198260599288", "Sat, 29 Dec 2018 21:11:07 GMT"),  # eugene
 )
 
-steam_ids = list(map(lambda item: item[0], data))
-
 
 @mark.parametrize("steam_id,mod_date", data)
 def test_player_json(service, steam_id, mod_date):
@@ -48,7 +46,15 @@ def test_player_json(service, steam_id, mod_date):
     )
 
 
-@mark.parametrize("steam_id", steam_ids)
-def test_deprecated_player_json(service, steam_id):
+@mark.parametrize("steam_id,mod_date", data)
+def test_deprecated_player_json(service, steam_id, mod_date):
     resp = service.get("/deprecated/player/{0}.json".format(steam_id))
     assert resp.json() == read_json_sample("deprecated_player_{0}".format(steam_id))
+
+    assert resp.headers["last-modified"] == mod_date
+
+    service.get(
+        "/player/{0}.json".format(steam_id),
+        304,
+        headers=Headers({"If-Modified-Since": mod_date}),
+    )

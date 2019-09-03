@@ -1,4 +1,5 @@
 from pytest import mark, param
+from starlette.datastructures import Headers
 
 from .conftest import read_json_sample
 
@@ -43,7 +44,7 @@ def test_player_json(service, steam_id, mod_date):
     service.get(
         "/player/{0}.json".format(steam_id),
         304,
-        headers={"If-Modified-Since": mod_date},
+        headers=Headers({"If-Modified-Since": mod_date}),
     )
 
 

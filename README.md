@@ -22,7 +22,7 @@ Usually it is used with [feeder](https://github.com/em92/qlstats-feeder-mini) ba
 ### Differences between QLLR and [QLStats](http://qlstats.net/)
 
 * supports TrueSkill-based rating and average player performance based rating (TODO: note in configuration)
-* player ratings per map support (TODO: note in minqlx configuration)
+* player ratings per map support (see [docs](docs/minqlx_config.md#map-based-ratings))
 * limited supported gametypes
 * [GDPR](http://eur-lex.europa.eu/eli/reg/2016/679/oj) incompatible
 

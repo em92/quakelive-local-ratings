@@ -63,4 +63,3 @@ def test_not_exists_scoreboard_html(service):
         404,
         headers={"accept": "text/html"},
     )
-    assert resp.template.name == "layout.html"

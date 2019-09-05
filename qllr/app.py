@@ -30,17 +30,7 @@ async def http_exception_handler(request: Request, e: HTTPException):
     if request.app.json_only_mode or request.url.path.lower().endswith(".json"):
         return JSONResponse(context, status_code=e.status_code)
 
-    # stupid method to detect, what client wants
-    accept_mime_type = request.headers.get("accept", "text/plain").lower()
-    if accept_mime_type.startswith("text/html"):
-        context["request"] = request
-        return templates.TemplateResponse(
-            "layout.html", context, status_code=e.status_code
-        )
-    elif accept_mime_type.startswith("application/json"):
-        return JSONResponse(context, status_code=e.status_code)
-    else:
-        return PlainTextResponse(context["message"], status_code=e.status_code)
+    return PlainTextResponse(context["message"], status_code=e.status_code)
 
 
 async def unhandled_exception_handler(request: Request, e: Exception):

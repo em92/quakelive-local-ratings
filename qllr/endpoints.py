@@ -17,12 +17,14 @@ from .db import cache, get_db_pool
 class Endpoint(HTTPEndpoint):
     def try_very_fast_response(self, request: Request) -> Optional[Response]:
         if request.state.if_mod_since is None:
-            return
+            return None
 
         last_modified = self.get_last_doc_modified_without_db(request)
 
         if request.state.if_mod_since >= last_modified:
             return request.state.fast_response
+
+        return None
 
     async def try_fast_response(
         self, request: Request, conn: Connection
@@ -45,8 +47,8 @@ class Endpoint(HTTPEndpoint):
             ].lower()
             if gametype not in cache.GAMETYPE_IDS:
                 raise HTTPException(404, "invalid gametype: {}".format(gametype))
-            else:
-                request.path_params["gametype_id"] = cache.GAMETYPE_IDS[gametype]
+
+            request.path_params["gametype_id"] = cache.GAMETYPE_IDS[gametype]
 
         cached_response_key = str(request.url)
         cached_response = cache.store.get(cached_response_key)

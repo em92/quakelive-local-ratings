@@ -12,7 +12,6 @@ from .exceptions import (
     MatchNotFound,
     PlayerNotFound,
 )
-from .templating import templates
 
 
 # https://github.com/encode/starlette/issues/433
@@ -41,7 +40,7 @@ async def unhandled_exception_handler(request: Request, e: Exception):
 async def match_already_exists_exception_handler(
     request: Request, e: MatchAlreadyExists
 ):
-    new_exc = HTTPException(409, "Match already exists")
+    new_exc = HTTPException(409, "Match already exists: {}".format(e))
     return await http_exception_handler(request, new_exc)
 
 

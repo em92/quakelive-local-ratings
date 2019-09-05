@@ -27,7 +27,7 @@ logger.addHandler(ch)
 
 
 def log_exception(e):  # pragma: no cover
-    logger.warn(traceback.format_exc())
+    logger.warning(traceback.format_exc())
 
 
 def clean_name(name):
@@ -38,13 +38,6 @@ def clean_name(name):
         name = "unnamed"
 
     return name
-
-
-def run_sync(f, *args, **kwargs):  # pragma: no cover
-    annoying_event_loop = asyncio.get_event_loop()
-    future = asyncio.ensure_future(f, loop=annoying_event_loop)
-    annoying_event_loop.run_until_complete(future)
-    return future.result()
 
 
 async def request(url: str) -> requests.Response:

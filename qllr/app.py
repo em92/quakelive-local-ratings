@@ -26,9 +26,6 @@ Route.url_path_for = fixed_url_path_for
 
 
 async def http_exception_handler(request: Request, e: HTTPException):
-    from traceback import print_exc
-
-    print_exc()
     context = {"ok": False, "message": e.detail}
     if request.app.json_only_mode or request.url.path.lower().endswith(".json"):
         return JSONResponse(context, status_code=e.status_code)

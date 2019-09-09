@@ -71,7 +71,9 @@ class Endpoint(HTTPEndpoint):
         if resp:
             return resp
 
-        resp = self.get_document_without_db(request)
+        resp = self.get_document_without_db(  # pylint: disable=assignment-from-none
+            request
+        )
         if resp:
             return resp
 
@@ -95,15 +97,21 @@ class Endpoint(HTTPEndpoint):
             await tr.rollback()
             await dbpool.release(con)
 
-    def get_last_doc_modified_without_db(self, request: Request) -> Tuple:
+    def get_last_doc_modified_without_db(  # pylint: disable=no-self-use
+        self, request: Request
+    ) -> Tuple:
         gametype = request.path_params.get("gametype")
         r = cache.LAST_GAME_TIMESTAMP(gametype)
         return gmtime(r)[0:6]
 
-    async def get_last_doc_modified(self, request: Request, con: Connection) -> Tuple:
+    async def get_last_doc_modified(  # pylint: disable=unused-argument
+        self, request: Request, con: Connection
+    ) -> Tuple:
         return self.get_last_doc_modified_without_db(request)
 
-    def get_document_without_db(self, request: Request) -> Optional[Response]:
+    def get_document_without_db(  # pylint: disable=no-self-use,unused-argument
+        self, request: Request
+    ) -> Optional[Response]:
         return None
 
     async def get_document(self, request: Request, con: Connection) -> Response:

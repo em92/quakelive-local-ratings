@@ -1,10 +1,11 @@
 psycopg2-binary==2.7.5
 trueskill==0.4.4
 
-git+https://github.com/em92/starlette@1afea04e9a956542e6700b3ec078d5b36db02f2f; python_version == '3.5'
-starlette==0.12.4; python_version >= '3.6'
+git+https://github.com/em92/starlette@797fef89655801910350716c03d8377bc88a4cf5; python_version == '3.5'
+starlette==0.12.9; python_version >= '3.6'
 aiofiles==0.4.0
 asyncpg==0.18.3
-uvicorn==0.8.4
+uvicorn==0.8.6
 requests==2.21.0
 Jinja2==2.10.1
+cachetools==3.1.1

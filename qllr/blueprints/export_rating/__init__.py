@@ -20,14 +20,14 @@ class ExportRatingCommon(Endpoint):
 
 @bp.route("/{gametype}.json")
 class ExportRatingJson(ExportRatingCommon):
-    async def _get(self, request: Request, con: Connection) -> Response:
+    async def get_document(self, request: Request, con: Connection) -> Response:
         data = await self.get_data(con, request.path_params["gametype_id"])
         return JSONResponse(data)
 
 
 @bp.route("/{gametype}.csv")
 class ExportRatingCsv(ExportRatingCommon):
-    async def _get(self, request: Request, con: Connection) -> Response:
+    async def get_document(self, request: Request, con: Connection) -> Response:
         data = await self.get_data(con, request.path_params["gametype_id"])
 
         result = ""
@@ -55,9 +55,7 @@ class ExportRatingCsv(ExportRatingCommon):
 
 @bp.route("/{frmt}/{gametype}")
 class ExportRatingsOldRoute(Endpoint):
-    async def get(self, request: Request):
-        self.try_very_fast_response(request)
-
+    def get_document_without_db(self, request: Request) -> Response:
         frmt = request.path_params["frmt"].lower().strip()
         gametype = request.path_params["gametype"]
 

@@ -24,7 +24,7 @@ class GetPlayerSummaries(Endpoint):
             raise HTTPException(400, "Required parameter 'steamids' is missing")
         super().try_very_fast_response(request)
 
-    async def _get(self, request: Request, con: Connection) -> Response:
+    async def get_document(self, request: Request, con: Connection) -> Response:
         await con.set_type_codec(
             "json", encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
         )

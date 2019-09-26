@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 import psycopg2
 from asyncpg import Connection, create_pool
 from asyncpg.pool import Pool
+from cachetools import LRUCache
 
 from .settings import DATABASE_URL, USE_AVG_PERF
 
@@ -25,14 +26,6 @@ async def get_db_pool(event_loop=None) -> Pool:
             dsn=DATABASE_URL, loop=event_loop
         )
         return get_db_pool.cache[event_loop]
-
-
-def take_away_null_values(params: OrderedDict) -> OrderedDict:
-    result = params.copy()
-    for key, value in params.items():
-        if value is None:
-            del result[key]
-    return result
 
 
 def db_connect():
@@ -78,6 +71,7 @@ class SurjectionDict(MutableMapping):
 
 class Cache:
     _instance = None
+    store = LRUCache(maxsize=100)
 
     def __new__(cls):
         if not isinstance(cls._instance, cls):
@@ -171,6 +165,11 @@ class Cache:
             if USE_AVG_PERF[gt]:
                 result.append(id)
         return result
+
+    def key(self, suffix, gametype=None):
+        return "{0}_{1}_{2}".format(
+            self.LAST_GAME_TIMESTAMP(gametype), gametype, suffix
+        )
 
 
 cache = Cache()

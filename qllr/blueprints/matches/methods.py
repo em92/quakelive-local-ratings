@@ -82,19 +82,22 @@ async def get_last_matches(
         "" if len(where_clauses) == 0 else "WHERE " + " AND ".join(where_clauses)
     )
 
-    # TODO: вынести эту функцию в кэш
-    query = """
-    SELECT
-        count(m.match_id)
-    FROM
-        matches m
-    {WHERE_CLAUSE}
-    """.replace(
-        "{WHERE_CLAUSE}\n", where_clause_str
-    )
+    cache_key = "{}_{}".format(__name__, cache.key(where_clause_str, gametype))
+    if cache.store.get(cache_key) is not None:
+        overall_match_count = cache.store.get(cache_key)
+    else:
+        query = """
+        SELECT
+            count(m.match_id)
+        FROM
+            matches m
+        {WHERE_CLAUSE}
+        """.replace(
+            "{WHERE_CLAUSE}\n", where_clause_str
+        )
 
-    row = await con.fetchval(query, *params)
-    overall_match_count = row
+        overall_match_count = await con.fetchval(query, *params)
+        cache.store[cache_key] = overall_match_count
 
     # we assume, that offset and limit are ALWAYS integers
     query = """

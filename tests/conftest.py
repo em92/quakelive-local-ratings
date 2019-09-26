@@ -140,6 +140,12 @@ class Service:
         assert obj_defacto == obj_expected
 
     def get(self, uri: str, expected_http_code: int = 200, **kwargs) -> Response:
+        if "headers" not in kwargs:
+            kwargs["headers"] = {}
+        if "if-modified-since" not in kwargs["headers"]:
+            kwargs["headers"][
+                "if-modified-since"
+            ] = "aaaa"  # hack, to make sure that app does not get cached response
         resp = self._test_cli.get(uri, allow_redirects=False, **kwargs)
         assert resp.status_code == expected_http_code
         return resp
@@ -158,7 +164,7 @@ def mock_requests_get(monkeypatch):
     def wrapped(return_value=None, side_effect=None):
         def what_to_return(*args, **kwargs):
             if side_effect:
-                raise side_effect
+                raise side_effect  # pragma: nocover
             return return_value
 
         monkeypatch.setattr("requests.get", what_to_return)

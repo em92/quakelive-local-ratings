@@ -1,12 +1,32 @@
 import json
 from functools import reduce
+from typing import Optional
 
 from asyncpg import Connection
 
-from qllr.common import DATETIME_FORMAT, clean_name
+from qllr.common import DATETIME_FORMAT, clean_name, convert_timestamp_to_tuple
 from qllr.db import cache
 from qllr.exceptions import MatchNotFound, PlayerNotFound
 from qllr.settings import MOVING_AVG_COUNT
+
+
+async def get_player_info_mod_date(
+    con: Connection, steam_id: int, gametype_id: Optional[int] = None
+):
+
+    query = """
+    SELECT MAX(last_played_timestamp)
+    FROM gametype_ratings
+    WHERE steam_id = $1
+    """
+
+    params = [steam_id]
+
+    if gametype_id is not None:
+        query += " AND gametype_id = $2"
+        params.append(gametype_id)
+
+    return convert_timestamp_to_tuple(await con.fetchval(query, *params))
 
 
 async def get_player_info(con: Connection, steam_id: int):

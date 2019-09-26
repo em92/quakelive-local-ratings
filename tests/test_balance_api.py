@@ -38,7 +38,7 @@ class FakeQLStatsResponse:
 
     def json(self):
         if self.bad_json:
-            raise ValueError("bad json")
+            raise ValueError("bad json")  # pragma: nocover
         return {
             "untracked": [],
             "players": [

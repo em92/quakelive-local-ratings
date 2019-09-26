@@ -15,14 +15,6 @@ from .methods import get_last_matches
 bp = App()
 
 
-"""
-@app.route("/player/<int:steam_id>/matches/")
-@app.route("/player/<int:steam_id>/matches/<int:page>/")
-@app.route("/player/<int:steam_id>/matches/<gametype>/")
-@app.route("/player/<int:steam_id>/matches/<gametype>/<int:page>/")
-"""
-
-
 @bp.route("/")
 @bp.route("/{gametype}/")
 @bp.route("/{gametype}/{page:int}/")
@@ -32,7 +24,7 @@ bp = App()
 @bp.route("/player/{steam_id:int}/{page:int}/")
 @bp.route("/{page:int}/")
 class MatchesHtml(Endpoint):
-    async def _get(self, request: Request, con: Connection):
+    async def get_document(self, request: Request, con: Connection):
         gametype = request.path_params.get("gametype", None)
         page = request.path_params.get("page", 0)
         steam_id = request.path_params.get("steam_id", None)

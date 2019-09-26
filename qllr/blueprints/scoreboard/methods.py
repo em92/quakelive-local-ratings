@@ -4,9 +4,23 @@ import json
 
 from asyncpg import Connection
 
-from qllr.common import DATETIME_FORMAT
+from qllr.common import DATETIME_FORMAT, convert_timestamp_to_tuple
 from qllr.exceptions import MatchNotFound
 from qllr.settings import USE_AVG_PERF
+
+
+async def get_scoreboard_mod_date(con: Connection, match_id: str):
+    query = """
+    SELECT MAX(last_played_timestamp)
+    FROM gametype_ratings
+    WHERE steam_id IN (
+        SELECT steam_id
+        FROM scoreboards
+        WHERE match_id = $1
+    )
+    """
+
+    return convert_timestamp_to_tuple(await con.fetchval(query, match_id))
 
 
 async def get_scoreboard(con: Connection, match_id: str):

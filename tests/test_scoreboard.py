@@ -3,7 +3,9 @@ from pytest import mark
 from .conftest import read_json_sample
 
 
-def assert_scoreboard_html_equals_sample(service, match_id: str, sample_filename: str, mod_date: str):
+def assert_scoreboard_html_equals_sample(
+    service, match_id: str, sample_filename: str, mod_date: str
+):
     resp = service.get("/scoreboard/{0}".format(match_id))
     assert resp.template.name == "scoreboard.html"
     context = resp.context
@@ -21,6 +23,7 @@ def assert_scoreboard_html_equals_sample(service, match_id: str, sample_filename
 @mark.parametrize(
     "sample_name,match_id,mod_date",
     [
+        # fmt: off
         ("sample02", "44c479b9-fdbd-4674-b5bd-a56ef124e48c", "Sat, 09 Mar 2019 21:22:31 GMT"),
         ("sample03", "abdf7e7d-4e79-4f1c-9f28-6c87728ff2d4", "Sat, 09 Mar 2019 21:22:31 GMT"),
         ("sample08", "87dfda21-423e-4f6b-89f3-eefbfba1dff0", "Sun, 10 Mar 2019 00:23:44 GMT"),
@@ -38,6 +41,7 @@ def assert_scoreboard_html_equals_sample(service, match_id: str, sample_filename
         ("sample38", "0778f428-2606-4f3c-83dc-b4099b970814", "Sun, 10 Mar 2019 00:23:44 GMT"),
         ("sample39", "a254f41d-125f-4d4b-b66e-564bf095b8f1", "Sun, 10 Mar 2019 00:23:44 GMT"),
         ("sample40", "7807b4f5-3c98-459c-b2f9-8ad6b4f75d58", "Sun, 10 Mar 2019 00:23:44 GMT"),
+        # fmt: on
     ],
 )
 def test_scoreboards(service, sample_name, match_id, mod_date):

@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 export PREFIX=""
-export TARGET="qllr tests"
+export TARGET="qllr tests main.py"
 
 if [ -d 'venv' ] ; then
     export PREFIX="venv/bin/"
@@ -20,5 +20,5 @@ PYTHONPATH=. ${PREFIX}pytest --ignore venv -W ignore::DeprecationWarning --cov=q
 if [ "${PYTHON_VERSION}" = '3.5' ]; then
     echo "Skipping 'black' on 3.5"
 else
-    ${PREFIX}black qllr tests main.py --check
+    ${PREFIX}black $TARGET --check
 fi

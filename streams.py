@@ -121,7 +121,7 @@ ORDER BY m.timestamp ASC
 
 
 video_entry_template = Template("""
-<h1>{{ title }}</h1>
+<h1>{{ title|e }}</h1>
 {% for match in matches %}
     <a href="{{ match.link }}">{{ match.link }}</a> {{ match.mapname }}
     <pre>{{ match.command }}</pre>

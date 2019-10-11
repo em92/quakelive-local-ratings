@@ -115,6 +115,7 @@ ORDER BY m.timestamp ASC
                     "match_id": row[0],
                 }
             )
+        v["matches"].sort(key=lambda v: -v["start_time"])
     videos.sort(key=lambda v: -v["recorded_at_timestamp"])
     return videos
 

@@ -120,13 +120,14 @@ ORDER BY m.timestamp ASC
     return videos
 
 
-entry_template = Template(
-    """
-<a href="{{ link }}">{{ link }}</a> {{ mapname }}
-<pre>{{ command }}</pre>
-<hr>
-"""
-)
+video_entry_template = Template("""
+<h1>{{ title }}</h1>
+{% for match in matches %}
+    <a href="{{ match.link }}">{{ match.link }}</a> {{ match.mapname }}
+    <pre>{{ match.command }}</pre>
+    <hr>
+{% endfor %}
+""")
 
 for account, steam_id in pairs:
     result = get_twitch_videos(account)
@@ -140,20 +141,28 @@ for account, steam_id in pairs:
             # from pprint import pprint
             # pprint(v)
 
-            for match in v["matches"]:
-                # Thanks to JaySandhu for this:
-                # https://github.com/ytdl-org/youtube-dl/issues/622#issuecomment-162337869
-                cmd = "ffmpeg -ss {0} -i `youtube-dl -g {4}` -t {1} -c copy {2}_{3}.mp4".format(
-                    seconds_to_hms2(match["start_time"] - 5),
-                    seconds_to_hms2(match["duration"] + 60),
-                    account,
-                    "{}_{}_{}".format(v["_id"], match["map"], match["start_time"]),
-                    v["url"],
-                )
+            if len(v["matches"]) == 0:
+                continue
 
-                entry = entry_template.render(
-                    link=v["url"] + "?t=" + seconds_to_hms(match["start_time"]),
-                    mapname=match["map"],
-                    command=cmd,
+            entry = video_entry_template.render(
+                title=v["title"],
+                matches=map(
+                    lambda match:
+                    {
+                        "link": v["url"] + "?t=" + seconds_to_hms(match["start_time"]),
+                        "mapname": match["map"],
+                        # Thanks to JaySandhu for this:
+                        # https://github.com/ytdl-org/youtube-dl/issues/622#issuecomment-162337869
+                        "command": "ffmpeg -ss {0} -i `youtube-dl -g {4}` -t {1} -c copy {2}_{3}.mp4".format(
+                            seconds_to_hms2(match["start_time"] - 5),
+                            seconds_to_hms2(match["duration"] + 60),
+                            account,
+                            "{}_{}_{}".format(v["_id"], match["map"], match["start_time"]),
+                            v["url"],
+                        )
+                    },
+                    v["matches"]
                 )
-                print(entry, file=f)
+            )
+
+            print(entry, file=f)

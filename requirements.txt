@@ -1,4 +1,4 @@
-psycopg2-binary==2.7.5
+psycopg2==2.8.3
 trueskill==0.4.4
 
 git+https://github.com/em92/starlette@797fef89655801910350716c03d8377bc88a4cf5; python_version == '3.5'

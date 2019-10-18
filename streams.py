@@ -120,14 +120,16 @@ ORDER BY m.timestamp ASC
     return videos
 
 
-video_entry_template = Template("""
+video_entry_template = Template(
+    """
 <h1>{{ title|e }}</h1>
 {% for match in matches %}
     <a href="{{ match.link }}">{{ match.link }}</a> {{ match.mapname }}
     <pre>{{ match.command }}</pre>
     <hr>
 {% endfor %}
-""")
+"""
+)
 
 for account, steam_id in pairs:
     result = get_twitch_videos(account)
@@ -147,8 +149,7 @@ for account, steam_id in pairs:
             entry = video_entry_template.render(
                 title=v["title"],
                 matches=map(
-                    lambda match:
-                    {
+                    lambda match: {
                         "link": v["url"] + "?t=" + seconds_to_hms(match["start_time"]),
                         "mapname": match["map"],
                         # Thanks to JaySandhu for this:
@@ -157,12 +158,14 @@ for account, steam_id in pairs:
                             seconds_to_hms2(match["start_time"] - 5),
                             seconds_to_hms2(match["duration"] + 60),
                             account,
-                            "{}_{}_{}".format(v["_id"], match["map"], match["start_time"]),
+                            "{}_{}_{}".format(
+                                v["_id"], match["map"], match["start_time"]
+                            ),
                             v["url"],
-                        )
+                        ),
                     },
-                    v["matches"]
-                )
+                    v["matches"],
+                ),
             )
 
             print(entry, file=f)

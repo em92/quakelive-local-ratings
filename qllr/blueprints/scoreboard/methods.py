@@ -9,6 +9,20 @@ from qllr.exceptions import MatchNotFound
 from qllr.settings import USE_AVG_PERF
 
 
+async def get_medals_available(con: Connection, match_id: str):
+    query = """
+    SELECT
+        COALESCE(array_agg(m.medal_short ORDER BY m.medal_id ASC), '{ }')
+    FROM (
+        SELECT DISTINCT medal_id
+        FROM scoreboards_medals
+        WHERE match_id = $1
+        ) sm
+     LEFT JOIN medals m ON m.medal_id = sm.medal_id
+    """
+    return await con.fetchval(query, match_id)
+
+
 async def get_scoreboard_mod_date(con: Connection, match_id: str):
     query = """
     SELECT MAX(last_played_timestamp)
@@ -210,17 +224,7 @@ async def get_scoreboard(con: Connection, match_id: str):
     )
     overall_stats = await con.fetchval(query, match_id)
 
-    query = """
-    SELECT
-        array_agg(m.medal_short ORDER BY m.medal_id ASC)
-    FROM (
-        SELECT DISTINCT medal_id
-        FROM scoreboards_medals
-        WHERE match_id = $1
-        ) sm
-     LEFT JOIN medals m ON m.medal_id = sm.medal_id
-    """
-    medals_available = await con.fetchval(query, match_id)
+    medals_available = await get_medals_available(con, match_id)
 
     query = """
     SELECT

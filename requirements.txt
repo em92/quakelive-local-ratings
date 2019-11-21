@@ -4,7 +4,7 @@ trueskill==0.4.4
 git+https://github.com/em92/starlette@d937009f7fef31c6bc0da9ba05f87f3b72022450; python_version == '3.5'
 starlette==0.12.13; python_version >= '3.6'
 aiofiles==0.4.0
-asyncpg==0.19.0
+asyncpg==0.20.0
 uvicorn==0.8.6; python_version == '3.5'
 uvicorn==0.10.3; python_version >= '3.6'
 requests==2.21.0

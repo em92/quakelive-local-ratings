@@ -5,24 +5,21 @@ from typing import Optional
 from asyncpg import Connection
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
+from starlette.routing import Route
 
-from qllr.app import App
 from qllr.endpoints import Endpoint
 
 from .methods import fetch
 
-bp = App()
-bp.json_only_mode = True
+# TODO: json only return
 
 
-@bp.route("/{ids:steam_ids}")
 class BalanceCommon(Endpoint):
     async def get_document(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
         return JSONResponse(await fetch(con, ids))
 
 
-@bp.route("/{options:balance_options}/{ids:steam_ids}")
 class BalanceAdvanced(Endpoint):
     async def get_document(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
@@ -41,3 +38,9 @@ class BalanceAdvanced(Endpoint):
                 with_qlstats_policy=True if "with_qlstats_policy" in options else False,
             )
         )
+
+
+routes = [
+    Route("/{ids:steam_ids}", endpoint=BalanceCommon),
+    Route("/{options:balance_options}/{ids:steam_ids}", endpoint=BalanceAdvanced),
+]

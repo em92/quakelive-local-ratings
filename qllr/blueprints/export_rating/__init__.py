@@ -4,13 +4,11 @@ from asyncpg import Connection
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse, Response
+from starlette.routing import Route
 
-from qllr.app import App
 from qllr.endpoints import Endpoint
 
 from .methods import export
-
-bp = App()
 
 
 class ExportRatingCommon(Endpoint):
@@ -18,20 +16,19 @@ class ExportRatingCommon(Endpoint):
         return await export(con, gametype_id)
 
 
-@bp.route("/{gametype}.json")
 class ExportRatingJson(ExportRatingCommon):
     async def get_document(self, request: Request, con: Connection) -> Response:
         data = await self.get_data(con, request.path_params["gametype_id"])
         return JSONResponse(data)
 
 
-@bp.route("/{gametype}.csv")
 class ExportRatingCsv(ExportRatingCommon):
     async def get_document(self, request: Request, con: Connection) -> Response:
         data = await self.get_data(con, request.path_params["gametype_id"])
 
         result = ""
 
+        # TODO: используй "join" сразу ибо быстрее
         for row in data["response"]:
             result += (
                 ";".join(
@@ -53,7 +50,6 @@ class ExportRatingCsv(ExportRatingCommon):
         return resp
 
 
-@bp.route("/{frmt}/{gametype}")
 class ExportRatingsOldRoute(Endpoint):
     def get_document_without_db(self, request: Request) -> Response:
         frmt = request.path_params["frmt"].lower().strip()
@@ -69,3 +65,10 @@ class ExportRatingsOldRoute(Endpoint):
             )
         else:
             raise HTTPException(404, "Invalid format: {}".format(frmt))
+
+
+routes = [
+    Route("/{gametype}.json", endpoint=ExportRatingJson),
+    Route("/{gametype}.csv", endpoint=ExportRatingCsv),
+    Route("/{frmt}/{gametype}", endpoint=ExportRatingsOldRoute),
+]

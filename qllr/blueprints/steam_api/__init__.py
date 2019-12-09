@@ -7,14 +7,11 @@ from asyncpg import Connection
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
+from starlette.routing import Route
 
-from qllr.app import App
 from qllr.endpoints import Endpoint
 
-bp = App()
 
-
-@bp.route("/GetPlayerSummaries/")
 class GetPlayerSummaries(Endpoint):
     def try_very_fast_response(self, request: Request):
         steam_ids = request.query_params.get("steamids")
@@ -49,3 +46,6 @@ class GetPlayerSummaries(Endpoint):
                 },
             }
         )
+
+
+routes = [Route("/GetPlayerSummaries/", endpoint=GetPlayerSummaries)]

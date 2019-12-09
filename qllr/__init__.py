@@ -2,6 +2,7 @@
 
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
+from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
 from . import blueprints as bp, submission
@@ -10,17 +11,25 @@ from .db import cache, get_db_pool
 from .settings import RUN_POST_PROCESS
 from .templating import templates
 
-app = App(debug=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/elo", bp.balance_api)
-app.mount("/stats", bp.submission)
-app.mount("/scoreboard", bp.scoreboard)
-app.mount("/player", bp.player)
-app.mount("/ratings", bp.ratings)
-app.mount("/matches", bp.matches)
-app.mount("/steam_api", bp.steam_api)
-app.mount("/export_rating", bp.export_rating)
-app.mount("/deprecated", bp.deprecated)
+
+def http_root(request: Request):
+    return RedirectResponse(request.url_for("MatchesHtml"))
+
+
+routes = [
+    Mount("/static", StaticFiles(directory="static"), name="static"),
+    Mount("/elo", routes=bp.balance_api.routes),
+    Mount("/player", routes=bp.player.routes),
+    Mount("/stats", routes=bp.submission.routes),
+    Mount("/scoreboard", routes=bp.scoreboard.routes),
+    Mount("/ratings", routes=bp.ratings.routes),
+    Mount("/matches", routes=bp.matches.routes),
+    Mount("/steam_api", routes=bp.steam_api.routes),
+    Mount("/export_rating", routes=bp.export_rating.routes),
+    Mount("/deprecated", routes=bp.deprecated.routes),
+    Route("/", endpoint=http_root),
+]
+app = App(debug=True, routes=routes)
 
 
 @app.on_event("startup")
@@ -41,8 +50,3 @@ async def on_startup():
         await tr.commit()
     finally:
         await dbpool.release(con)
-
-
-@app.route("/")
-def http_root(request: Request):
-    return RedirectResponse(request.url_for("MatchesHtml"))

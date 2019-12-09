@@ -1,7 +1,7 @@
 import requests
 from pytest import mark, raises
 
-from qllr.common import clean_name, request, convert_timestamp_to_tuple as cttt
+from qllr.common import clean_name, convert_timestamp_to_tuple as cttt, request
 
 
 @mark.asyncio

@@ -3,16 +3,12 @@
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from starlette.routing import Route
 
-from qllr.app import App
 from qllr.settings import RUN_POST_PROCESS
 from qllr.submission import submit_match  # TODO: перенеси в этот блупринт
 
-bp = App()
-bp.json_only_mode = True
 
-
-@bp.route("/submit", methods=["POST"])
 async def http_stats_submit(request: Request):
     # https://github.com/PredatH0r/XonStat/blob/cfeae1b0c35c48a9f14afa98717c39aa100cde59/feeder/feeder.node.js#L989
     if request.headers.get("X-D0-Blind-Id-Detached-Signature") != "dummy":
@@ -32,3 +28,6 @@ async def http_stats_submit(request: Request):
         raise HTTPException(202, result["message"])
 
     return JSONResponse(result)
+
+
+routes = [Route("/submit", endpoint=http_stats_submit, methods=["POST"])]

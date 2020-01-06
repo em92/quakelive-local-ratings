@@ -7,7 +7,7 @@ if [ -d 'venv' ] ; then
     export PREFIX="venv/bin/"
 fi
 
-if [ '$VIRTUAL_ENV' != '' ] ; then
+if [ -n "$VIRTUAL_ENV" ] ; then
     export PREFIX="$VIRTUAL_ENV/bin/"
 fi
 

@@ -21,7 +21,7 @@ seta qlx_balanceApi "elo/map_based"
 
 ## Bigger rating values
 
-Sometimes it is more convenient for players in-game to have 1200 rating instead of 25. For that you need to set in server.cfg:
+Sometimes it is more convenient for players in-game to have 1500 rating instead of 25. For that you need to set in server.cfg:
 
 ```
 seta qlx_balanceApi "elo/bn"

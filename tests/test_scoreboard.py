@@ -1,5 +1,7 @@
 from pytest import mark
 
+from qllr.blueprints.scoreboard.methods import get_medals_available
+
 from .conftest import read_json_sample
 
 
@@ -68,3 +70,8 @@ def test_not_exists_scoreboard_html(service):
         404,
         headers={"accept": "text/html"},
     )
+
+
+@mark.asyncio
+async def test_get_medals_available(db, service):
+    assert [] == await get_medals_available(db, "00001111-2222-3333-4444-555566667777")

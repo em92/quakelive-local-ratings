@@ -5,24 +5,14 @@ from typing import Tuple
 from asyncpg import Connection
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from starlette.routing import Route
 
-from qllr.app import App
 from qllr.endpoints import Endpoint
 from qllr.templating import templates
 
 from .methods import get_last_matches
 
-bp = App()
 
-
-@bp.route("/")
-@bp.route("/{gametype}/")
-@bp.route("/{gametype}/{page:int}/")
-@bp.route("/player/{steam_id:int}/")
-@bp.route("/player/{steam_id:int}/{gametype}/")
-@bp.route("/player/{steam_id:int}/{gametype}/{page:int}/")
-@bp.route("/player/{steam_id:int}/{page:int}/")
-@bp.route("/{page:int}/")
 class MatchesHtml(Endpoint):
     async def get_document(self, request: Request, con: Connection):
         gametype = request.path_params.get("gametype", None)
@@ -35,3 +25,15 @@ class MatchesHtml(Endpoint):
         context["current_page"] = page
         context["steam_id"] = steam_id
         return templates.TemplateResponse("match_list.html", context)
+
+
+routes = [
+    Route("/", endpoint=MatchesHtml),
+    Route("/{page:int}/", endpoint=MatchesHtml),
+    Route("/player/{steam_id:int}/", endpoint=MatchesHtml),
+    Route("/player/{steam_id:int}/{gametype}/", endpoint=MatchesHtml),
+    Route("/player/{steam_id:int}/{gametype}/{page:int}/", endpoint=MatchesHtml),
+    Route("/player/{steam_id:int}/{page:int}/", endpoint=MatchesHtml),
+    Route("/{gametype}/", endpoint=MatchesHtml),
+    Route("/{gametype}/{page:int}/", endpoint=MatchesHtml),
+]

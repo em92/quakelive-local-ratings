@@ -4,6 +4,7 @@
 # quakelive-local-ratings (qllr)
 
 QLLR is webservice that:
+
 - stores match results
 - generates player's ratings
 - gives API to be used in [minqlx](https://github.com/MinoMino/minqlx) with [balance](https://github.com/MinoMino/minqlx-plugins/blob/master/balance.py) plugin to give **balanced teams**
@@ -29,10 +30,12 @@ Usually it is used with [feeder](https://github.com/em92/qlstats-feeder-mini) ba
 ### Requirements
 
 For qllr itself:
+
 * Python 3.5 with pip
 * PostgreSQL 9.5
 
 For feeder:
+
 * Node.js 0.11.13
 * libzmq3
 

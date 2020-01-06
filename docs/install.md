@@ -5,6 +5,9 @@
 # base apps
 sudo apt-get install python3 python3-pip postgresql git
 
+# psycopg2 build prerequires
+sudo apt-get install python3-dev libpq-dev gcc
+
 # install qllr
 git clone https://github.com/em92/quakelive-local-ratings
 cd ./quakelive-local-ratings

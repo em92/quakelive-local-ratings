@@ -62,12 +62,12 @@ cm.CONVERTOR_TYPES["steam_ids"] = SteamIdsConvertor()
 cm.CONVERTOR_TYPES["match_id"] = MatchIdConvertor()
 cm.CONVERTOR_TYPES["balance_options"] = BalanceOptionsConvertor()
 
-from .balance_api import bp as balance_api  # noqa: F401
-from .deprecated import bp as deprecated  # noqa: F401
-from .export_rating import bp as export_rating  # noqa: F401
-from .matches import bp as matches  # noqa: F401
-from .player import bp as player  # noqa: F401
-from .ratings import bp as ratings  # noqa: F401
-from .scoreboard import bp as scoreboard  # noqa: F401
-from .steam_api import bp as steam_api  # noqa: F401
-from .submission import bp as submission  # noqa: F401
+from . import balance_api  # noqa: F401
+from . import deprecated  # noqa: F401
+from . import export_rating  # noqa: F401
+from . import matches  # noqa: F401
+from . import player  # noqa: F401
+from . import ratings  # noqa: F401
+from . import scoreboard  # noqa: F401
+from . import steam_api  # noqa: F401
+from . import submission  # noqa: F401

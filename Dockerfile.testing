@@ -1,0 +1,27 @@
+FROM python:3.5-stretch
+
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+RUN apt-get update
+
+RUN apt-get install -y postgresql-9.6
+
+WORKDIR /opt/qllr
+
+COPY --chown=www-data . .
+
+RUN python3 -m pip install -r requirements.txt
+
+RUN python3 -m pip install -r requirements_dev.txt
+
+USER www-data
+
+ENV PATH="/usr/lib/postgresql/9.6/bin:${PATH}"
+
+# follow hack is required to fix "sqlite3.OperationalError: unable to open database file"
+# which is cause by coverage module
+
+RUN chmod 0777 -R /opt/qllr
+
+CMD ["./scripts/test"]

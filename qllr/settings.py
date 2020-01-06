@@ -28,3 +28,4 @@ USE_AVG_PERF = {
     "tdm": config("USE_AVG_PERF_TDM", cast=bool, default=False),
     "tdm2v2": config("USE_AVG_PERF_TDM2V2", cast=bool, default=False),
 }
+TWITCH_CLIENT_ID = config("TWITCH_CLIENT_ID", default="")

@@ -3,8 +3,7 @@ def test_upload_no_signature(service):
         sample="something", headers={"Content-Type": "text/plain"}
     )
     assert resp.status_code == 403
-    json = resp.json()
-    assert "signature" in json["message"].lower()
+    assert "signature" in resp.text.lower()
 
 
 # TODO:

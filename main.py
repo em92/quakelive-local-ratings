@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import uvicorn
-from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from qllr import app
 from qllr.settings import HOST, PORT, TRUSTED_PROXIES

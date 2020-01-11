@@ -1,4 +1,5 @@
 import typing
+from urllib.parse import ParseResult, urlparse
 
 from jinja2 import Undefined, contextfunction, escape
 from starlette.templating import Jinja2Templates
@@ -29,7 +30,10 @@ class Templates(Jinja2Templates):
                 for k, v in path_params.items()
                 if not isinstance(v, Undefined) and v is not None
             }
-            return request.url_for(name, **path_params)
+            # NOTE: take this stupid hack away, when url_for returns relative path
+            absolute_url = request.url_for(name, **path_params)
+            parsed_absolute_url = urlparse(absolute_url)
+            return ParseResult("", "", *parsed_absolute_url[2:]).geturl()
 
         super().__init__(directory)
         self.env.filters["ql_nickname"] = render_ql_nickname

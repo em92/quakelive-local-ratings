@@ -12,6 +12,8 @@ from .common import log_exception
 from .db import cache, db_connect, get_db_pool
 from .exceptions import *
 from .settings import (
+    INITIAL_R1_MEAN,
+    INITIAL_R1_DEVIATION,
     MIN_PLAYER_COUNT_IN_MATCH_TO_RATE as MIN_PLAYER_COUNT_TO_RATE,
     MOVING_AVG_COUNT,
     RUN_POST_PROCESS,
@@ -289,6 +291,8 @@ async def _calc_ratings_avg_perf(
 async def _calc_ratings_trueskill(
     con: Connection, match_id: str, gametype_id: int, map_id: Optional[int] = None
 ):
+    gametype = [k for k, v in cache.GAMETYPE_IDS.items() if v == gametype_id][0]
+
     row = await con.fetchrow(
         "SELECT team2_score > team1_score, team2_score < team1_score FROM matches WHERE match_id = $1",
         match_id,
@@ -340,10 +344,11 @@ async def _calc_ratings_trueskill(
         mean = row[3]
         deviation = row[4]
 
-        try:
-            ts_rating = trueskill.Rating(mean, deviation)
-        except ValueError as e:
-            ts_rating = trueskill.Rating()
+        if mean is None:
+            mean = INITIAL_R1_MEAN[gametype]
+        if deviation is None:
+            deviation = INITIAL_R1_DEVIATION[gametype]
+        ts_rating = trueskill.Rating(mean, deviation)
 
         try:
             team_ratings_old[team - 1].append(ts_rating)

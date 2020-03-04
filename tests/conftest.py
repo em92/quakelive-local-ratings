@@ -147,7 +147,7 @@ class Service:
                 "if-modified-since"
             ] = "aaaa"  # hack, to make sure that app does not get cached response
         resp = self._test_cli.get(uri, allow_redirects=False, **kwargs)
-        assert resp.status_code == expected_http_code
+        assert resp.status_code == expected_http_code, resp.text
         return resp
 
 

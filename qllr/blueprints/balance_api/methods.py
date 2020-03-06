@@ -101,7 +101,7 @@ async def fetch(
     """
     players = {}
     for steam_id in map(str, steam_ids):
-        players[steam_id] = {}
+        players[steam_id] = {"steamid": steam_id}
         for gametype in SUPPORTED_GAMETYPES:
             players[steam_id][gametype] = {"games": 0, "elo": INITIAL_R1_MEAN[gametype] if gametype not in AVG_PERF_GAMETYPES else INITIAL_R2_VALUE[gametype]}
             if bigger_numbers:

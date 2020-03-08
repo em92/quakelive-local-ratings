@@ -237,33 +237,17 @@ async def test_nulled_ratings(db, mapname):
     )
     assert await fetch(db, [76561198051160294], mapname) == {
         "untracked": [],
-        "players": [{
-            "ad": {
-                "elo": 25.0,
-                "games": 0
-            },
-            "ca": {
-                "elo": 25.0,
-                "games": 0
-            },
-            "ctf": {
-                "elo": 25.0,
-                "games": 0
-            },
-            "ft": {
-                "elo": 25.0,
-                "games": 0
-            },
-            "steamid": "76561198051160294",
-            "tdm": {
-                "elo": 25.0,
-                "games": 0
-            },
-            "tdm2v2": {
-                "elo": 25.0,
-                "games": 0
+        "players": [
+            {
+                "ad": {"elo": 25.0, "games": 0},
+                "ca": {"elo": 25.0, "games": 0},
+                "ctf": {"elo": 25.0, "games": 0},
+                "ft": {"elo": 25.0, "games": 0},
+                "steamid": "76561198051160294",
+                "tdm": {"elo": 25.0, "games": 0},
+                "tdm2v2": {"elo": 25.0, "games": 0},
             }
-        }],
+        ],
         "ok": True,
         "playerinfo": {
             "76561198051160294": {
@@ -271,33 +255,15 @@ async def test_nulled_ratings(db, mapname):
                 "deactivated": False,
                 "privacy": "public",
                 "ratings": {
-                    "ad": {
-                        "elo": 25.0,
-                        "games": 0
-                    },
-                    "ca": {
-                        "elo": 25.0,
-                        "games": 0
-                    },
-                    "ctf": {
-                        "elo": 25.0,
-                        "games": 0
-                    },
-                    "ft": {
-                        "elo": 25.0,
-                        "games": 0
-                    },
+                    "ad": {"elo": 25.0, "games": 0},
+                    "ca": {"elo": 25.0, "games": 0},
+                    "ctf": {"elo": 25.0, "games": 0},
+                    "ft": {"elo": 25.0, "games": 0},
                     "steamid": "76561198051160294",
-                    "tdm": {
-                        "elo": 25.0,
-                        "games": 0
-                    },
-                    "tdm2v2": {
-                        "elo": 25.0,
-                        "games": 0
-                    }
-                }
-            },
+                    "tdm": {"elo": 25.0, "games": 0},
+                    "tdm2v2": {"elo": 25.0, "games": 0},
+                },
+            }
         },
         "deactivated": [],
     }

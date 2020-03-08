@@ -12,8 +12,8 @@ from .common import log_exception
 from .db import cache, db_connect, get_db_pool
 from .exceptions import *
 from .settings import (
-    INITIAL_R1_MEAN,
     INITIAL_R1_DEVIATION,
+    INITIAL_R1_MEAN,
     MIN_PLAYER_COUNT_IN_MATCH_TO_RATE as MIN_PLAYER_COUNT_TO_RATE,
     MOVING_AVG_COUNT,
     RUN_POST_PROCESS,

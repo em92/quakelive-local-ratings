@@ -59,7 +59,13 @@ def get_twitch_videos(account):
         },
     )
 
-    user_id = r.json()["users"][0]["_id"]
+    data = r.json()
+
+    # fallback if user not found
+    if not data["_total"]:
+        return {"_total": 0, "videos": []}
+
+    user_id = data["users"][0]["_id"]
 
     r = requests.get(
         "https://api.twitch.tv/kraken/channels/{0}/videos?limit=100&broadcast_type=archive".format(

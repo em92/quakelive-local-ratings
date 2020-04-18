@@ -26,7 +26,7 @@ pairs = (
     # ('troolzrock', 76561198061282570),
     # ('clawz', 76561198052511951),
     ("madgabz", 76561197972763865),
-    ("carecryy", 76561197985202252),
+    ("caretocry", 76561197985202252),
     ("bombaziin", 76561198256292896),
 )
 
@@ -59,7 +59,13 @@ def get_twitch_videos(account):
         },
     )
 
-    user_id = r.json()["users"][0]["_id"]
+    data = r.json()
+
+    # fallback if user not found
+    if not data["_total"]:
+        return {"_total": 0, "videos": []}
+
+    user_id = data["users"][0]["_id"]
 
     r = requests.get(
         "https://api.twitch.tv/kraken/channels/{0}/videos?limit=100&broadcast_type=archive".format(

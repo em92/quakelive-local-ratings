@@ -130,7 +130,7 @@ class Service:
 
     def upload_match_report_and_assert_success(self, sample_name: str, uuid: str):
         resp = self.upload_match_report(sample_name)
-        assert resp.status_code == 200
+        assert resp.status_code == 200, resp.text
         resp = self._test_cli.get("/scoreboard/{0}.json".format(uuid))
         assert resp.json()["ok"] is True
 
@@ -147,7 +147,7 @@ class Service:
                 "if-modified-since"
             ] = "aaaa"  # hack, to make sure that app does not get cached response
         resp = self._test_cli.get(uri, allow_redirects=False, **kwargs)
-        assert resp.status_code == expected_http_code
+        assert resp.status_code == expected_http_code, resp.text
         return resp
 
 

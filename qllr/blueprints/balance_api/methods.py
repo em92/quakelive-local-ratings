@@ -7,6 +7,12 @@ from asyncpg import Connection
 
 from qllr.common import log_exception, request
 from qllr.db import cache
+from qllr.settings import (
+    AVG_PERF_GAMETYPES,
+    INITIAL_R1_MEAN,
+    INITIAL_R2_VALUE,
+    SUPPORTED_GAMETYPES,
+)
 from qllr.submission import get_map_id
 
 COMMON_RATINGS_SQL = """
@@ -99,6 +105,19 @@ async def fetch(
     Outputs player ratings compatible with balance.py plugin from minqlx-plugins
     """
     players = {}
+    for steam_id in map(str, steam_ids):
+        players[steam_id] = {"steamid": steam_id}
+        for gametype in SUPPORTED_GAMETYPES:
+            players[steam_id][gametype] = {
+                "games": 0,
+                "elo": INITIAL_R1_MEAN[gametype]
+                if gametype not in AVG_PERF_GAMETYPES
+                else INITIAL_R2_VALUE[gametype],
+            }
+            if bigger_numbers:
+                players[steam_id][gametype]["elo"] = int(
+                    players[steam_id][gametype]["elo"] * 60
+                )
 
     if mapname:
         map_id = await get_map_id(con, mapname, False)

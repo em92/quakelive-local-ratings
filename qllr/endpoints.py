@@ -50,6 +50,8 @@ class Endpoint(HTTPEndpoint):
 
             request.path_params["gametype_id"] = cache.GAMETYPE_IDS[gametype]
 
+        # TODO: request.url is NOT relative
+        # TODO: it does not concern X-QuakeLive-* headers
         cached_response_key = str(request.url)
         cached_response = cache.store.get(cached_response_key)
 

@@ -1,0 +1,19 @@
+version: '3.7'
+services:
+  qllr:
+    build: .
+    ports:
+      - "7081:7081"
+    environment:
+      HOST: 0.0.0.0
+    env_file:
+      - .env
+    depends_on: ["db"]
+  db:
+    image: "postgres:9.5"
+    environment:
+      POSTGRES_USER: eugene
+      POSTGRES_PASSWORD: bebebe
+      POSTGRES_DB: qllr
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql

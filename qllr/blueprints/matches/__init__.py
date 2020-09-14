@@ -31,9 +31,9 @@ routes = [
     Route("/", endpoint=MatchesHtml),
     Route("/{page:int}/", endpoint=MatchesHtml),
     Route("/player/{steam_id:int}/", endpoint=MatchesHtml),
+    Route("/player/{steam_id:int}/{page:int}/", endpoint=MatchesHtml),
     Route("/player/{steam_id:int}/{gametype}/", endpoint=MatchesHtml),
     Route("/player/{steam_id:int}/{gametype}/{page:int}/", endpoint=MatchesHtml),
-    Route("/player/{steam_id:int}/{page:int}/", endpoint=MatchesHtml),
     Route("/{gametype}/", endpoint=MatchesHtml),
     Route("/{gametype}/{page:int}/", endpoint=MatchesHtml),
 ]

@@ -12,6 +12,8 @@ from .conftest import read_json_sample
         param(3, "/matches/ad/1/", 1, "ad", 1),
         param(4, "/matches/tdm/", 0, "tdm", 1),
         param(5, "/matches/player/76561198260599288/", 0, None, 1),
+        param(None, "/matches/player/76561198260599288/1/", 1, None, 1),
+        param(None, "/matches/player/76561198260599288/ad/2/", 2, "ad", 1),
     ],
 )
 def test_matches_all(service, index, uri, page, gametype, page_count):
@@ -27,8 +29,9 @@ def test_matches_all(service, index, uri, page, gametype, page_count):
     assert context["gametype"] == gametype
     assert context["page_count"] == page_count
 
-    sample_filename = "match_list_{}".format(index + 1)
-    assert context["matches"] == read_json_sample(sample_filename)
+    if index is not None:
+        sample_filename = "match_list_{}".format(index + 1)
+        assert context["matches"] == read_json_sample(sample_filename)
 
 
 @mark.parametrize(

@@ -82,7 +82,10 @@ async def get_last_matches(
         "" if len(where_clauses) == 0 else "WHERE " + " AND ".join(where_clauses)
     )
 
-    cache_key = "{}_{}".format(__name__, cache.key(where_clause_str, gametype))
+    # TODO: correctness of cached overall_match_count is not covered by tests
+    cache_key = "{}_{}".format(
+        __name__, cache.key(where_clause_str + "_" + str(params), gametype)
+    )
     if cache.store.get(cache_key) is not None:
         overall_match_count = cache.store.get(cache_key)
     else:

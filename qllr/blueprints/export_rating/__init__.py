@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from asyncpg import Connection
 from starlette.exceptions import HTTPException

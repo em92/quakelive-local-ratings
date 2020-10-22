@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from starlette.config import Config
 from starlette.datastructures import URL, CommaSeparatedStrings

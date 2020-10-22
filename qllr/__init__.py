@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from starlette.requests import Request
 from starlette.responses import RedirectResponse

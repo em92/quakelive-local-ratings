@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from asyncio import Lock
 from typing import Optional

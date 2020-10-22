@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from calendar import timegm
 from email.utils import formatdate, parsedate

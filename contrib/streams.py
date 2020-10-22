@@ -13,7 +13,7 @@ from qllr.db import db_connect
 from qllr.settings import TWITCH_CLIENT_ID
 
 DIR = os.path.dirname(os.path.realpath(__file__))
-OUTPUT_PATH = DIR + "/static/vods"
+OUTPUT_PATH = DIR + "/../static/vods"
 
 pairs = (
     # ('sergeynixon', 76561198146349598),

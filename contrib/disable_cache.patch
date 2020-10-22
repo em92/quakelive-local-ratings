@@ -1,0 +1,31 @@
+diff --git a/qllr/endpoints.py b/qllr/endpoints.py
+index 1388478..ff7dce0 100644
+--- a/qllr/endpoints.py
++++ b/qllr/endpoints.py
+@@ -16,6 +16,8 @@ from .db import cache, get_db_pool
+ 
+ class Endpoint(HTTPEndpoint):
+     def try_very_fast_response(self, request: Request) -> Optional[Response]:
++        return
++
+         if request.state.if_mod_since is None:
+             return None
+ 
+@@ -29,6 +31,8 @@ class Endpoint(HTTPEndpoint):
+     async def try_fast_response(
+         self, request: Request, conn: Connection
+     ) -> Optional[Response]:
++        return
++
+         if request.state.if_mod_since is None:
+             return
+ 
+@@ -53,7 +57,7 @@ class Endpoint(HTTPEndpoint):
+         # TODO: request.url is NOT relative
+         # TODO: it does not concern X-QuakeLive-* headers
+         cached_response_key = str(request.url)
+-        cached_response = cache.store.get(cached_response_key)
++        cached_response = None  # cache.store.get(cached_response_key)
+ 
+         if cached_response and request.headers.get("if-modified-since") is None:
+             request.state.fast_response = cached_response

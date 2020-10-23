@@ -1,4 +1,3 @@
-
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.routing import Mount, Route

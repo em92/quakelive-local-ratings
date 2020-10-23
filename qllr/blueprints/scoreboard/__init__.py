@@ -1,4 +1,3 @@
-
 from typing import Tuple
 
 from asyncpg import Connection

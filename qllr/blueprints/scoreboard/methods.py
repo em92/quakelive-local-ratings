@@ -1,4 +1,3 @@
-
 import json
 
 from asyncpg import Connection

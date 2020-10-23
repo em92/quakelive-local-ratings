@@ -1,5 +1,3 @@
-
-
 class InvalidMatchReport(Exception):
     pass
 

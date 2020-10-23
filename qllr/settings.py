@@ -1,4 +1,3 @@
-
 from starlette.config import Config
 from starlette.datastructures import URL, CommaSeparatedStrings
 from trueskill import MU, SIGMA

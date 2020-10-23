@@ -1,4 +1,3 @@
-
 from calendar import timegm
 from email.utils import formatdate, parsedate
 from time import gmtime

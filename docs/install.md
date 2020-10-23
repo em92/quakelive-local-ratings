@@ -1,4 +1,4 @@
-# Installation (on Debian Stretch)
+# Installation (on Debian Buster)
 
 ## Installing and configuring QLLR
 ```

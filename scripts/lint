@@ -1,23 +1,6 @@
 #!/bin/sh -e
 
-export PREFIX=""
-export TARGET="qllr tests main.py streams.py"
-export VERSION_SCRIPT="import sys; print('%s.%s' % sys.version_info[0:2])"
-export PYTHON_VERSION=`python -c "$VERSION_SCRIPT"`
+export TARGET="qllr tests contrib main.py"
 
-if [ -d 'venv' ] ; then
-    export PREFIX="venv/bin/"
-fi
-
-if [ '$VIRTUAL_ENV' != '' ] ; then
-    export PREFIX="$VIRTUAL_ENV/bin/"
-fi
-
-set -x
-
-if [ "${PYTHON_VERSION}" = '3.5' ]; then
-    echo "Skipping 'black' on 3.5"
-else
-    ${PREFIX}black $TARGET
-fi
-${PREFIX}isort --multi-line=3 --trailing-comma --force-grid-wrap=0 --combine-as --line-width 88 --recursive --apply $TARGET
+${PREFIX}black $TARGET
+${PREFIX}isort --multi-line=3 --trailing-comma --force-grid-wrap=0 --combine-as --line-width 88 $TARGET

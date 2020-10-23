@@ -31,7 +31,7 @@ Usually it is used with [feeder](https://github.com/em92/qlstats-feeder-mini) ba
 
 For qllr itself:
 
-* Python 3.5 with pip
+* Python 3.6 with pip
 * PostgreSQL 9.5
 
 For feeder:
@@ -55,7 +55,7 @@ docker build . -t em92/qllr --target=production
 
 ### Docs
 
-* [Installation (on Debian Stretch)](docs/install.md)
+* [Installation (on Debian Buster)](docs/install.md)
 * [Backing up database](docs/backup.md)
 * [qlds/minqlx configuration](docs/minqlx_config.md)
 

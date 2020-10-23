@@ -1,15 +1,8 @@
 #!/bin/sh -e
 
-export TARGET="qllr tests main.py streams.py"
-
-export VERSION_SCRIPT="import sys; print('%s.%s' % sys.version_info[0:2])"
-export PYTHON_VERSION=`python -c "$VERSION_SCRIPT"`
+export TARGET="qllr tests contrib main.py"
 
 set -x
 
-PYTHONPATH=. python -m pytest --ignore venv -W ignore::DeprecationWarning --cov=qllr --cov=tests --cov-report=term-missing tests/ ${@}
-if [ "${PYTHON_VERSION}" = '3.5' ]; then
-    echo "Skipping 'black' on 3.5"
-else
-    ${PREFIX}black $TARGET --check
-fi
+PYTHONPATH=. python -m pytest --ignore venv -W ignore::DeprecationWarning ${@}
+${PREFIX}black $TARGET --check

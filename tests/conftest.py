@@ -1,10 +1,10 @@
+import asyncio
 import gzip
 import json
 import os
 import typing
 
 import psycopg2
-from async_generator import async_generator, yield_
 from pytest import fixture
 from requests import Response
 from starlette.config import environ
@@ -155,7 +155,18 @@ class Service:
 def test_cli():
     from qllr import app
 
-    with TestClient(app, raise_server_exceptions=False) as client:
+    # https://github.com/encode/starlette/pull/1077
+    # TODO: after PR is merged, there is not need for PatchedTestClient
+    class PatchedTestClient(TestClient):
+        def __enter__(self):
+            r = super(PatchedTestClient, self).__enter__()
+            self.loop = asyncio.get_event_loop()
+            return r
+
+        def __exit__(self, *args):
+            self.loop.run_until_complete(self.wait_shutdown())
+
+    with PatchedTestClient(app, raise_server_exceptions=False) as client:
         yield client
 
 
@@ -178,7 +189,6 @@ def service(test_cli):
 
 
 @fixture
-@async_generator
 async def db(event_loop):
     from qllr.db import get_db_pool
 
@@ -188,7 +198,7 @@ async def db(event_loop):
     tr = con.transaction()
     await tr.start()
 
-    await yield_(con)
+    yield con
 
     await tr.rollback()
     await pool.release(con)

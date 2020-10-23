@@ -4,6 +4,7 @@
 import argparse
 import os
 import sys
+
 import trueskill
 
 from qllr.db import db_connect

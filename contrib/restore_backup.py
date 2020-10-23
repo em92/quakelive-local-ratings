@@ -4,6 +4,7 @@
 import argparse
 import os
 import sys
+
 from qllr.settings import DATABASE_URL
 
 parser = argparse.ArgumentParser()

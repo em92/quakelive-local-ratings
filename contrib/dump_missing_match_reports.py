@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
+
+from os.path import isfile
 
 from dump_qlstats_data import download_stats
+
 from qllr.db import db_connect
-from os.path import isfile
 
 
 def main(args):

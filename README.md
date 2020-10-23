@@ -39,6 +39,20 @@ For feeder:
 * Node.js 0.11.13
 * libzmq3
 
+### Docker
+
+For development:
+
+```
+docker build . -t em92/qllr-dev --target=develop
+```
+
+For production:
+
+```
+docker build . -t em92/qllr --target=production
+```
+
 ### Docs
 
 * [Installation (on Debian Stretch)](docs/install.md)

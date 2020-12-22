@@ -25,5 +25,5 @@ services:
     build:
       context: .
       target: develop
-#    volumes:
-#      - .:/opt/qllr
+    volumes:
+      - .:/opt/qllr

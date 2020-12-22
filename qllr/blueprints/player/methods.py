@@ -116,7 +116,8 @@ async def get_player_info(con: Connection, steam_id: int):
         GROUP BY weapon_id
     ) t2 ON t2.weapon_id = t.weapon_id
     """
-    result["weapon_stats"] = await con.fetchval(query, MOVING_AVG_COUNT, steam_id)
+    # TODO: cover case, where weapon_status is empty array
+    result["weapon_stats"] = await con.fetchval(query, MOVING_AVG_COUNT, steam_id) or []
 
     # fav map
     query = """

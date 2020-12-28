@@ -68,7 +68,7 @@
         <td class="col-md-3">{{ item['frags'] }}</td>
         <td class="col-md-3">{{ item['acc'] }}</td>
       </tr>{% endfor %}
-      {% if response['weapon_status'] | length == 0 %}
+      {% if response['weapon_stats'] | length == 0 %}
         <tr><td colspan="3">n/a</td></tr>
       {% endif %}
       </tbody>

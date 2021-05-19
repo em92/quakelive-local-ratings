@@ -11,7 +11,7 @@ sudo apt-get install python3-dev libpq-dev gcc
 # install qllr
 git clone https://github.com/em92/quakelive-local-ratings
 cd ./quakelive-local-ratings
-sudo pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 All config is in `.env` file. See `.env.example`.

@@ -44,13 +44,13 @@ For feeder:
 For development:
 
 ```
-docker build . -t em92/qllr-dev --target=develop
+docker build . -t em92/qllr-dev -f Dockerfile.develop
 ```
 
 For production:
 
 ```
-docker build . -t em92/qllr --target=production
+docker build . -t em92/qllr -f Dockerfile.production
 ```
 
 ### Docs

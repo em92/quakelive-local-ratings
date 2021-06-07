@@ -3,7 +3,7 @@ services:
   qllr:
     build:
       context: .
-      target: production
+      dockerfile: Dockerfile.production
     ports:
       - "7081:7081"
     environment:
@@ -24,6 +24,6 @@ services:
   test:
     build:
       context: .
-      target: develop
+      dockerfile: Dockerfile.develop
     volumes:
       - .:/opt/qllr

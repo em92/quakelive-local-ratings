@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
+from starlette.responses import PlainTextResponse, RedirectResponse
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
@@ -14,6 +14,13 @@ def http_root(request: Request):
     return RedirectResponse(request.url_for("MatchesHtml"))
 
 
+# fmt: off
+http_robots_txt = PlainTextResponse("""
+User-agent: *
+Disallow: /
+""")
+# fmt: on
+
 routes = [
     Mount("/static", StaticFiles(directory="static"), name="static"),
     Mount("/elo", routes=bp.balance_api.routes),
@@ -25,6 +32,7 @@ routes = [
     Mount("/steam_api", routes=bp.steam_api.routes),
     Mount("/export_rating", routes=bp.export_rating.routes),
     Mount("/deprecated", routes=bp.deprecated.routes),
+    Route("/robots.txt", endpoint=http_robots_txt),
     Route("/", endpoint=http_root),
 ]
 app = App(debug=True, routes=routes)

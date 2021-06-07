@@ -102,6 +102,9 @@ async def fetch(
     """
     Outputs player ratings compatible with balance.py plugin from minqlx-plugins
     """
+
+    # fill result with default values
+    # in case if player does not exist
     players = {}
     for steam_id in map(str, steam_ids):
         players[steam_id] = {"steamid": steam_id}
@@ -132,8 +135,7 @@ async def fetch(
             round(row[2], 2) if bigger_numbers is False else int(row[2] * 60),
             row[3],
         )
-        if steam_id not in players:
-            players[steam_id] = {"steamid": steam_id}
+        # replace default values with actual ones
         players[steam_id][gametype] = {"games": n, "elo": rating}
 
     result = prepare_result(players)

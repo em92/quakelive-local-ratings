@@ -116,6 +116,41 @@ def assert_balance_api_data_equal(first: dict, second: dict):
     assert set(first["untracked"]) == set(second["untracked"])
 
 
+def default_ratings(steamid):
+    return {
+        "untracked": [],
+        "players": [
+            {
+                "ad": {"elo": 25.0, "games": 0},
+                "ca": {"elo": 25.0, "games": 0},
+                "ctf": {"elo": 25.0, "games": 0},
+                "ft": {"elo": 25.0, "games": 0},
+                "steamid": steamid,
+                "tdm": {"elo": 25.0, "games": 0},
+                "tdm2v2": {"elo": 25.0, "games": 0},
+            }
+        ],
+        "ok": True,
+        "playerinfo": {
+            steamid: {
+                "allowRating": True,
+                "deactivated": False,
+                "privacy": "public",
+                "ratings": {
+                    "ad": {"elo": 25.0, "games": 0},
+                    "ca": {"elo": 25.0, "games": 0},
+                    "ctf": {"elo": 25.0, "games": 0},
+                    "ft": {"elo": 25.0, "games": 0},
+                    "steamid": steamid,
+                    "tdm": {"elo": 25.0, "games": 0},
+                    "tdm2v2": {"elo": 25.0, "games": 0},
+                },
+            }
+        },
+        "deactivated": [],
+    }
+
+
 def test_bigger_numbers(service: Service):
     response = service.get("/elo/bn/" + STEAM_IDS_AD_PLAYERS, 200)
     assert_balance_api_data_equal(
@@ -134,6 +169,13 @@ def test_simple_tdm_only_players(service):
     assert_balance_api_data_equal(
         service.get("/elo/" + STEAM_IDS_TDM_PLAYERS).json(),
         read_json_sample("balance_api_tdm_only_players"),
+    )
+
+
+def test_not_existing_player(service: Service):
+    assert_balance_api_data_equal(
+        service.get("/elo/100500").json(),
+        default_ratings("100500"),
     )
 
 
@@ -235,35 +277,6 @@ async def test_nulled_ratings(db, mapname):
     await db.execute(
         "INSERT INTO gametype_ratings(steam_id, gametype_id, n, last_played_timestamp) VALUES (76561198051160294, 1, 0, 1477510451)"
     )
-    assert await fetch(db, [76561198051160294], mapname) == {
-        "untracked": [],
-        "players": [
-            {
-                "ad": {"elo": 25.0, "games": 0},
-                "ca": {"elo": 25.0, "games": 0},
-                "ctf": {"elo": 25.0, "games": 0},
-                "ft": {"elo": 25.0, "games": 0},
-                "steamid": "76561198051160294",
-                "tdm": {"elo": 25.0, "games": 0},
-                "tdm2v2": {"elo": 25.0, "games": 0},
-            }
-        ],
-        "ok": True,
-        "playerinfo": {
-            "76561198051160294": {
-                "allowRating": True,
-                "deactivated": False,
-                "privacy": "public",
-                "ratings": {
-                    "ad": {"elo": 25.0, "games": 0},
-                    "ca": {"elo": 25.0, "games": 0},
-                    "ctf": {"elo": 25.0, "games": 0},
-                    "ft": {"elo": 25.0, "games": 0},
-                    "steamid": "76561198051160294",
-                    "tdm": {"elo": 25.0, "games": 0},
-                    "tdm2v2": {"elo": 25.0, "games": 0},
-                },
-            }
-        },
-        "deactivated": [],
-    }
+    assert await fetch(db, [76561198051160294], mapname) == default_ratings(
+        "76561198051160294"
+    )

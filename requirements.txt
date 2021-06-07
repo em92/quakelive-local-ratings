@@ -6,5 +6,5 @@ aiofiles==0.5.0
 asyncpg==0.21.0
 uvicorn==0.12.2
 requests
-Jinja2==2.11.2
+Jinja2==2.11.3
 cachetools==3.1.1

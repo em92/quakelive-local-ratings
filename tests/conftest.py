@@ -156,18 +156,7 @@ class Service:
 def test_cli():
     from qllr import app
 
-    # https://github.com/encode/starlette/pull/1077
-    # TODO: after PR is merged, there is not need for PatchedTestClient
-    class PatchedTestClient(TestClient):
-        def __enter__(self):
-            r = super(PatchedTestClient, self).__enter__()
-            self.loop = asyncio.get_event_loop()
-            return r
-
-        def __exit__(self, *args):
-            self.loop.run_until_complete(self.wait_shutdown())
-
-    with PatchedTestClient(app, raise_server_exceptions=False) as client:
+    with TestClient(app, raise_server_exceptions=False) as client:
         yield client
 
 

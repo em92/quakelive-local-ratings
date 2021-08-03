@@ -10,10 +10,14 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from .db import cache, get_db_pool
+from .settings import CACHE_HTTP_RESPONSE
 
 
 class Endpoint(HTTPEndpoint):
     def try_very_fast_response(self, request: Request) -> Optional[Response]:
+        if not CACHE_HTTP_RESPONSE:
+            return None
+
         if request.state.if_mod_since is None:
             return None
 
@@ -27,6 +31,9 @@ class Endpoint(HTTPEndpoint):
     async def try_fast_response(
         self, request: Request, conn: Connection
     ) -> Optional[Response]:
+        if not CACHE_HTTP_RESPONSE:
+            return
+
         if request.state.if_mod_since is None:
             return
 

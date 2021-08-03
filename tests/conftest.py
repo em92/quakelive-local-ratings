@@ -38,6 +38,7 @@ def pytest_configure(config):
     postgresql = PGSQLFactory()
     environ["DATABASE_URL"] = postgresql.url()
     environ["USE_AVG_PERF_TDM"] = "TRUE"
+    environ["CACHE_HTTP_RESPONSE"] = "1"
 
 
 def read_sample(sample_filename: str) -> str:

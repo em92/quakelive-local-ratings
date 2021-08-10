@@ -21,4 +21,4 @@ script:
 
 after_script:
     - pip install codecov
-    - codecov -F /tmp/qllr.coverage
+    - codecov -f /tmp/qllr.coverage

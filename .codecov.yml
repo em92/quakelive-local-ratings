@@ -9,6 +9,3 @@ coverage:
     changes: no
 
 comment: off
-
-fixes:
-  - "/opt/qllr/::"

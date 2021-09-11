@@ -201,7 +201,7 @@ img.player_icon {
 }
 
 
-.w-bfg, w-cg, w-ng, w-pl, w-gh,
+.w-bfg, w-cg, w-ng, w-pm, w-gh,
 .w-gl, .w-gt, .w-hmg, .w-lg, .w-mg, .w-pg, .w-rg, .w-rl, .w-sg
 { background: url('/static/images/wpns21.png') no-repeat; overflow: hidden; text-indent: -9999px; text-align: left; }
 
@@ -215,7 +215,7 @@ img.player_icon {
 .w-mg { background-position: -147px -0px; width: 21px; height: 21px; }
 .w-ng { background-position: -168px -0px; width: 21px; height: 21px; }
 .w-pg { background-position: -189px -0px; width: 21px; height: 21px; }
-.w-pl { background-position: -210px -0px; width: 21px; height: 21px; }
+.w-pm { background-position: -210px -0px; width: 21px; height: 21px; }
 .w-rg { background-position: -231px -0px; width: 21px; height: 21px; }
 .w-rl { background-position: -252px -0px; width: 21px; height: 21px; }
 .w-sg { background-position: -273px -0px; width: 21px; height: 21px; }

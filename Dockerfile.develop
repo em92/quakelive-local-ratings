@@ -8,6 +8,8 @@ RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-9.6
 
 ENV PATH="/usr/lib/postgresql/9.6/bin:${PATH}"
+# take out coverage report from source directory
+ENV COVERAGE_FILE="/tmp/qllr.coverage"
 
 COPY --chown=www-data . /opt/qllr
 

@@ -1,6 +1,6 @@
-FROM python:3.6-stretch AS base_develop
+FROM python:3.6-stretch
 
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+RUN echo "deb https://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 RUN apt-get update
@@ -9,9 +9,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-9.6
 
 ENV PATH="/usr/lib/postgresql/9.6/bin:${PATH}"
 
-WORKDIR /opt/qllr
+COPY --chown=www-data . /opt/qllr
 
-COPY --chown=www-data . .
+WORKDIR /opt/qllr
 
 RUN python3 -m pip install -r requirements.txt
 RUN python3 -m pip install -r requirements_dev.txt

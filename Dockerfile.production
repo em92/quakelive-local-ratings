@@ -1,8 +1,8 @@
-FROM python:3.6-stretch AS production
+FROM python:3.6-stretch
+
+COPY --chown=www-data . /opt/qllr
 
 WORKDIR /opt/qllr
-
-COPY --chown=www-data . .
 
 RUN python3 -m pip install -r requirements.txt
 

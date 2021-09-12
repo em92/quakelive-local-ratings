@@ -1,6 +1,0 @@
-[run]
-data_file = /tmp/qllr.coverage
-relative_files = True
-
-[report]
-show_missing = True

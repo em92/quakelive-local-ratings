@@ -1,5 +1,4 @@
 import asyncio
-import gzip
 import json
 import os
 import typing
@@ -42,12 +41,8 @@ def pytest_configure(config):
 
 
 def read_sample(sample_filename: str) -> str:
-    try:
-        with open(module_path + "/samples/" + sample_filename, "rb") as f:
-            result = f.read()
-    except FileNotFoundError:
-        with gzip.open(module_path + "/samples/" + sample_filename + ".gz") as f:
-            result = f.read()
+    with open(module_path + "/samples/" + sample_filename, "rb") as f:
+        result = f.read()
     return result.decode("utf-8")
 
 
@@ -123,7 +118,7 @@ class Service:
             }
 
         if sample_name is not None:
-            f = gzip.open(module_path + "/match_samples/" + sample_name + ".gz")
+            f = open(module_path + "/match_samples/" + sample_name)
             sample = f.read()
             f.close()
 

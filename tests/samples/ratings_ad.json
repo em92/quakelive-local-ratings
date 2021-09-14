@@ -1,0 +1,62 @@
+[
+    {
+        "rating": 31.37,
+        "_id": "76561198190209913",
+        "n": 11,
+        "model": "crash/bright",
+        "rank": 1,
+        "win_ratio": 75,
+        "rd": 6.89,
+        "name": "de^2r^5_^2r^7achi"
+    },
+    {
+        "rating": 28.3,
+        "_id": "76561198257384145",
+        "n": 12,
+        "model": "mynx/red",
+        "rank": 2,
+        "win_ratio": 59,
+        "rd": 6.75,
+        "name": "Katya"
+    },
+    {
+        "rating": 26.28,
+        "_id": "76561198308265738",
+        "n": 10,
+        "model": "grunt/default",
+        "rank": 3,
+        "win_ratio": 64,
+        "rd": 6.88,
+        "name": "lookaround"
+    },
+    {
+        "rating": 25.5,
+        "_id": "76561198053432676",
+        "n": 10,
+        "model": "mynx/default",
+        "rank": 4,
+        "win_ratio": 58,
+        "rd": 7.02,
+        "name": "arracid"
+    },
+    {
+        "rating": 24.9,
+        "_id": "76561198346199541",
+        "n": 10,
+        "model": "xaero/sport",
+        "rank": 5,
+        "win_ratio": 42,
+        "rd": 6.98,
+        "name": "Blackguard"
+    },
+    {
+        "rating": 23.19,
+        "_id": "76561198257183089",
+        "n": 15,
+        "model": "doom/sport_blue",
+        "rank": 6,
+        "win_ratio": 50,
+        "rd": 6.28,
+        "name": "Baguette AllstarZ"
+    }
+]

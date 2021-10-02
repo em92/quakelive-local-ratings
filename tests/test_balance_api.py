@@ -130,7 +130,6 @@ def default_ratings(steamid):
                 "tdm2v2": {"elo": 25.0, "games": 0},
             }
         ],
-        "ok": True,
         "playerinfo": {
             steamid: {
                 "allowRating": True,

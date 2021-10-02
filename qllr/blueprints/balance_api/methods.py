@@ -84,7 +84,6 @@ def prepare_result(players):
         }
 
     return {
-        "ok": True,
         "playerinfo": playerinfo,
         "players": list(players.values()),
         "untracked": [],

@@ -242,5 +242,4 @@ async def get_scoreboard(con: Connection, match_id: str):
         "team_stats": {"overall": overall_stats},
         "weapons_available": weapons_available,
         "medals_available": medals_available,
-        "ok": True,
     }

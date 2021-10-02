@@ -128,7 +128,7 @@ class Service:
         resp = self.upload_match_report(sample_name)
         assert resp.status_code == 200, resp.text
         resp = self._test_cli.get("/scoreboard/{0}.json".format(uuid))
-        assert resp.json()["ok"] is True
+        assert resp.status_code == 200, resp.json()["message"]
 
     def assert_scoreboard_equals_sample(self, match_id: str, sample_filename: str):
         obj_defacto = self._test_cli.get("/scoreboard/{0}.json".format(match_id)).json()

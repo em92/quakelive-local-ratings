@@ -38,7 +38,6 @@ class GetPlayerSummaries(Endpoint):
 
         return JSONResponse(
             {
-                "ok": True,
                 "response": {
                     "players": await con.fetchval(query, request.state.steam_ids)
                 },

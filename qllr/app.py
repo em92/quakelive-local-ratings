@@ -28,7 +28,7 @@ async def http_exception_handler(request: Request, e: HTTPException):
     from traceback import print_exc
 
     print_exc()
-    context = {"ok": False, "message": e.detail}
+    context = {"message": e.detail}
     if request.url.path.lower().endswith(".json"):
         return JSONResponse(context, status_code=e.status_code)
 

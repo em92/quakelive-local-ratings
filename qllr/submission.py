@@ -524,7 +524,6 @@ async def _submit_match(data):
         data (str): match report
 
     Returns: {
-        "ok: True/False - on success/fail
         "message":      - operation result description
         "match_id":     - match_id of match_report
     }
@@ -698,10 +697,9 @@ async def _submit_match(data):
             await post_process(
                 con, match_id, cache.GAMETYPE_IDS[gametype], match_timestamp, map_id
             )
-            result = {"ok": True, "message": "done", "match_id": match_id}
+            result = {"message": "done", "match_id": match_id}
         else:
             result = {
-                "ok": True,
                 "message": "skipped post processing",
                 "match_id": match_id,
             }

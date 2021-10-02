@@ -184,7 +184,7 @@ async def get_player_info(con: Connection, steam_id: int):
 
     result["matches"] = await con.fetchval(query, steam_id)
 
-    return {"response": result, "title": clean_name(result["name"]), "ok": True}
+    return {"response": result, "title": clean_name(result["name"])}
 
 
 async def get_best_match_of_player(

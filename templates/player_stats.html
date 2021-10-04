@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% from "helpers.html" import rating with context %}
 {% block body %}
-<div id="player-stats-wrapper">
+<article>
 <h1 class="title">Player Information</h1>
 <h2>{{ response['name'] | ql_nickname | safe }}</h2>
 
@@ -77,5 +77,5 @@
 </div>
 
 <p><a href="https://qlstats.net/player/{{ steam_id }}">View player page in QLStats.net</a></p>
-</div>
+</article>
 {% endblock %}

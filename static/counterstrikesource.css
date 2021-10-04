@@ -150,8 +150,7 @@ img.player_icon {
 }
 
 #summary-table-wrapper,
-#match-info-wrapper,
-#player-stats-wrapper {
+article {
   background-color: #222;
   border-radius: 15px;
   padding: 20px;
@@ -184,19 +183,19 @@ img.player_icon {
   width: 25%;
 }
 
-#match-info-wrapper tr.blue td {
+.scoreboard tr.blue td {
   background-color: #00004D;
 }
 
-#match-info-wrapper tr.blue:hover td {
+.scoreboard tr.blue:hover td {
   background-color: #00005E;;
 }
 
-#match-info-wrapper tr.red td {
+.scoreboard tr.red td {
   background-color: #4D0000;
 }
 
-#match-info-wrapper tr.red:hover td {
+.scoreboard tr.red:hover td {
   background-color: #5E0000;
 }
 

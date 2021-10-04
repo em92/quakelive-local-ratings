@@ -22,6 +22,7 @@ Disallow: /
 # fmt: on
 
 routes = [
+    Route("/favicon.ico", RedirectResponse("https://www.quakelive.com/images/favicon.png")),
     Mount("/static", StaticFiles(directory="static"), name="static"),
     Mount("/elo", routes=bp.balance_api.routes),
     Mount("/player", routes=bp.player.routes),

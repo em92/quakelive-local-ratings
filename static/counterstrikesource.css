@@ -14,53 +14,6 @@ a:hover {
   background-color: white;
 }
 
-noscript {
-	background-color: red;
-	border: 1px solid black;
-	width: 100%;
-	top: 0px;
-	text-align: center;
-	display: block;
-	position: fixed;
-}
-
-#not_ok {
-  background-color: #C81D11;
-  border-radius: 15px;
-  padding: 20px;
-}
-
-#top-right-fixed {
-	position: fixed;
-	top: 0px;
-	right: 0px;
-	background-color: white;
-	color: black;
-	padding: 10px;
-}
-
-
-#bottom-right-fixed {
-	background-color: white;
-	position: fixed;
-	bottom: 0px;
-	right: 0px;
-	color: black;
-}
-
-#bottom-left-fixed {
-	background-color: red;
-	position: fixed;
-	bottom: 0px;
-	left: 0px;
-	color: yellow;
-}
-
-#bottom-right-fixed img{
-	width: 320px;
-	height: auto;
-}
-
 table {
 	color: #d0d0d0;
 }

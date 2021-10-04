@@ -90,18 +90,6 @@ img.player_icon {
   text-align: center;
 }
 
-#footer {
-  margin-top: 25px;
-  margin-bottom: 20px;
-  padding: 3px;
-  background-color: #CCC;
-  border: 1px solid black;
-  max-width: 450px;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
 #summary-table-wrapper,
 article {
   background-color: #222;

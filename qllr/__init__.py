@@ -23,7 +23,6 @@ http_robots_txt = PlainTextResponse("""
 User-agent: *
 Disallow: /
 """)
-# fmt: on
 
 routes = [
     Route("/about", endpoint=http_about),
@@ -41,6 +40,8 @@ routes = [
     Route("/robots.txt", endpoint=http_robots_txt),
     Route("/", endpoint=http_root),
 ]
+# fmt: on
+
 app = App(debug=True, routes=routes)
 
 

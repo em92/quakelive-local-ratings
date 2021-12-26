@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from starlette.config import Config
 from starlette.datastructures import URL, CommaSeparatedStrings
 from trueskill import MU, SIGMA
@@ -15,6 +13,7 @@ PLAYER_COUNT_PER_PAGE = config("PLAYER_COUNT_PER_PAGE", cast=int, default=10)
 RUN_POST_PROCESS = config("RUN_POST_PROCESS", cast=bool, default=True)
 MOVING_AVG_COUNT = config("MOVING_AVG_COUNT", cast=int, default=50)
 TWITCH_CLIENT_ID = config("TWITCH_CLIENT_ID", default="")
+CACHE_HTTP_RESPONSE = config("CACHE_HTTP_RESPONSE", cast=bool, default=False)
 
 INITIAL_R1_MEAN = {}
 INITIAL_R1_DEVIATION = {}

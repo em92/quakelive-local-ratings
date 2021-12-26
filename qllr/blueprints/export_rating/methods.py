@@ -31,4 +31,4 @@ async def export(con: Connection, gametype_id: int):
             }
         )
 
-    return {"ok": True, "response": result}
+    return {"response": result}

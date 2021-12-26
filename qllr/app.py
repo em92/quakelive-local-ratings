@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from typing import List, Optional
 
 from starlette.applications import Starlette
@@ -30,8 +28,8 @@ async def http_exception_handler(request: Request, e: HTTPException):
     from traceback import print_exc
 
     print_exc()
-    context = {"ok": False, "message": e.detail}
-    if request.app.json_only_mode or request.url.path.lower().endswith(".json"):
+    context = {"message": e.detail}
+    if request.url.path.lower().endswith(".json"):
         return JSONResponse(context, status_code=e.status_code)
 
     return PlainTextResponse(context["message"], status_code=e.status_code)
@@ -67,7 +65,6 @@ async def player_not_found_exception_handler(request: Request, e: PlayerNotFound
 class App(Starlette):
     def __init__(self, debug: bool = False, routes: Optional[List] = []):
         super().__init__(debug, routes)
-        self.json_only_mode = False
         self.add_exception_handler(HTTPException, http_exception_handler)
         self.add_exception_handler(
             MatchAlreadyExists, match_already_exists_exception_handler

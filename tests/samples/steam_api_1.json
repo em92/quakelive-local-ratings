@@ -1,0 +1,46 @@
+{
+    "response": {
+        "players": [
+            {
+                "steamid": 76561197985202252,
+                "personaname": "carecryy"
+            },
+            {
+                "steamid": 76561198005116094,
+                "personaname": "Xaero"
+            },
+            {
+                "steamid": 76561198043212328,
+                "personaname": "^6dobo ^7shire"
+            },
+            {
+                "steamid": 76561198077231066,
+                "personaname": "Mike_Litoris"
+            },
+            {
+                "steamid": 76561198257327401,
+                "personaname": "^1Jale^4peno^7"
+            },
+            {
+                "steamid": 76561198257338624,
+                "personaname": "indie"
+            },
+            {
+                "steamid": 76561198257384619,
+                "personaname": "^2HanzoHas^4ashiSan^7"
+            },
+            {
+                "steamid": 76561198260599288,
+                "personaname": "eugene"
+            },
+            {
+                "steamid": 76561198308265738,
+                "personaname": "lookaround"
+            },
+            {
+                "steamid": 76561198346199541,
+                "personaname": "Blackguard"
+            }
+        ]
+    }
+}

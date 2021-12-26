@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% from "helpers.html" import rating with context %}
 {% block body %}
-<div id="player-stats-wrapper">
+<article>
 <h1 class="title">Player Information</h1>
 <h2>{{ response['name'] | ql_nickname | safe }}</h2>
 
@@ -12,7 +12,7 @@
     {% for item in response['ratings'] %}
       <li>{{ item['gametype'] }}:
         <a href="{{ url_for('RatingsHtml', gametype = item['gametype_short']) }}">{{ rating(item, 'rating') }}</a>
-        (<a href="{{ url_for('MatchesHtml', steam_id = steam_id, gametype = item['gametype_short']) }}">{{ item['n'] }} matches</a>)
+        (<a href="{{ url_for('MatchesHtml', steam_id = steam_id, gametype = item['gametype_short']) }}">{{ item['n'] }} rated matches</a>)
       </li>
     {% endfor %}
     {% if response['ratings'] | length == 0 %}
@@ -67,12 +67,15 @@
         <td class="col-md-6">{{ item['name'] }}</td>
         <td class="col-md-3">{{ item['frags'] }}</td>
         <td class="col-md-3">{{ item['acc'] }}</td>
-      </tr>{% endfor %}</tbody>
+      </tr>{% endfor %}
+      {% if response['weapon_stats'] | length == 0 %}
+        <tr><td colspan="3">n/a</td></tr>
+      {% endif %}
+      </tbody>
     </table>
   </div>
 </div>
 
 <p><a href="https://qlstats.net/player/{{ steam_id }}">View player page in QLStats.net</a></p>
-</div>
+</article>
 {% endblock %}
-

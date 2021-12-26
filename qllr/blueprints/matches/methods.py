@@ -17,7 +17,6 @@ async def get_last_matches(
     Returns last matches
 
     Returns: {
-        "ok: True/False - on success/fail
         "matches": [
             {
                 "match_id": ...
@@ -136,7 +135,6 @@ async def get_last_matches(
     matches = row
 
     return {
-        "ok": True,
         "page_count": ceil(overall_match_count / MATCH_LIST_ITEM_COUNT),
         "title": title,
         "matches": matches,

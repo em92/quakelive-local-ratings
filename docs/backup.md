@@ -3,11 +3,13 @@
 ## Export database
 
 ```
-./dump_backup.py
+python3 -m contrib.dump_backup
 ```
+
 It will generate .tar.gz file as database backup.
 
 ## Import database
+
 ```
-./restore_backup.py filename.tar.gz
+python3 -m contrib.restore_backup filename.tar.gz
 ```

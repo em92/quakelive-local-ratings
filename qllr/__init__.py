@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
+from starlette.responses import PlainTextResponse, RedirectResponse
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
@@ -16,7 +14,19 @@ def http_root(request: Request):
     return RedirectResponse(request.url_for("MatchesHtml"))
 
 
+def http_about(request: Request):
+    return templates.TemplateResponse("about.html", {"request": request})
+
+
+# fmt: off
+http_robots_txt = PlainTextResponse("""
+User-agent: *
+Disallow: /
+""")
+
 routes = [
+    Route("/about", endpoint=http_about),
+    Route("/favicon.ico", RedirectResponse("https://www.quakelive.com/images/favicon.png")),
     Mount("/static", StaticFiles(directory="static"), name="static"),
     Mount("/elo", routes=bp.balance_api.routes),
     Mount("/player", routes=bp.player.routes),
@@ -27,8 +37,11 @@ routes = [
     Mount("/steam_api", routes=bp.steam_api.routes),
     Mount("/export_rating", routes=bp.export_rating.routes),
     Mount("/deprecated", routes=bp.deprecated.routes),
+    Route("/robots.txt", endpoint=http_robots_txt),
     Route("/", endpoint=http_root),
 ]
+# fmt: on
+
 app = App(debug=True, routes=routes)
 
 

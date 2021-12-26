@@ -1,0 +1,11 @@
+FROM python:3.6-stretch
+
+COPY --chown=www-data . /opt/qllr
+
+WORKDIR /opt/qllr
+
+RUN python3 -m pip install -r requirements.txt
+
+USER www-data
+
+CMD ["sh", "-c", "./docker/entrypoint.py && ./main.py"]

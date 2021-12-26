@@ -1,10 +1,9 @@
-import gzip
+import asyncio
 import json
 import os
 import typing
 
 import psycopg2
-from async_generator import async_generator, yield_
 from pytest import fixture
 from requests import Response
 from starlette.config import environ
@@ -38,15 +37,12 @@ def pytest_configure(config):
     postgresql = PGSQLFactory()
     environ["DATABASE_URL"] = postgresql.url()
     environ["USE_AVG_PERF_TDM"] = "TRUE"
+    environ["CACHE_HTTP_RESPONSE"] = "1"
 
 
 def read_sample(sample_filename: str) -> str:
-    try:
-        with open(module_path + "/samples/" + sample_filename, "rb") as f:
-            result = f.read()
-    except FileNotFoundError:
-        with gzip.open(module_path + "/samples/" + sample_filename + ".gz") as f:
-            result = f.read()
+    with open(module_path + "/samples/" + sample_filename, "rb") as f:
+        result = f.read()
     return result.decode("utf-8")
 
 
@@ -122,7 +118,7 @@ class Service:
             }
 
         if sample_name is not None:
-            f = gzip.open(module_path + "/match_samples/" + sample_name + ".gz")
+            f = open(module_path + "/match_samples/" + sample_name)
             sample = f.read()
             f.close()
 
@@ -132,7 +128,7 @@ class Service:
         resp = self.upload_match_report(sample_name)
         assert resp.status_code == 200, resp.text
         resp = self._test_cli.get("/scoreboard/{0}.json".format(uuid))
-        assert resp.json()["ok"] is True
+        assert resp.status_code == 200, resp.json()["message"]
 
     def assert_scoreboard_equals_sample(self, match_id: str, sample_filename: str):
         obj_defacto = self._test_cli.get("/scoreboard/{0}.json".format(match_id)).json()
@@ -178,7 +174,6 @@ def service(test_cli):
 
 
 @fixture
-@async_generator
 async def db(event_loop):
     from qllr.db import get_db_pool
 
@@ -188,7 +183,7 @@ async def db(event_loop):
     tr = con.transaction()
     await tr.start()
 
-    await yield_(con)
+    yield con
 
     await tr.rollback()
     await pool.release(con)

@@ -85,4 +85,4 @@ async def get_player_info_old(con: Connection, steam_id: int):
                 {"match_id": row[6], "timestamp": row[7], "rating": rating}
             )
 
-    return {"ok": True, "player": result}
+    return {"player": result}

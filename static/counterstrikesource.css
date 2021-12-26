@@ -14,53 +14,6 @@ a:hover {
   background-color: white;
 }
 
-noscript {
-	background-color: red;
-	border: 1px solid black;
-	width: 100%;
-	top: 0px;
-	text-align: center;
-	display: block;
-	position: fixed;
-}
-
-#not_ok {
-  background-color: #C81D11;
-  border-radius: 15px;
-  padding: 20px;
-}
-
-#top-right-fixed {
-	position: fixed;
-	top: 0px;
-	right: 0px;
-	background-color: white;
-	color: black;
-	padding: 10px;
-}
-
-
-#bottom-right-fixed {
-	background-color: white;
-	position: fixed;
-	bottom: 0px;
-	right: 0px;
-	color: black;
-}
-
-#bottom-left-fixed {
-	background-color: red;
-	position: fixed;
-	bottom: 0px;
-	left: 0px;
-	color: yellow;
-}
-
-#bottom-right-fixed img{
-	width: 320px;
-	height: auto;
-}
-
 table {
 	color: #d0d0d0;
 }
@@ -137,21 +90,8 @@ img.player_icon {
   text-align: center;
 }
 
-#footer {
-  margin-top: 25px;
-  margin-bottom: 20px;
-  padding: 3px;
-  background-color: #CCC;
-  border: 1px solid black;
-  max-width: 450px;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
 #summary-table-wrapper,
-#match-info-wrapper,
-#player-stats-wrapper {
+article {
   background-color: #222;
   border-radius: 15px;
   padding: 20px;
@@ -184,34 +124,41 @@ img.player_icon {
   width: 25%;
 }
 
-#match-info-wrapper tr.blue td {
+.scoreboard tr.blue td {
   background-color: #00004D;
 }
 
-#match-info-wrapper tr.blue:hover td {
+.scoreboard tr.blue:hover td {
   background-color: #00005E;;
 }
 
-#match-info-wrapper tr.red td {
+.scoreboard tr.red td {
   background-color: #4D0000;
 }
 
-#match-info-wrapper tr.red:hover td {
+.scoreboard tr.red:hover td {
   background-color: #5E0000;
 }
 
-.w-gl, .w-gt, .w-hmg, .w-lg, .w-mg, .w-pg, .w-rg, .w-rl, .w-sg
-{ background: url('/static/images/wpns.png') no-repeat; overflow: hidden; text-indent: -9999px; text-align: left; }
 
-.w-gl { background-position: -0px -0px; width: 21px; height: 21px; }
-.w-gt { background-position: -21px -0px; width: 21px; height: 21px; }
-.w-hmg { background-position: -42px -0px; width: 21px; height: 21px; }
-.w-lg { background-position: -0px -21px; width: 21px; height: 21px; }
-.w-mg { background-position: -21px -21px; width: 21px; height: 21px; }
-.w-pg { background-position: -42px -21px; width: 21px; height: 21px; }
-.w-rg { background-position: -0px -42px; width: 21px; height: 21px; }
-.w-rl { background-position: -21px -42px; width: 21px; height: 21px; }
-.w-sg { background-position: -42px -42px; width: 21px; height: 21px; }
+.w-bfg, w-cg, w-ng, w-pm, w-gh,
+.w-gl, .w-gt, .w-hmg, .w-lg, .w-mg, .w-pg, .w-rg, .w-rl, .w-sg
+{ background: url('/static/images/wpns21.png') no-repeat; overflow: hidden; text-indent: -9999px; text-align: left; }
+
+.w-bfg { background-position: -0px -0px; width: 21px; height: 21px; }
+.w-cg { background-position: -21px -0px; width: 21px; height: 21px; }
+.w-gh { background-position: -42px -0px; width: 21px; height: 21px; }
+.w-gl { background-position: -63px -0px; width: 21px; height: 21px; }
+.w-gt { background-position: -84px -0px; width: 21px; height: 21px; }
+.w-hmg { background-position: -105px -0px; width: 21px; height: 21px; }
+.w-lg { background-position: -126px -0px; width: 21px; height: 21px; }
+.w-mg { background-position: -147px -0px; width: 21px; height: 21px; }
+.w-ng { background-position: -168px -0px; width: 21px; height: 21px; }
+.w-pg { background-position: -189px -0px; width: 21px; height: 21px; }
+.w-pm { background-position: -210px -0px; width: 21px; height: 21px; }
+.w-rg { background-position: -231px -0px; width: 21px; height: 21px; }
+.w-rl { background-position: -252px -0px; width: 21px; height: 21px; }
+.w-sg { background-position: -273px -0px; width: 21px; height: 21px; }
 
 .m-accuracy, .m-assists, .m-captures, .m-combokill, .m-defends,
 .m-excellent, .m-firstfrag, .m-headshot, .m-humiliation, .m-impressive,

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse

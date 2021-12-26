@@ -1,4 +1,4 @@
-[![Build status](https://travis-ci.org/em92/quakelive-local-ratings.svg?branch=master)](https://travis-ci.org/em92/quakelive-local-ratings)
+[![Build status](https://api.travis-ci.com/em92/quakelive-local-ratings.svg?branch=master)](https://travis-ci.com/github/em92/quakelive-local-ratings)
 [![Coverage](https://codecov.io/gh/em92/quakelive-local-ratings/branch/master/graph/badge.svg)](https://codecov.io/gh/em92/quakelive-local-ratings)
 
 # quakelive-local-ratings (qllr)
@@ -31,7 +31,7 @@ Usually it is used with [feeder](https://github.com/em92/qlstats-feeder-mini) ba
 
 For qllr itself:
 
-* Python 3.5 with pip
+* Python 3.6 with pip
 * PostgreSQL 9.5
 
 For feeder:
@@ -39,9 +39,23 @@ For feeder:
 * Node.js 0.11.13
 * libzmq3
 
+### Docker
+
+For development:
+
+```
+docker build . -t em92/qllr-dev -f Dockerfile.develop
+```
+
+For production:
+
+```
+docker build . -t em92/qllr -f Dockerfile.production
+```
+
 ### Docs
 
-* [Installation (on Debian Stretch)](docs/install.md)
+* [Installation (on Debian Buster)](docs/install.md)
 * [Backing up database](docs/backup.md)
 * [qlds/minqlx configuration](docs/minqlx_config.md)
 

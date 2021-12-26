@@ -137,7 +137,6 @@ async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=F
             pass  # must not happen
 
     return {
-        "ok": True,
         "response": result,
         "page_count": ceil(player_count / PLAYER_COUNT_PER_PAGE),
     }

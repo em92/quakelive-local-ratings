@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-
+import asyncio
 from collections import MutableMapping, OrderedDict
 from typing import List
 from urllib.parse import urlparse
@@ -18,6 +16,9 @@ async def get_db_pool(event_loop=None) -> Pool:
         get_db_pool.cache
     except AttributeError:
         get_db_pool.cache = {}
+
+    if event_loop is None:
+        event_loop = asyncio.get_event_loop()
 
     try:
         return get_db_pool.cache[event_loop]

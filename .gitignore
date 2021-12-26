@@ -2,3 +2,4 @@
 player_ids.json
 .idea/*
 static/vods/*
+.env

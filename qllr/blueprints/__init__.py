@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # isort:skip_file
 
 from typing import Any

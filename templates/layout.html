@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <link rel="icon" type="image/png" href="https://www.quakelive.com/images/favicon.png">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-<link rel="stylesheet" href="{{ url_for('static', path='counterstrikesource.css?20190405') }}"> <!-- :D -->
+<link rel="stylesheet" href="{{ url_for('static', path='bootstrap.css?20210602') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='counterstrikesource.css?20211004') }}"> <!-- :D -->
 <meta charset="UTF-8" />
 <meta name="robots" content="noindex, nofollow"/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,18 +18,7 @@
 <body>
 {% include "nav.html" %}
 <div id="content">
-{% if ok %}
 {% block body %}{% endblock %}
-{% else %}
-<div id="not_ok">
-<h2>Error</h2>
-<p>{{ message }}</p>
-</div>
-{% endif %}
-</div>
-<div id="footer">
-  Written by Eugene M. in 2016-2020 <br> <a href="https://github.com/em92/quakelive-local-ratings" target="_blank">github</a> | <a href="mailto:eugene.molotov@yandex.ru">email</a><br>
-  Thanks goes to Horst &quot;PredatH0r&quot; Beham for <a href="https://github.com/PredatH0r/XonStat/tree/master/feeder" target="_blank">feeder.node.js</a>
 </div>
 </body>
 </html>

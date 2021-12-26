@@ -39,7 +39,12 @@ INSERT INTO weapons (weapon_id, weapon_name, weapon_short) VALUES
   (6, 'Lightning Gun',    'lg'),
   (7, 'Railgun',          'rg'),
   (8, 'Plasma Gun',       'pg'),
-  (9, 'Heavy Machine Gun','hmg');
+  (9, 'BFG',              'bfg'),
+  (10, 'Grappling Hook',  'gh'),
+  (11, 'Nailgun',         'ng'),
+  (12, 'Prox Launcher',   'pm'),
+  (13, 'Chaingun',        'cg'),
+  (14, 'Heavy Machine Gun','hmg');
 
 CREATE TABLE medals (
   medal_id SMALLINT,

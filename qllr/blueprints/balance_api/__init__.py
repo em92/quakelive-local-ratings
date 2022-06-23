@@ -5,26 +5,24 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
-from qllr.endpoints import Endpoint
+from qllr.endpoints import NoCacheEndpoint
 
 from .methods import fetch
 
 # TODO: json only return
 
 
-class BalanceCommon(Endpoint):
+class BalanceCommon(NoCacheEndpoint):
     async def get_document(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
         return JSONResponse(await fetch(con, ids))
 
 
-class BalanceAdvanced(Endpoint):
+class BalanceAdvanced(NoCacheEndpoint):
     async def get_document(self, request: Request, con: Connection):
         ids = request.path_params["ids"]
         options = request.path_params["options"]
 
-        # TODO: implement with_qlstats_policy
-        #  also try_very_fast_response and try_fast_respone must return none
         return JSONResponse(
             await fetch(
                 con,

@@ -5,10 +5,26 @@ from starlette.testclient import TestClient
 
 from qllr.app import App, JSONResponse, PlainTextResponse, Request
 from qllr.db import Connection
-from qllr.endpoints import Endpoint
+from qllr.endpoints import Endpoint, NoCacheEndpoint
 
 OLD_DATE = (1992, 1, 31, 17, 45, 0)
 NEW_DATE = (2019, 7, 27, 17, 50, 15)
+
+
+@fixture(scope="module")
+def test_cli_with_nocache_endpoint(test_cli):
+    app = App()
+    counter = 0
+
+    @app.route("/get_document")
+    class Sample(NoCacheEndpoint):
+        async def get_document(self, request: Request, con: Connection):
+            nonlocal counter
+            counter += 1
+            return JSONResponse({"counter": counter})
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        yield client
 
 
 @fixture(scope="module")
@@ -45,6 +61,16 @@ def test_cli_with_endpoint(endpoint_app):
 
     with TestClient(app, raise_server_exceptions=False) as client:
         yield client
+
+
+def test_get_document_nocache(test_cli_with_nocache_endpoint, endpoint_app):
+    expected_value = test_cli_with_nocache_endpoint.get("/get_document").json()[
+        "counter"
+    ]
+    # response is NOT cached, so expecting incremented value
+    assert test_cli_with_nocache_endpoint.get("/get_document").json() == {
+        "counter": expected_value + 1
+    }
 
 
 def test_get_document_cache(test_cli_with_endpoint, endpoint_app):

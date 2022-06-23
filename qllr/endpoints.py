@@ -13,7 +13,39 @@ from .db import cache, get_db_pool
 from .settings import CACHE_HTTP_RESPONSE
 
 
-class Endpoint(HTTPEndpoint):
+class BaseEndpoint(HTTPEndpoint):
+    async def _get(self, request: Request) -> Response:
+        raise HTTPException(501)  # pragma: nocover
+
+    async def get(self, request: Request) -> Response:
+        # check for valid gametype
+        if request.path_params and "gametype" in request.path_params:
+            gametype = request.path_params["gametype"] = request.path_params[
+                "gametype"
+            ].lower()
+            if gametype not in cache.GAMETYPE_IDS:
+                raise HTTPException(404, "invalid gametype: {}".format(gametype))
+
+            request.path_params["gametype_id"] = cache.GAMETYPE_IDS[gametype]
+
+        return await self._get(request)
+
+
+class NoCacheEndpoint(BaseEndpoint):
+    async def _get(self, request: Request) -> Response:
+        dbpool = await get_db_pool()
+        con = await dbpool.acquire()
+        tr = con.transaction()
+        await tr.start()
+
+        try:
+            return await self.get_document(request, con)
+        finally:
+            await tr.rollback()
+            await dbpool.release(con)
+
+
+class Endpoint(BaseEndpoint):
     def try_very_fast_response(self, request: Request) -> Optional[Response]:
         if not CACHE_HTTP_RESPONSE:
             return None
@@ -44,19 +76,8 @@ class Endpoint(HTTPEndpoint):
         if request.state.if_mod_since >= last_modified:
             return request.state.fast_response
 
-    async def get(self, request: Request) -> Response:
-        # check for valid gametype
-        if request.path_params and "gametype" in request.path_params:
-            gametype = request.path_params["gametype"] = request.path_params[
-                "gametype"
-            ].lower()
-            if gametype not in cache.GAMETYPE_IDS:
-                raise HTTPException(404, "invalid gametype: {}".format(gametype))
-
-            request.path_params["gametype_id"] = cache.GAMETYPE_IDS[gametype]
-
+    async def _get(self, request: Request) -> Response:
         # TODO: request.url is NOT relative
-        # TODO: it does not concern X-QuakeLive-* headers
         cached_response_key = str(request.url)
         cached_response = cache.store.get(cached_response_key)
 

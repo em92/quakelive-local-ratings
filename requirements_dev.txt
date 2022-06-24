@@ -5,4 +5,4 @@ git+https://github.com/BrandonNav/testing.postgresql@f849c786eaa9d2c0ff8b2a5f3fb
 pylint
 flake8
 isort==5.*
-black==20.8b1
+black==22.3.0

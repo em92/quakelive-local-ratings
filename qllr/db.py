@@ -1,5 +1,6 @@
 import asyncio
-from collections import MutableMapping, OrderedDict
+from collections.abc import MutableMapping
+from collections import OrderedDict
 from typing import List
 from urllib.parse import urlparse
 

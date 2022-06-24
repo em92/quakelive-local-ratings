@@ -16,6 +16,10 @@ addons:
 services:
   - postgresql
 
+before_install:
+    # https://travis-ci.community/t/build-errors-installing-a-common-dependency-docopt-on-python-3-7-but-not-other-versions/12886/5
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pip install -U importlib_metadata; fi
+
 install:
     - pip install -U -r requirements.txt
     - pip install -U -r requirements_dev.txt

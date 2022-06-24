@@ -7,3 +7,5 @@ uvicorn==0.14.0
 requests
 Jinja2==2.11.3
 cachetools==3.1.1
+
+MarkupSafe<2.1 # https://github.com/pallets/jinja/issues/1658

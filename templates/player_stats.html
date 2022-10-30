@@ -29,7 +29,7 @@
     <ul>
     {% for item in response['ratings'] %}
       <li>
-        <a href="{{ url_for('BestMatchOfPlayerRedirect', steam_id = steam_id, gametype = item['gametype_short']) }}">{{ item['gametype'] }}</a>
+        <a href="{{ url_for('BestMatchesHtml', steam_id = steam_id, gametype = item['gametype_short']) }}">{{ item['gametype'] }}</a>
       </li>
     {% endfor %}
     {% if response['ratings'] | length == 0 %}

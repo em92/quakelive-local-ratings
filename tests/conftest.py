@@ -95,6 +95,7 @@ class Service:
             ("sample38", "0778f428-2606-4f3c-83dc-b4099b970814"),
             ("sample39", "a254f41d-125f-4d4b-b66e-564bf095b8f1"),
             ("sample40", "7807b4f5-3c98-459c-b2f9-8ad6b4f75d58"),
+            ("sample41", "d6139ab1-1ad8-4cd0-9e1b-ea1ca23ca479"),
         )
 
         for sample_name, match_id in cases:

@@ -6,7 +6,9 @@ from .gametypes import GAMETYPE_RULES
 
 config = Config(".env")
 
-SUPPORTED_GAMETYPES = ("ad", "ca", "ctf", "ft", "tdm", "tdm2v2")
+ENABLED_GAMETYPES = config(
+    "ENABLED_GAMETYPES", cast=CommaSeparatedStrings, default=list(GAMETYPE_RULES.keys())
+)
 DATABASE_URL = str(config("DATABASE_URL", cast=URL))
 HOST = config("HOST", default="127.0.0.1")
 PORT = config("PORT", cast=int, default=7081)
@@ -21,8 +23,9 @@ INITIAL_R1_MEAN = {}
 INITIAL_R1_DEVIATION = {}
 MIN_PLAYER_COUNT_IN_MATCH_TO_RATE = {}
 USE_AVG_PERF = {}
-for gt in SUPPORTED_GAMETYPES:
-    MIN_PLAYER_COUNT_IN_MATCH_TO_RATE[gt] = config(
+for gt in ENABLED_GAMETYPES:
+    rules = GAMETYPE_RULES[gt]
+    MIN_PLAYER_COUNT_IN_MATCH_TO_RATE[gt] = rules.override_min_player_count() or config(
         "MIN_PLAYER_COUNT_IN_MATCH_TO_RATE_{}".format(gt.upper()), cast=int, default=6
     )
     USE_AVG_PERF[gt] = config(
@@ -37,4 +40,4 @@ for gt in SUPPORTED_GAMETYPES:
 
 INITIAL_R2_VALUE = INITIAL_R1_MEAN.copy()
 
-AVG_PERF_GAMETYPES = [gt for gt in SUPPORTED_GAMETYPES if USE_AVG_PERF[gt]]
+AVG_PERF_GAMETYPES = [gt for gt in ENABLED_GAMETYPES if USE_AVG_PERF[gt]]

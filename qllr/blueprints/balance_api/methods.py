@@ -7,9 +7,9 @@ from qllr.common import log_exception, request
 from qllr.db import cache
 from qllr.settings import (
     AVG_PERF_GAMETYPES,
+    ENABLED_GAMETYPES,
     INITIAL_R1_MEAN,
     INITIAL_R2_VALUE,
-    SUPPORTED_GAMETYPES,
 )
 from qllr.submission import get_map_id
 
@@ -107,7 +107,7 @@ async def fetch(
     players = {}
     for steam_id in map(str, steam_ids):
         players[steam_id] = {"steamid": steam_id}
-        for gametype in SUPPORTED_GAMETYPES:
+        for gametype in ENABLED_GAMETYPES:
             players[steam_id][gametype] = {
                 "games": 0,
                 "elo": INITIAL_R1_MEAN[gametype]

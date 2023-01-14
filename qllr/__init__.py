@@ -18,6 +18,10 @@ def http_about(request: Request):
     return templates.TemplateResponse("about.html", {"request": request})
 
 
+def http_favicon(request: Request):
+    return RedirectResponse(request.url_for("static", path="images/favicon.png"))
+
+
 # fmt: off
 http_robots_txt = PlainTextResponse("""
 User-agent: *
@@ -26,7 +30,7 @@ Disallow: /
 
 routes = [
     Route("/about", endpoint=http_about),
-    Route("/favicon.ico", RedirectResponse("https://www.quakelive.com/images/favicon.png")),
+    Route("/favicon.ico", endpoint=http_favicon),
     Mount("/static", StaticFiles(directory="static"), name="static"),
     Mount("/elo", routes=bp.balance_api.routes),
     Mount("/player", routes=bp.player.routes),

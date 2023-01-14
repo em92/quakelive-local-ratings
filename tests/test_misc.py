@@ -42,3 +42,10 @@ def test_surjection_dict():
     assert len(d) == 0
     assert d.get("ctf") is None
     assert d.get("ad") is None
+
+
+def test_favicon(service):
+    service.get("/static/images/favicon.png", 200)
+
+    resp = service.get("/favicon.ico", 307)
+    assert resp.headers["Location"].endswith("/static/images/favicon.png")

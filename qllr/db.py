@@ -30,7 +30,7 @@ async def get_db_pool(event_loop=None) -> Pool:
         return get_db_pool.cache[event_loop]
 
 
-def db_connect():
+def db_connect():  # pragma: nocover
     result = urlparse(DATABASE_URL)
     username = result.username
     password = result.password

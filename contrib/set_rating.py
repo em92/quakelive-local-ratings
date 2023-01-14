@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+
 from qllr.db import db_connect
 
 parser = argparse.ArgumentParser()

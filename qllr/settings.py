@@ -2,6 +2,8 @@ from starlette.config import Config
 from starlette.datastructures import URL, CommaSeparatedStrings
 from trueskill import MU, SIGMA
 
+from .gametypes import GAMETYPE_RULES
+
 config = Config(".env")
 
 SUPPORTED_GAMETYPES = ("ad", "ca", "ctf", "ft", "tdm", "tdm2v2")
@@ -34,6 +36,5 @@ for gt in SUPPORTED_GAMETYPES:
     )
 
 INITIAL_R2_VALUE = INITIAL_R1_MEAN.copy()
-MIN_PLAYER_COUNT_IN_MATCH_TO_RATE["tdm2v2"] = 4
 
 AVG_PERF_GAMETYPES = [gt for gt in SUPPORTED_GAMETYPES if USE_AVG_PERF[gt]]

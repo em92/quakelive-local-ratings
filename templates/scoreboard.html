@@ -46,20 +46,15 @@
     <th class="s s1">Score</th>
     <th class="s s1">Frags</th>
     <th class="s s1">Deaths</th>
-    {% if gametype in ("ctf", "ad") %}
-    <th class="s s1">Captures</th>
-    {% if gametype != "ad" %}
-    <th class="s s1">Assists</th>
-    {% endif %}
-    <th class="s s1">Defends</th>
-    {% endif %}
+    {% for m in medals_in_scoreboard_mid %}
+    <th class="s s1" style="text-transform: capitalize">{{ m }}</th>
+    {% endfor %}
     <th class="s s1">Damage Dealt</th>
     <th class="s s1">Damage Taken</th>
     <th class="s s1">Time</th>
-    {% if gametype == "tdm" %}
-    <th class="s s1">Excellent</th>
-    <th class="s s1">Impressive</th>
-    {% endif %}
+    {% for m in medals_in_scoreboard_right %}
+    <th class="s s1" style="text-transform: capitalize">{{ m }}</th>
+    {% endfor %}
     <th class="s s1">Old rating</th>
     <th class="s s1">New rating</th>
     <th class="s s1">Diff</th>
@@ -76,20 +71,15 @@
     <td class="s s1">{{ player['stats']['score'] }}</td>
     <td class="s s1">{{ player['stats']['frags'] }}</td>
     <td class="s s1">{{ player['stats']['deaths'] }}</td>
-    {% if gametype in ("ctf", "ad") %}
-    <td class="s s1">{{ medal( player, 'captures' ) }}</td>
-    {% if gametype != "ad" %}
-    <td class="s s1">{{ medal( player, 'assists' ) }}</td>
-    {% endif %}
-    <td class="s s1">{{ medal( player, 'defends' ) }}</td>
-    {% endif %}
+    {% for m in medals_in_scoreboard_mid %}
+    <td class="s s1">{{ medal(player, m) }}</td>
+    {% endfor %}
     <td class="s s1">{{ player['stats']['damage_dealt'] }}</td>
     <td class="s s1">{{ player['stats']['damage_taken'] }}</td>
     <td class="s s1">{{ player['stats']['alive_time'] | seconds_to_mmss }}</td>
-    {% if gametype == "tdm" %}
-    <td class="s s1">{{ medal( player, 'excellent' ) }}</td>
-    <td class="s s1">{{ medal( player, 'impressive' ) }}</td>
-    {% endif %}
+    {% for m in medals_in_scoreboard_right %}
+    <td class="s s1">{{ medal(player, m) }}</td>
+    {% endfor %}
     <td class="s s1">{{ rating( player['rating'], 'old' ) }}</td>
     <td class="s s1">{{ rating( player['rating'], 'new' ) }}</td>
     <td class="s s1">{{ rating_diff( player['rating'] ) }}</td>

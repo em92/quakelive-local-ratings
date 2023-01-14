@@ -1,4 +1,9 @@
 {
+    "medals_in_scoreboard_mid": [
+        "captures",
+        "defends"
+    ],
+    "medals_in_scoreboard_right": [],
     "medals_available": [
         "accuracy",
         "captures",

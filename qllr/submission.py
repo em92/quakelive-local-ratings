@@ -9,6 +9,7 @@ from asyncpg.exceptions import UniqueViolationError
 from .common import log_exception
 from .db import cache, db_connect, get_db_pool
 from .exceptions import *
+from .gametypes import GAMETYPE_RULES, detect_by_match_report
 from .settings import (
     INITIAL_R1_DEVIATION,
     INITIAL_R1_MEAN,
@@ -89,10 +90,6 @@ def parse_stats_submission(body):
     return {"game_meta": game_meta, "players": players, "teams": teams}
 
 
-def is_tdm2v2(data):
-    return data["game_meta"]["G"] == "tdm" and len(data["players"]) == 4
-
-
 async def get_factory_id(con: Connection, factory: str):
     stmt = await con.prepare(
         "SELECT factory_id FROM factories WHERE factory_short = $1"
@@ -129,44 +126,13 @@ def count_player_match_perf(gametype, player_data, match_duration):
             player_data[k] = 0
 
     alive_time = int(player_data["alivetime"])
-    score = int(player_data["scoreboard-score"])
-    damage_dealt = int(player_data["scoreboard-pushes"])
-    damage_taken = int(player_data["scoreboard-destroyed"])
-    frags_count = int(player_data["scoreboard-kills"])
-    deaths_count = int(player_data["scoreboard-deaths"])
-    capture_count = int(player_data["medal-captures"])
-    defends_count = int(player_data["medal-defends"])
-    assists_count = int(player_data["medal-assists"])
-    win = 1 if "win" in player_data else 0
 
     if alive_time < match_duration / 2:
         return None
     else:
         time_factor = 1200.0 / alive_time
 
-    return {
-        "ad": (damage_dealt / 100 + frags_count + capture_count) * time_factor,
-        "ca": (damage_dealt / 100 + 0.25 * frags_count) * time_factor,
-        "ctf": (damage_dealt / damage_taken * (score + damage_dealt / 20) * time_factor)
-        / 2.35
-        + win * 300,
-        "ft": (
-            damage_dealt / 100 + 0.5 * (frags_count - deaths_count) + 2 * assists_count
-        )
-        * time_factor,
-        "tdm2v2": (
-            0.5 * (frags_count - deaths_count)
-            + 0.004 * (damage_dealt - damage_taken)
-            + 0.003 * damage_dealt
-        )
-        * time_factor,
-        "tdm": (
-            0.5 * (frags_count - deaths_count)
-            + 0.004 * (damage_dealt - damage_taken)
-            + 0.003 * damage_dealt
-        )
-        * time_factor,
-    }[gametype]
+    return GAMETYPE_RULES[gametype].calc_player_perf(player_data, time_factor)
 
 
 def count_multiple_players_match_perf(gametype, all_players_data, match_duration):
@@ -195,12 +161,6 @@ def count_multiple_players_match_perf(gametype, all_players_data, match_duration
 async def _calc_ratings_avg_perf(
     con: Connection, match_id: str, gametype_id: int, map_id: Optional[int] = None
 ):
-    def extra_factor(gametype, matches, wins, losses):
-        try:
-            return {"tdm": (1 + (0.15 * (wins / matches - losses / matches)))}[gametype]
-        except KeyError:
-            return 1
-
     if map_id is None:
         ratings_subquery = """
             SELECT steam_id, r2_value AS rating
@@ -279,7 +239,8 @@ async def _calc_ratings_avg_perf(
 
             row = await con.fetchrow(query, steam_id, gametype_id, match_id)
             gametype = [k for k, v in cache.GAMETYPE_IDS.items() if v == gametype_id][0]
-            new_rating = row[3] * extra_factor(gametype, row[0], row[1], row[2])
+            rules = GAMETYPE_RULES[gametype]
+            new_rating = row[3] * rules.extra_factor(row[0], row[1], row[2])
 
         result[steam_id] = {"old": old_rating, "new": new_rating, "team": team}
 
@@ -543,12 +504,9 @@ async def _submit_match(data):
         raise InvalidMatchReport("Match id not given")
 
     try:
-        gametype = data["game_meta"]["G"]
+        gametype = detect_by_match_report(data)
     except KeyError:
         raise InvalidMatchReport("Gametype not given")
-
-    if is_tdm2v2(data):
-        gametype = "tdm2v2"
 
     if gametype not in cache.GAMETYPE_IDS:
         raise InvalidMatchReport("Gametype not accepted: {}".format(gametype))

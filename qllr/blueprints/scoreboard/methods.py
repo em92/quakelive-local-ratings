@@ -4,6 +4,7 @@ from asyncpg import Connection
 
 from qllr.common import DATETIME_FORMAT, convert_timestamp_to_tuple
 from qllr.exceptions import MatchNotFound
+from qllr.gametypes import GAMETYPE_RULES
 from qllr.settings import USE_AVG_PERF
 
 
@@ -236,10 +237,13 @@ async def get_scoreboard(con: Connection, match_id: str):
     """
     weapons_available = await con.fetchval(query, match_id)
 
+    rules = GAMETYPE_RULES[summary["gt_short"]]
     return {
         "summary": summary,
         "player_stats": {"weapons": player_weapon_stats, "medals": player_medal_stats},
         "team_stats": {"overall": overall_stats},
         "weapons_available": weapons_available,
         "medals_available": medals_available,
+        "medals_in_scoreboard_mid": rules.medals_in_scoreboard_mid(),
+        "medals_in_scoreboard_right": rules.medals_in_scoreboard_right(),
     }

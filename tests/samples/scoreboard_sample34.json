@@ -1,4 +1,9 @@
 {
+    "medals_in_scoreboard_mid": [],
+    "medals_in_scoreboard_right": [
+        "excellent",
+        "impressive"
+    ],
     "medals_available": [
         "excellent",
         "firstfrag",

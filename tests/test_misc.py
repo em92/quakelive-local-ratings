@@ -1,3 +1,6 @@
+from qllr.db import SurjectionDict
+
+
 def test_root_route(service):
     resp = service.get("/", 307)
     assert resp.headers["Location"].endswith("/matches/")
@@ -15,3 +18,27 @@ def test_root_about(service):
 def test_robots_txt(service):
     resp = service.get("/robots.txt", 200)
     assert "Allow:" not in resp.text
+
+
+def test_surjection_dict():
+    surjection = {
+        1: "ad",
+        2: "ctf",
+    }
+    d = SurjectionDict(surjection)
+    d[1] = "v1"
+    d["ctf"] = "v2"
+    assert d["ad"] == "v1"
+    assert d[2] == "v2"
+    assert len(d) == 2
+    assert repr(d) == repr({"ad": "v1", "ctf": "v2"})
+
+    del d["ctf"]
+    assert len(d) == 1
+    assert d.get("ctf") is None
+    assert d.get("ad") == "v1"
+
+    del d[1]
+    assert len(d) == 0
+    assert d.get("ctf") is None
+    assert d.get("ad") is None

@@ -133,6 +133,10 @@ class Service:
 
     def assert_scoreboard_equals_sample(self, match_id: str, sample_filename: str):
         obj_defacto = self._test_cli.get("/scoreboard/{0}.json".format(match_id)).json()
+        # NOTE: if scoreboard json is changed and manually checked
+        # then you can uncomment this:
+        # with open(module_path + "/samples/" + sample_filename + ".json", "w") as f:
+        #     f.write(json.dumps(obj_defacto, indent=4, sort_keys=True) + "\n")
         obj_expected = read_json_sample(sample_filename)
         assert obj_defacto == obj_expected
 

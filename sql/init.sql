@@ -161,6 +161,8 @@ CREATE TABLE scoreboards_weapons (
   frags SMALLINT,
   hits  INTEGER,
   shots INTEGER,
+  damage_dealt INTEGER DEFAULT 0,
+  damage_taken INTEGER DEFAULT 0,
   FOREIGN KEY (match_id, steam_id, team) REFERENCES scoreboards(match_id, steam_id, team) ON DELETE CASCADE,
   FOREIGN KEY (weapon_id) REFERENCES weapons(weapon_id),
   PRIMARY KEY (match_id, steam_id, team, weapon_id)

@@ -621,8 +621,8 @@ async def _submit_match(data):
 
                 await con.execute(
                     """
-                    INSERT INTO scoreboards_weapons (match_id, steam_id, team, weapon_id, frags, hits, shots)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    INSERT INTO scoreboards_weapons (match_id, steam_id, team, weapon_id, frags, hits, shots, damage_dealt, damage_taken)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                     """,
                     match_id,
                     player["P"],
@@ -631,6 +631,8 @@ async def _submit_match(data):
                     frags,
                     int(player["acc-" + weapon + "-cnt-hit"]),
                     shots,
+                    int(player["acc-" + weapon + "-fired"]),
+                    int(player["acc-" + weapon + "-hit"]),
                 )
 
             for medal, medal_id in cache.MEDAL_IDS.items():

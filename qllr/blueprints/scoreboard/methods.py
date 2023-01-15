@@ -93,14 +93,16 @@ async def get_scoreboard(con: Connection, match_id: str):
     FROM (
         SELECT
             t.steam_id::text,
-            json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots]) AS weapon_stats
+            json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots, t.damage_dealt, t.damage_taken]) AS weapon_stats
         FROM (
             SELECT
-                s.steam_id,
                 w.weapon_short,
                 SUM(sw.frags) AS frags,
                 SUM(sw.hits) AS hits,
-                SUM(sw.shots) AS shots
+                SUM(sw.shots) AS shots,
+                SUM(sw.damage_dealt) AS damage_dealt,
+                SUM(sw.damage_taken) AS damage_taken,
+                s.steam_id
             FROM
                 scoreboards s
             RIGHT JOIN scoreboards_weapons sw ON sw.match_id = s.match_id AND sw.steam_id = s.steam_id AND sw.team = s.team

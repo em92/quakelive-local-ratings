@@ -183,11 +183,15 @@ async def get_scoreboard(con: Connection, match_id: str):
         LEFT JOIN (
             SELECT
                 t.steam_id, t.team,
-                json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots, t.accuracy]) AS weapon_stats
+                json_object_agg(t.weapon_short, ARRAY[t.frags, t.hits, t.shots, t.accuracy, t.damage_dealt, t.damage_dealt_percent]) AS weapon_stats
             FROM
                 (
                 SELECT
                     s.steam_id, s.team, w.weapon_short, sw.frags, sw.hits, sw.shots,
+                    sw.damage_dealt,
+                    CASE WHEN s.damage_dealt = 0 THEN 0
+                        ELSE 100. * sw.damage_dealt / s.damage_dealt
+                    END AS damage_dealt_percent,
                     CASE WHEN sw.shots = 0 THEN 0
                         ELSE CAST(100. * sw.hits / sw.shots AS INT)
                     END AS accuracy

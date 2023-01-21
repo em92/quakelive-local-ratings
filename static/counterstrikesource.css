@@ -229,3 +229,46 @@ li.dropdown:hover > .dropdown-menu {
 #navbar-toggle-cbox:checked ~ .collapse {
     display: block;
 }
+
+.w-bar-gt {
+    background-color: #00d9ff;
+}
+.w-bar-mg {
+    background-color: #ff0;;
+}
+.w-bar-sg {
+    background-color: #ff7e00;
+}
+.w-bar-gl {
+    background-color: #00910a;
+}
+.w-bar-rl {
+    background-color: #f00;
+}
+.w-bar-lg {
+    background-color: #ffffb2;
+}
+.w-bar-rg {
+    background-color: #00b11d;
+}
+.w-bar-pg {
+    background-color: #c600ff;
+}
+.w-bar-bfg {
+    background-color: #005aff;
+}
+.w-bar-pm {
+    background-color: #fc1c8a;
+}
+.w-bar-cg {
+    background-color: #b9b9b9;
+}
+.w-bar-ng {
+    background-color: #00ffb5;
+}
+.w-bar-hmg {
+    background-color: #cfa700;
+}
+.w-bar-gh {
+    background-color: #5bb0de;
+}

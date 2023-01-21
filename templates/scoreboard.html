@@ -27,6 +27,11 @@
   {% endif %}
 {%- endmacro %}
 
+{% macro wpn_damage_percent(player, key) -%}
+  {% if player['weapon_stats'][key] and player['weapon_stats'][key][5] %}
+    <div title="{{ player['weapon_stats'][key][4] }} ({{ player['weapon_stats'][key][5] | int }}%)" class="w-bar-{{ key }}" style="display: inline-block; height: 20px; width: {{ player['weapon_stats'][key][5] }}%"></div>
+  {% endif %}
+{%- endmacro %}
 
 {% macro rating_diff(data) -%}
   {% if not data['old'] or not data['new'] %}
@@ -65,6 +70,7 @@
     {% for m in ma %}
     <th class="s sm" style="display: none"><div class="m-{{ m }}"></div></th>
     {% endfor %}
+    <th class="s sdp" style="display: none"></th>
   </tr></thead>
   <tbody>{% for player in players|selectattr("team", "equalto", team) %}<tr class="{{ 'red' if team == '1' else 'blue' }}">
     <td class="player-nick"><a href="/player/{{ player['steam_id'] }}">{{ player['name'] | ql_nickname | safe }}</a></td>
@@ -90,6 +96,11 @@
     {% for m in ma %}
     <td class="s sm" style="display: none">{{ medal( player, m ) }}</td>
     {% endfor %}
+    <td class="s sdp" style="font-size: 0; display: none">
+    {% for w in wa %}
+    {{ wpn_damage_percent(player, w) }}
+    {% endfor %}
+    </td>
   </tr>{% endfor %}</tbody>
 </table></div>
 
@@ -117,6 +128,7 @@
   <a class="sw" onClick="toggle_table('sw', this)">Frags</a>
   <a class="sw" onClick="toggle_table('sa', this)">Accuracy</a>
   <a class="sm" onClick="toggle_table('sm', this)">Medals</a>
+  <a class="sm" onClick="toggle_table('sdp', this)">Damage %</a>
 </div>
 
 <div class="row">

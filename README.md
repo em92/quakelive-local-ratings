@@ -31,7 +31,7 @@ Usually it is used with [feeder](https://github.com/em92/qlstats-feeder-mini) ba
 
 For qllr itself:
 
-* Python 3.6 with pip
+* Python 3.7 with pip
 * PostgreSQL 9.5
 
 For feeder:

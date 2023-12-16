@@ -30,10 +30,7 @@ class Templates(Jinja2Templates):
                 for k, v in path_params.items()
                 if not isinstance(v, Undefined) and v is not None
             }
-            # NOTE: take this stupid hack away, when url_for returns relative path
-            absolute_url = request.url_for(name, **path_params)
-            parsed_absolute_url = urlparse(absolute_url)
-            return ParseResult("", "", *parsed_absolute_url[2:]).geturl()
+            return str(request.app.url_path_for(name, **path_params))
 
         super().__init__(directory)
         self.env.filters["ql_nickname"] = render_ql_nickname

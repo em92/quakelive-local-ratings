@@ -11,7 +11,7 @@ ENABLED_GAMETYPES = config(
 )
 DATABASE_URL = str(config("DATABASE_URL", cast=URL))
 HOST = config("HOST", default="127.0.0.1")
-PORT = config("PORT", cast=int, default=7081)
+PORT = config("PORT", cast=int, default=8000)
 TRUSTED_PROXIES = config("TRUSTED_PROXIES", cast=CommaSeparatedStrings, default=[])
 PLAYER_COUNT_PER_PAGE = config("PLAYER_COUNT_PER_PAGE", cast=int, default=10)
 RUN_POST_PROCESS = config("RUN_POST_PROCESS", cast=bool, default=True)

@@ -30,7 +30,7 @@ in postgresql shell:
 ```
 CREATE DATABASE qllr;
 CREATE USER eugene WITH password 'bebebe';
-GRANT ALL ON DATABASE qllr TO eugene;
+ALTER DATABASE qllr OWNER TO eugene;
 \q
 ```
 
@@ -61,7 +61,6 @@ git clone https://github.com/em92/qlstats-feeder-mini.git
 sudo apt-get install nodejs
 sudo ln -s /usr/bin/nodejs /usr/bin/node
 sudo apt-get install npm
-sudo apt-get install libzmq3
 sudo apt-get install libzmq3-dev
 mv qlstats-feeder-mini feeder
 cd feeder

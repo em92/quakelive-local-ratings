@@ -61,4 +61,4 @@ docker build . -t em92/qllr -f Dockerfile.production
 
 ### Note to European A&D and #qlpickup.ru communities
 
-Backups of database and feeder config are [here](https://yadi.sk/d/uTqMDxzb3JPpiJ)
+Backups of database and feeder config are [here](https://disk.yandex.ru/d/hJfHip6ue7UCNg)

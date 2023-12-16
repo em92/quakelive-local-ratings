@@ -1,4 +1,4 @@
-[![Build status](https://api.travis-ci.com/em92/quakelive-local-ratings.svg?branch=master)](https://travis-ci.com/github/em92/quakelive-local-ratings)
+![Build status](https://github.com/em92/quakelive-local-ratings/actions/workflows/build.yml/badge.svg)
 [![Coverage](https://codecov.io/gh/em92/quakelive-local-ratings/branch/master/graph/badge.svg)](https://codecov.io/gh/em92/quakelive-local-ratings)
 
 # quakelive-local-ratings (qllr)

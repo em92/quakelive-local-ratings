@@ -5,5 +5,6 @@ pytest-cov
 git+https://github.com/BrandonNav/testing.postgresql@f849c786eaa9d2c0ff8b2a5f3fb21e96742ec8b6
 pylint
 flake8
+httpx
 isort==5.*
 black==22.3.0

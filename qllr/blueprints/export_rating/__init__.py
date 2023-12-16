@@ -44,7 +44,7 @@ class ExportRatingCsv(ExportRatingCommon):
         resp.headers["Content-Disposition"] = (
             "attachment; filename=" + request.path_params["gametype"] + "_ratings.csv"
         )
-        resp.headers["Content-Type"] = "text/csv"
+        resp.headers["Content-Type"] = "text/csv; charset=UTF-8"
         return resp
 
 

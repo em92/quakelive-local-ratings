@@ -21,7 +21,7 @@ def test_ratings_ad_redirect_bad_format(service):
 
 def test_ratings_ad_csv(service):
     resp = service.get("/export_rating/ad.csv")
-    assert resp.encoding == "utf-8"
+    assert resp.encoding.lower() == "utf-8"
     assert resp.text == read_sample("exported_ratings_ad.csv")
 
 

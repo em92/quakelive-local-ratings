@@ -44,7 +44,7 @@ For feeder:
 For development:
 
 ```
-docker build . -t em92/qllr-dev -f Dockerfile.develop
+docker build . -t em92/qllr-dev -f Dockerfile.develop.buster
 ```
 
 For production:

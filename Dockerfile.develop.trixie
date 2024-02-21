@@ -1,0 +1,34 @@
+FROM debian:trixie
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    python3-asyncpg \
+    python3-cachetools \
+    python3-jinja2 \
+    python3-pip \
+    python3-psycopg2 \
+    python3-requests \
+    python3-starlette \
+    python3-uvicorn \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    git \
+    postgresql-16 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/usr/lib/postgresql/16/bin:${PATH}"
+# take out coverage report from source directory
+ENV COVERAGE_FILE="/tmp/qllr.coverage"
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+COPY --chown=www-data . /opt/qllr
+
+WORKDIR /opt/qllr
+
+RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install -r requirements_dev.txt
+
+USER www-data
+
+CMD ["./scripts/test"]

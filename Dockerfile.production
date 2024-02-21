@@ -1,4 +1,18 @@
-FROM python:3.7-stretch
+FROM debian:buster
+
+RUN apt-get update && apt-get install -y \
+    python3-asgiref \
+    python3-click \
+    python3-cachetools \
+    python3-h11 \
+    python3-jinja2 \
+    python3-idna \
+    python3-pip \
+    python3-psycopg2 \
+    python3-requests \
+    python3-sniffio \
+    python3-typing-extensions \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --chown=www-data . /opt/qllr
 

@@ -2,11 +2,22 @@
 
 ## Installing and configuring QLLR
 ```
-# base apps
-sudo apt-get install python3 python3-pip python3-venv postgresql git
-
-# psycopg2 build prerequires
-sudo apt-get install python3-dev libpq-dev gcc
+# dependecies
+sudo apt-get install -y
+    git \
+    postgresql
+    python3-asgiref \
+    python3-click \
+    python3-cachetools \
+    python3-h11 \
+    python3-idna \
+    python3-jinja2 \
+    python3-pip \
+    python3-psycopg2 \
+    python3-requests \
+    python3-sniffio \
+    python3-typing-extensions \
+    python3-venv
 
 # install qllr
 git clone https://github.com/em92/quakelive-local-ratings
@@ -16,6 +27,7 @@ cd ./quakelive-local-ratings
 python3 -m venv venv
 source venv/bin/activate
 
+# install other dependencies
 python3 -m pip install -r requirements.txt
 ```
 

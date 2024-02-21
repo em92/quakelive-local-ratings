@@ -1,0 +1,36 @@
+FROM debian:buster
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    python3-asgiref \
+    python3-click \
+    python3-cachetools \
+    python3-h11 \
+    python3-idna \
+    python3-jinja2 \
+    python3-pip \
+    python3-psycopg2 \
+    python3-requests \
+    python3-sniffio \
+    python3-typing-extensions \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    git \
+    postgresql-11 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/usr/lib/postgresql/11/bin:${PATH}"
+# take out coverage report from source directory
+ENV COVERAGE_FILE="/tmp/qllr.coverage"
+
+COPY --chown=www-data . /opt/qllr
+
+WORKDIR /opt/qllr
+
+RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install -r requirements_dev.txt
+
+USER www-data
+
+CMD ["./scripts/test"]

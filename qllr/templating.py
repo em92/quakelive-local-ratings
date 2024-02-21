@@ -1,8 +1,18 @@
 import typing
 from urllib.parse import ParseResult, urlparse
 
-from jinja2 import Undefined, contextfunction, escape
+from jinja2 import Undefined
 from starlette.templating import Jinja2Templates
+
+try:
+    from jinja2 import contextfunction
+except ImportError:  # pragma: nocover
+    from jinja2 import pass_context as contextfunction
+
+try:
+    from jinja2 import escape
+except ImportError:  # pragma: nocover
+    from markupsafe import escape
 
 
 def render_ql_nickname(nickname):

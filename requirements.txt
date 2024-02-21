@@ -1,13 +1,11 @@
-psycopg2==2.9.1; python_version < '3.11'
-psycopg2==2.9.9; python_version >= '3.11'
+psycopg2<3
 trueskill==0.4.4
 
-starlette==0.27.0;
-asyncpg==0.24.0; python_version < '3.11'
-asyncpg==0.29.0; python_version >= '3.11'
-uvicorn==0.14.0
+starlette
+asyncpg
+uvicorn
 requests
-Jinja2==2.11.3
-cachetools==3.1.1
+Jinja2
+cachetools
 
-MarkupSafe<2.1 # https://github.com/pallets/jinja/issues/1658
+MarkupSafe<2.1; python_version <= '3.7' # https://github.com/pallets/jinja/issues/1658

@@ -31,27 +31,20 @@ Usually it is used with [feeder](https://github.com/em92/qlstats-feeder-mini) ba
 
 For qllr itself:
 
-* Python 3.7 with pip
-* PostgreSQL 9.5
+* Python 3.7 or newer with pip
+* PostgreSQL 9.5 or newer
 
 For feeder:
 
-* Node.js 0.11.13
+* Node.js 0.11.13 or newer
 * libzmq3
 
-### Docker
+Also it is recommended to install `nginx` and `htpasswd` and cover apps above under it.
+Reasons:
 
-For development:
+  * to disable or limit submitting match reports from outside
 
-```
-docker build . -t em92/qllr-dev -f Dockerfile.develop.buster
-```
-
-For production:
-
-```
-docker build . -t em92/qllr -f Dockerfile.production
-```
+  * hide feeder under password protection
 
 ### Docs
 

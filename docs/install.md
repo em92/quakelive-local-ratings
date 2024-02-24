@@ -68,7 +68,7 @@ That's it. Now run in separate screen.
 ./main.py
 ```
 
-By default it is running on port 8000.
+By default it is running on port 8000 and uses 127.0.0.1 as host.
 
 
 ## Installing and configuring feeder
@@ -86,11 +86,38 @@ mkdir ql-match-jsons
 mkdir ql-match-jsons/errors
 ```
 
-Edit cfg.json. *xonstatSubmissionUrl* value must point to our qllr (example http://YOUR-HOST-HERE:8000/stats/submit).
+Edit cfg.json:
+
+- `feeder.xonstatSubmissionUrl` value must point to our qllr (example http://127.0.0.1:8000/stats/submit).
+- `webadmin.urlprefix` value to `/feeder`
 
 Now run in separate screen.
 ```
 node feeder.node.js
 ```
 
-It will run on 8081 port by default. Visit http://YOUR-HOST-HERE:8081 and add your quake live server(s) there.
+It will run on 8081 port by default. Visit http://127.0.0.1:8081/feeder and add your quake live server(s) there.
+
+
+## Installing and configuring nginx
+
+```
+sudo apt-get install nginx apache2-utils
+sudo cp nginx.example.conf /etc/nginx/sites-available/stats
+sudo ln -s /etc/nginx/sites-available/stats /etc/nginx/sites-enabled/stats
+# edit /etc/nginx/sites-available/stats
+# When copying from nginx.example.conf
+# 1. domain name
+# 2. path to static directory
+
+# generate password to access /feeder via nginx
+# user is admin
+# password should be inputed
+sudo htpasswd -c /etc/nginx/qllr.htpasswd admin
+
+# make sure everything is fine with nginx config
+sudo nginx -t
+
+# if yes, reload nginx
+sudo service nginx reload
+```

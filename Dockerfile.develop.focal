@@ -15,9 +15,16 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    build-essential \
     git \
     postgresql-12 \
     && rm -rf /var/lib/apt/lists/*
+
+RUN git clone https://github.com/eradman/ephemeralpg.git \
+    && cd ephemeralpg \
+    && make && make install \
+    && cd .. \
+    && rm -rf ephemeralpg/
 
 ENV PATH="/usr/lib/postgresql/12/bin:${PATH}"
 # take out coverage report from source directory

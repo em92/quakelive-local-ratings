@@ -15,6 +15,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Install postgresql
+        uses: tj-actions/install-postgresql@v3
+        with:
+          postgresql-version: 11
       - uses: actions/checkout@v3
       - name: Include ppa repository
         run: sudo add-apt-repository ppa:deadsnakes/ppa
@@ -32,8 +36,11 @@ jobs:
         run: python3 -m pip install -r requirements.txt
       - name: Install development requirements
         run: python3 -m pip install -r requirements_dev.txt
-      - name: Install postgresql
-        run: sudo apt-get install postgresql
+      - name: Install pg_tmp
+        run: |
+          sudo apt-get install build-essential
+          git clone https://github.com/eradman/ephemeralpg.git
+          cd ephemeralpg && make && sudo make install
       - name: Test
         run: ./scripts/test
       - uses: codecov/codecov-action@v1

@@ -8,36 +8,33 @@ from pytest import fixture
 from requests import Response
 from starlette.config import environ
 from starlette.testclient import TestClient
-from testing import postgresql as pgsql_test
+from subprocess import check_output
 
-postgresql = None
+
 module_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def pytest_configure(config):
-    def handler(postgresql):
-        f = open(os.path.dirname(os.path.realpath(__file__)) + "/../sql/init.sql")
-        sql_query = f.read()
-        f.close()
-        conn = psycopg2.connect(**postgresql.dsn())
-        cursor = conn.cursor()
-        cursor.execute(sql_query)
-        cursor.close()
-        conn.commit()
-        conn.close()
-
-    global postgresql
-    # force default timezone to pass tests on os with different local timezone setting
-    pgsql_test.Postgresql.DEFAULT_SETTINGS["postgres_args"] += " -c timezone=+5"
-
-    PGSQLFactory = pgsql_test.PostgresqlFactory(
-        cache_initialized_db=True, on_initialized=handler
-    )
-
-    postgresql = PGSQLFactory()
-    environ["DATABASE_URL"] = postgresql.url()
     environ["USE_AVG_PERF_TDM"] = "TRUE"
     environ["CACHE_HTTP_RESPONSE"] = "1"
+    environ["DATABASE_URL"] = check_output(["pg_tmp", "-t"]).decode("utf-8")
+
+    # force default timezone to pass tests on os with different local timezone setting
+    data_dir = (
+        check_output(
+            ["psql", environ["DATABASE_URL"], "-At", "-c", "SHOW data_directory"]
+        )
+        .decode("utf-8")
+        .strip()
+    )
+    with open(data_dir + "/postgresql.conf", "a") as f:
+        f.write("timezone = +5\n")
+    check_output(["psql", environ["DATABASE_URL"], "-c", "select pg_reload_conf()"])
+
+    # create tables
+    check_output(
+        ["psql", environ["DATABASE_URL"], "-f", module_path + "/../sql/init.sql"]
+    )
 
 
 def read_sample(sample_filename: str) -> str:

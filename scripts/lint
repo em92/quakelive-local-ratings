@@ -1,6 +1,0 @@
-#!/bin/sh -e
-
-export TARGET="qllr tests contrib main.py"
-
-${PREFIX}black $TARGET
-${PREFIX}isort --multi-line=3 --trailing-comma --force-grid-wrap=0 --combine-as --line-width 88 $TARGET

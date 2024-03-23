@@ -3,7 +3,6 @@
 import os
 import socket
 import sys
-
 from os import environ
 from time import sleep
 from urllib.parse import urlparse
@@ -18,7 +17,7 @@ except KeyError:
     with open(envfile) as f:
         for line in f:
             if line.startswith("DATABASE_URL"):
-                _, DATABASE_URL = line.strip().split('=', 1)
+                _, DATABASE_URL = line.strip().split("=", 1)
 
 if not DATABASE_URL:
     print("DATABASE_URL not defined", file=sys.stderr)

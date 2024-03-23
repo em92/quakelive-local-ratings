@@ -79,9 +79,9 @@ async def get_scoreboard(con: Connection, match_id: str):
     ) t
 
     """.format(
-        RATING_COLUMN="old_r2_value"
-        if USE_AVG_PERF[summary["gt_short"]]
-        else "old_r1_mean"
+        RATING_COLUMN=(
+            "old_r2_value" if USE_AVG_PERF[summary["gt_short"]] else "old_r1_mean"
+        )
     )
     summary["rating_diff"] = await con.fetchval(query, match_id)
     if summary["rating_diff"] is not None:

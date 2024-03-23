@@ -2,14 +2,13 @@ import asyncio
 import json
 import os
 import typing
+from subprocess import check_output
 
 import psycopg2
 from pytest import fixture
 from requests import Response
 from starlette.config import environ
 from starlette.testclient import TestClient
-from subprocess import check_output
-
 
 module_path = os.path.dirname(os.path.realpath(__file__))
 

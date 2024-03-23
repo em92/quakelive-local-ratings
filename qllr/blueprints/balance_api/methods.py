@@ -110,9 +110,11 @@ async def fetch(
         for gametype in ENABLED_GAMETYPES:
             players[steam_id][gametype] = {
                 "games": 0,
-                "elo": INITIAL_R1_MEAN[gametype]
-                if gametype not in AVG_PERF_GAMETYPES
-                else INITIAL_R2_VALUE[gametype],
+                "elo": (
+                    INITIAL_R1_MEAN[gametype]
+                    if gametype not in AVG_PERF_GAMETYPES
+                    else INITIAL_R2_VALUE[gametype]
+                ),
             }
             if bigger_numbers:
                 players[steam_id][gametype]["elo"] = int(

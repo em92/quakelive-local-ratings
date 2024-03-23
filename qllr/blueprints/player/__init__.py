@@ -9,7 +9,11 @@ from qllr.app import App
 from qllr.endpoints import Endpoint, HTTPEndpoint
 from qllr.templating import templates
 
-from .methods import get_best_match_of_player, get_player_info, get_player_info_mod_date
+from .methods import (
+    get_best_match_of_player,
+    get_player_info,
+    get_player_info_mod_date,
+)
 
 bp = App()
 

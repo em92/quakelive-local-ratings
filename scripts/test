@@ -1,8 +1,5 @@
 #!/bin/sh -e
 
-export TARGET="qllr tests contrib main.py"
-
 set -x
 
 PYTHONPATH=. python3 -m pytest -o cache_dir=/tmp/.qllr_test_cache --cov=qllr --cov=tests --cov-report=term-missing --ignore venv -W ignore::DeprecationWarning ${@}
-${PREFIX}black $TARGET --check

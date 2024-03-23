@@ -2,7 +2,10 @@ from asyncpg import Connection
 
 from qllr.db import cache, rating_column
 
-from ..ratings.methods import KEEPING_TIME, get_sql_top_players_query_by_gametype_id
+from ..ratings.methods import (
+    KEEPING_TIME,
+    get_sql_top_players_query_by_gametype_id,
+)
 
 
 async def get_player_info_old(con: Connection, steam_id: int):

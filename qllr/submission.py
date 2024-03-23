@@ -22,6 +22,7 @@ MIN_DURATION_TO_ADD = 60 * 5
 
 lock = Lock()
 
+
 # https://github.com/PredatH0r/XonStat/blob/380fbd4aeafb722c844f66920fb850a0ad6821d3/xonstat/views/submission.py#L19
 def parse_stats_submission(body):
     """

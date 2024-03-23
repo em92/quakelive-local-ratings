@@ -27,9 +27,11 @@ class BalanceAdvanced(NoCacheEndpoint):
             await fetch(
                 con,
                 ids,
-                mapname=request.headers.get("X-QuakeLive-Map")
-                if "map_based" in options
-                else None,
+                mapname=(
+                    request.headers.get("X-QuakeLive-Map")
+                    if "map_based" in options
+                    else None
+                ),
                 bigger_numbers="bn" in options,
                 with_qlstats_policy=True if "with_qlstats_policy" in options else False,
             )

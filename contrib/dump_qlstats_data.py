@@ -4,8 +4,7 @@
 
 import gzip
 import json
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -13,8 +12,8 @@ from pytz import timezone
 
 
 def get_sec(s):
-    l = s.split(":")
-    return int(l[0]) * 3600 + int(l[1]) * 60 + int(l[2])
+    x = s.split(":")
+    return int(x[0]) * 3600 + int(x[1]) * 60 + int(x[2])
 
 
 def download(link):
@@ -44,14 +43,13 @@ def download_stats(match_id, timestamp, path="./"):
     f.close()
     data = json.loads(data)
     try:
-        if data["ok"] == False:
+        if data["ok"] is False:
             raise Exception("something is wrong")
     except KeyError:
         pass
 
 
 def get_game_results(game_id):
-    result = {}
     html = download("http://qlstats.net/game/" + game_id)
     soup = BeautifulSoup(html, "html.parser")
     download_stats(
@@ -83,7 +81,7 @@ def main(args):
             game_id = btn["href"].replace("/game/", "")
             get_game_results(game_id)
 
-        if game_id == None:
+        if game_id is None:
             break
 
         server_results_link = (

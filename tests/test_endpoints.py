@@ -1,10 +1,10 @@
 from typing import Tuple
 
-from pytest import fixture, mark, param, raises
+from asyncpg import Connection
+from pytest import fixture, mark, param
 from starlette.testclient import TestClient
 
 from qllr.app import App, JSONResponse, PlainTextResponse, Request
-from qllr.db import Connection
 from qllr.endpoints import Endpoint, NoCacheEndpoint
 
 OLD_DATE = (1992, 1, 31, 17, 45, 0)
@@ -49,13 +49,13 @@ def test_cli_with_endpoint(endpoint_app):
             return app.date
 
     @app.route("/get_document_without_db")
-    class Sample(Endpoint):
+    class Sample(Endpoint):  # noqa: F811
         def get_document_without_db(self, request: Request):
             app.counter = app.counter + 1
             return JSONResponse({"counter": app.counter})
 
     @app.route("/gametype/{gametype}")
-    class Sample(Endpoint):
+    class Sample(Endpoint):  # noqa: F811
         def get_document_without_db(self, request: Request):
             return PlainTextResponse(request.path_params["gametype"])
 

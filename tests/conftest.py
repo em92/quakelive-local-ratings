@@ -1,10 +1,8 @@
-import asyncio
 import json
 import os
 import typing
 from subprocess import check_output
 
-import psycopg2
 from pytest import fixture
 from requests import Response
 from starlette.config import environ

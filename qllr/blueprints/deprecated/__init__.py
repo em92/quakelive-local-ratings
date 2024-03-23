@@ -3,8 +3,6 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from qllr.endpoints import Endpoint
-
 from ..player import PlayerEndpoint
 from .methods import get_player_info_old
 

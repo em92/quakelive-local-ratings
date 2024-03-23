@@ -95,7 +95,7 @@ async def get_list(con: Connection, gametype_id: int, page: int, show_inactive=F
     result = []
     player_count = 0
     async for row in con.cursor(query, start_timestamp, gametype_id):
-        if row[0] != None:
+        if row[0] is not None:
             result.append(
                 {
                     "_id": str(row[0]),

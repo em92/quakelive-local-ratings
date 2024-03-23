@@ -1,5 +1,4 @@
 import typing
-from urllib.parse import ParseResult, urlparse
 
 from jinja2 import Undefined
 from starlette.templating import Jinja2Templates

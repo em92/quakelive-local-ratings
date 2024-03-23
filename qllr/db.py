@@ -5,7 +5,7 @@ from typing import List
 from urllib.parse import urlparse
 
 import psycopg2
-from asyncpg import Connection, create_pool
+from asyncpg import create_pool
 from asyncpg.pool import Pool
 from cachetools import LRUCache
 

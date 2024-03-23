@@ -10,7 +10,7 @@ from qllr.db import db_connect
 def main(args):
     try:
         path = args[1]
-        if path.endswith("/") == False:
+        if not path.endswith("/"):
             path += "/"
     except IndexError:
         path = "./"
@@ -20,7 +20,7 @@ def main(args):
     cu = db.cursor()
     cu.execute("SELECT match_id, timestamp FROM matches")
     for row in cu.fetchall():
-        if isfile(path + row[0] + ".json.gz") == False:
+        if not isfile(path + row[0] + ".json.gz"):
             download_stats(row[0], row[1], path)
     db.close()
     return 0

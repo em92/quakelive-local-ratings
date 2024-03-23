@@ -48,7 +48,7 @@ def assert_scoreboard_html_equals_sample(
 )
 def test_scoreboards(service, sample_name, match_id, mod_date):
     service.assert_scoreboard_equals_sample(
-        match_id, "scoreboard_{}".format(sample_name, mod_date)
+        match_id, "scoreboard_{}".format(sample_name)
     )
     assert_scoreboard_html_equals_sample(
         service, match_id, "scoreboard_{}".format(sample_name), mod_date
@@ -65,7 +65,7 @@ def test_not_exists_scoreboard_json(service):
 
 
 def test_not_exists_scoreboard_html(service):
-    resp = service.get(
+    service.get(
         "/scoreboard/11111111-1111-1111-1111-111111111111",
         404,
         headers={"accept": "text/html"},

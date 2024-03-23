@@ -1,14 +1,12 @@
 from asyncio import Lock
 from typing import Optional
-from warnings import warn
 
 import trueskill
 from asyncpg import Connection
 from asyncpg.exceptions import UniqueViolationError
 
-from .common import log_exception
-from .db import cache, db_connect, get_db_pool
-from .exceptions import *
+from .db import cache, get_db_pool
+from .exceptions import InvalidMatchReport, MatchAlreadyExists
 from .gametypes import GAMETYPE_RULES, detect_by_match_report
 from .settings import (
     INITIAL_R1_DEVIATION,
@@ -78,7 +76,7 @@ def parse_stats_submission(body):
                 events[key] = value
             if key == "t":
                 events[key] = value
-        except:
+        except Exception:
             # no key/value pair - move on to the next line
             pass
 
@@ -149,7 +147,7 @@ def count_multiple_players_match_perf(gametype, all_players_data, match_duration
             if MIN_PLAYER_COUNT_TO_RATE[gametype] <= len(all_players_data)
             else None
         )
-        if perf != None:
+        if perf is not None:
             temp.append({"team": team, "steam_id": steam_id, "perf": perf})
             sum_perf += perf
         if team not in result:
@@ -295,7 +293,6 @@ async def _calc_ratings_trueskill(
     )
 
     team_ratings_old = [[], []]
-    team_ratings_new = [[], []]
     team_steam_ids = [[], []]
     for row in rows:
         steam_id = row[0]
@@ -478,7 +475,7 @@ async def submit_match(data):
         return await _submit_match(data)
 
 
-async def _submit_match(data):
+async def _submit_match(data):  # noqa: C901
     """
     Match report handler
 
@@ -665,7 +662,7 @@ async def _submit_match(data):
                 "match_id": match_id,
             }
 
-    except:
+    except Exception:
         await tr.rollback()
         raise
     else:

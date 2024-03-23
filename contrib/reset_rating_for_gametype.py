@@ -2,19 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import os
 import sys
 
 import trueskill
 
-from qllr.db import db_connect
+from qllr.db import cache, db_connect
 from qllr.submission import count_multiple_players_match_perf
 
 parser = argparse.ArgumentParser()
 parser.add_argument("gametype")
 args = parser.parse_args()
 
-from qllr.db import cache
 
 GAMETYPE_IDS = cache.GAMETYPE_IDS
 
@@ -113,7 +111,7 @@ def reset_gametype_ratings(gametype: str) -> int:
         db.commit()
         result = 0
 
-    except:
+    except Exception:
         db.rollback()
     finally:
         cu.close()

@@ -1,4 +1,4 @@
-from pytest import mark, param
+from pytest import mark
 from starlette.datastructures import Headers
 
 from .conftest import read_json_sample

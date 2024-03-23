@@ -79,7 +79,7 @@ async def get_last_matches(
         ]
     }
     """
-    if gametype != None and gametype not in cache.GAMETYPE_IDS:
+    if gametype is not None and gametype not in cache.GAMETYPE_IDS:
         raise InvalidGametype(gametype)
 
     title = "Recent games"

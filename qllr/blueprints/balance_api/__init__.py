@@ -1,15 +1,11 @@
-from typing import Optional
-
 from asyncpg import Connection
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse
 from starlette.routing import Route
 
 from qllr.endpoints import NoCacheEndpoint
 
 from .methods import fetch
-
-# TODO: json only return
 
 
 class BalanceCommon(NoCacheEndpoint):

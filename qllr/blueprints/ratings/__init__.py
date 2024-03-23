@@ -1,6 +1,6 @@
 from asyncpg import Connection
 from starlette.requests import Request
-from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.responses import JSONResponse
 from starlette.routing import Route
 
 from qllr.endpoints import Endpoint

@@ -92,8 +92,8 @@ class FakeQLStatsResponse:
         }
 
 
-def stringify_dicts_in_list(l):
-    return list(map(lambda item: dumps(item, sort_keys=True, indent=2), l))
+def stringify_dicts_in_list(x):
+    return list(map(lambda item: dumps(item, sort_keys=True, indent=2), x))
 
 
 def assert_balance_api_data_equal(first: dict, second: dict):

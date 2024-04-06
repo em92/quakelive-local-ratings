@@ -53,3 +53,24 @@ def test_old_routes(service, old_uri, new_uri):
 def test_root_route(service):
     resp = service.get("/", 307)
     assert resp.headers["Location"].endswith("/matches/")
+
+
+@mark.parametrize(
+    "time_value,match_sample",
+    [
+        param(1552177500, "match_list_24hour_1"),
+        param(1552159110, "match_list_24hour_2"),
+    ],
+)
+def test_matches_json24hours(service, monkeypatch, time_value, match_sample):
+    from qllr.blueprints import matches
+
+    with monkeypatch.context() as m:
+
+        def time():
+            return time_value
+
+        m.setattr(matches, "time", time)
+
+        resp = service.get("/matches/tdm/robot24hour.json")
+        assert resp.json()["matches"] == read_json_sample(match_sample)

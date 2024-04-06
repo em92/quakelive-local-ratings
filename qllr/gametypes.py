@@ -59,10 +59,8 @@ class GametypeCTF(AbstractGametype):
 
         damage_dealt = int(player_data["scoreboard-pushes"])
         return (
-            (damage_dealt / damage_taken * (score + damage_dealt / 20) * time_factor)
-            / 2.35
-            + win * 300,
-        )
+            damage_dealt / damage_taken * (score + damage_dealt / 20) * time_factor
+        ) / 2.35 + win * 300
 
     def medals_in_scoreboard_mid(self):
         return ["captures", "assists", "defends"]

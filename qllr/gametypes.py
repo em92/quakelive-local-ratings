@@ -1,4 +1,8 @@
+import re
+
 GAMETYPE_RULES = {}
+
+ACC_CNT_FIRED_REGEX = re.compile("acc-([a-z]+)-cnt-fired")
 
 
 def detect_by_match_report(data):
@@ -7,6 +11,20 @@ def detect_by_match_report(data):
             return short
 
     return data["game_meta"]["G"]
+
+
+def detect_instagib(data):
+    for player in data["players"]:
+        for k, v in player:
+            matches = ACC_CNT_FIRED_REGEX.match(k)
+            if not matches:
+                continue
+            if matches.group(1) in ("rg", "gt"):
+                continue
+            if int(v) != 0:
+                return False
+
+    return True
 
 
 class AbstractGametype:
@@ -110,9 +128,21 @@ class GametypeTDM2V2(GametypeTDM):
         return 4
 
 
+class GametypeInstaCTF(GametypeCTF):
+    def force_by_match_report(self, data):
+        return data["game_meta"]["G"] == "ctf" and detect_instagib(data)
+
+
+class GametypeInstaFreeze(GametypeFT):
+    def force_by_match_report(self, data):
+        return data["game_meta"]["G"] == "ft" and detect_instagib(data)
+
+
 GAMETYPE_RULES["ad"] = GametypeAD()
 GAMETYPE_RULES["ca"] = GametypeCA()
 GAMETYPE_RULES["ctf"] = GametypeCTF()
 GAMETYPE_RULES["ft"] = GametypeFT()
 GAMETYPE_RULES["tdm"] = GametypeTDM()
 GAMETYPE_RULES["tdm2v2"] = GametypeTDM2V2()
+GAMETYPE_RULES["ictf"] = GametypeInstaCTF()
+GAMETYPE_RULES["ift"] = GametypeInstaFreeze()

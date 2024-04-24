@@ -19,7 +19,9 @@ INSERT INTO gametypes (gametype_id, gametype_name, gametype_short) VALUES
   (3, 'Team Deathmatch',  'tdm'),
   (4, 'Team Deathmatch (2v2)',  'tdm2v2'),
   (5, 'Freeze Tag', 'ft'),
-  (6, 'Clan Arena', 'ca');
+  (6, 'Clan Arena', 'ca'),
+  (7, 'InstaCTF', 'ictf'),
+  (8, 'InstaFreeze', 'ift');
 
 
 
@@ -178,4 +180,3 @@ CREATE TABLE scoreboards_medals (
   FOREIGN KEY (medal_id) REFERENCES medals(medal_id),
   PRIMARY KEY (match_id, steam_id, team, medal_id)
 );
-

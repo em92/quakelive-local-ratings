@@ -18,7 +18,7 @@ jobs:
       - name: Install postgresql
         uses: tj-actions/install-postgresql@v3
         with:
-          postgresql-version: 11
+          postgresql-version: 12
       - uses: actions/checkout@v3
       - name: Include ppa repository
         run: sudo add-apt-repository ppa:deadsnakes/ppa

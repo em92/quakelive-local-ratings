@@ -25,8 +25,20 @@ services:
   dev:
     build:
       context: .
-      dockerfile: Dockerfile.develop.buster
+      dockerfile: Dockerfile.develop
     volumes:
       - .:/opt/qllr
     ports:
       - "127.0.0.1:7081:8000"
+    environment:
+      - DATABASE_URL=postgres://eugene:bebebe@db:5432/qllr
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WDB_SOCKET_SERVER=wdb
+      - WDB_NO_BROWSER_AUTO_OPEN=True
+    depends_on: ["wdb", "db"]
+
+  wdb:
+    image: kozea/wdb:3.3.0
+    ports:
+      - "127.0.0.1:1984:1984"

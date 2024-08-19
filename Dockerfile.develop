@@ -1,0 +1,43 @@
+FROM registry.altlinux.org/alt/base:p10
+
+RUN apt-get update && apt-get install -y \
+    python3-module-async-timeout \
+    python3-module-asyncpg \
+    python3-module-cachetools \
+    python3-module-jinja2 \
+    python3-module-pip \
+    python3-module-psycopg2 \
+    python3-module-requests \
+    python3-module-starlette \
+    python3-module-uvicorn \
+    && find /var/lib/apt/lists/ -type f -delete
+
+RUN apt-get update && apt-get install -y \
+    gcc make \
+    git \
+    postgresql15-server \
+    python3-modules-sqlite3 \
+    && find /var/lib/apt/lists/ -type f -delete
+
+RUN git clone https://github.com/eradman/ephemeralpg.git \
+    && cd ephemeralpg \
+    && make && make install \
+    && cd .. \
+    && rm -rf ephemeralpg/
+
+RUN python3 -m pip install wdb
+
+ENV PATH="/usr/lib/postgresql/15/bin:${PATH}"
+# take out coverage report from source directory
+ENV COVERAGE_FILE="/tmp/qllr.coverage"
+
+COPY --chown=apache . /opt/qllr
+
+WORKDIR /opt/qllr
+
+RUN python3 -m pip install --no-deps -r requirements.txt
+RUN python3 -m pip install -r requirements_dev.txt
+
+USER apache
+
+CMD ["sh", "-c", "./docker/entrypoint.py && ./main.py"]

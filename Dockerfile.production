@@ -1,25 +1,23 @@
-FROM debian:buster
+FROM registry.altlinux.org/alt/base:p10
 
 RUN apt-get update && apt-get install -y \
-    python3-asgiref \
-    python3-click \
-    python3-cachetools \
-    python3-h11 \
-    python3-jinja2 \
-    python3-idna \
-    python3-pip \
-    python3-psycopg2 \
-    python3-requests \
-    python3-sniffio \
-    python3-typing-extensions \
-    && rm -rf /var/lib/apt/lists/*
+    python3-module-async-timeout \
+    python3-module-asyncpg \
+    python3-module-cachetools \
+    python3-module-jinja2 \
+    python3-module-pip \
+    python3-module-psycopg2 \
+    python3-module-requests \
+    python3-module-starlette \
+    python3-module-uvicorn \
+    && find /var/lib/apt/lists/ -type f -delete
 
-COPY --chown=www-data . /opt/qllr
+COPY --chown=apache . /opt/qllr
 
 WORKDIR /opt/qllr
 
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install --no-deps -r requirements.txt
 
-USER www-data
+USER apache
 
 CMD ["sh", "-c", "./docker/entrypoint.py && ./main.py"]

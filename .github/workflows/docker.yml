@@ -26,7 +26,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.develop.${{ matrix.dockerfile-suffix }}
+          file: ./tests/dockerfiles/Dockerfile.${{ matrix.dockerfile-suffix }}
           push: false
           load: true
           tags: test:latest

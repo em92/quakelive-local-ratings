@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block body %}
+<form method="POST">
+  <label>Player name</label>
+  <input type="text" name="name" value="{{ response['name'] | safe }}" />
+  <br />
+
+  <label>Stick player name</label>
+  <input type="checkbox" name="stick_player_name" {{ "checked" if response['stick_player_name'] }} />
+  <br />
+
+  <!-- TODO: player rating -->
+
+  <input type="submit" />
+</form>
+{% endblock %}

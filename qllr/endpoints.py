@@ -45,6 +45,20 @@ class NoCacheEndpoint(BaseEndpoint):
             await dbpool.release(con)
 
 
+class NoCacheEndpointWithPost(NoCacheEndpoint):
+    async def post(self, request: Request) -> Response:
+        dbpool = await get_db_pool()
+        con = await dbpool.acquire()
+        tr = con.transaction()
+        await tr.start()
+
+        try:
+            return await self.post_document(request, con)
+        finally:
+            await tr.rollback()
+            await dbpool.release(con)
+
+
 class Endpoint(BaseEndpoint):
     def try_very_fast_response(self, request: Request) -> Optional[Response]:
         if not CACHE_HTTP_RESPONSE:
@@ -144,3 +158,7 @@ class Endpoint(BaseEndpoint):
 
     async def get_document(self, request: Request, con: Connection) -> Response:
         raise HTTPException(501)  # pragma: nocover
+
+
+class AdminEndpoint(NoCacheEndpoint):
+    pass

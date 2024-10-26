@@ -13,6 +13,7 @@ async def http_stats_submit(request: Request):
         raise HTTPException(403, "signature header invalid or not found")
 
     match_report = await request.body()
+    print(match_report.decode("utf-8"))
     result = await submit_match(match_report.decode("utf-8"))
     if RUN_POST_PROCESS is False:
         raise HTTPException(202, result["message"])

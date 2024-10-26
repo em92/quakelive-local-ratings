@@ -230,6 +230,12 @@ li.dropdown:hover > .dropdown-menu {
     display: block;
 }
 
+form {
+    padding: 20px;
+    background-color: red;
+    border-radius: 15px;
+}
+
 .w-bar-gt {
     background-color: #00d9ff;
 }

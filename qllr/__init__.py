@@ -30,6 +30,7 @@ Disallow: /
 
 routes = [
     Route("/about", endpoint=http_about),
+    Mount("/admin", routes=bp.admin.routes),
     Route("/favicon.ico", endpoint=http_favicon),
     Mount("/static", StaticFiles(directory="static"), name="static"),
     Mount("/elo", routes=bp.balance_api.routes),

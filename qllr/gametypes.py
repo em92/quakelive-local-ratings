@@ -10,7 +10,7 @@ def detect_by_match_report(data):
 
 
 class AbstractGametype:
-    def calculate_player_perf(self, player_data, time_factor):
+    def calc_player_perf(self, player_data, time_factor):
         raise NotImplementedError()  # pragma: nocover
 
     def force_by_match_report(self, data):

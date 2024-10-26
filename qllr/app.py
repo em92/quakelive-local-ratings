@@ -62,9 +62,9 @@ async def player_not_found_exception_handler(request: Request, e: PlayerNotFound
     return await http_exception_handler(request, new_exc)
 
 
-class App(Starlette):
-    def __init__(self, debug: bool = False, routes: Optional[List] = []):
-        super().__init__(debug, routes)
+class App(Starlette):  # pylint: disable=too-few-public-methods
+    def __init__(self, debug: bool = False, routes: Optional[List] = None):
+        super().__init__(debug, routes or [])
         self.add_exception_handler(HTTPException, http_exception_handler)
         self.add_exception_handler(
             MatchAlreadyExists, match_already_exists_exception_handler

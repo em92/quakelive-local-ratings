@@ -10,45 +10,21 @@ from qllr.exceptions import MatchNotFound, PlayerNotFound
 from qllr.settings import MOVING_AVG_COUNT
 
 
-async def get_player_info_mod_date(
-    con: Connection, steam_id: int, gametype_id: Optional[int] = None
-):
+def _choose_rating_values(item: dict):
+    if cache.USE_AVG_PERF[item["gametype_short"]]:
+        item["rating"] = item["r2_value"]
+        item["rating_d"] = 0
+    else:
+        item["rating"] = item["r1_mean"]
+        item["rating_d"] = item["r1_deviation"]
 
-    query = """
-    SELECT MAX(last_played_timestamp)
-    FROM gametype_ratings
-    WHERE steam_id = $1
-    """
-
-    params = [steam_id]
-
-    if gametype_id is not None:
-        query += " AND gametype_id = $2"
-        params.append(gametype_id)
-
-    return convert_timestamp_to_tuple(await con.fetchval(query, *params))
+    del item["r1_mean"]
+    del item["r1_deviation"]
+    del item["r2_value"]
+    return item
 
 
-async def get_player_info(con: Connection, steam_id: int):
-
-    await con.set_type_codec(
-        "json", encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
-    )
-
-    def choose_rating_values(item: dict):
-        if cache.USE_AVG_PERF[item["gametype_short"]]:
-            item["rating"] = item["r2_value"]
-            item["rating_d"] = 0
-        else:
-            item["rating"] = item["r1_mean"]
-            item["rating_d"] = item["r1_deviation"]
-
-        del item["r1_mean"]
-        del item["r1_deviation"]
-        del item["r2_value"]
-        return item
-
-    # player name, rating and games played
+async def _fetch_minimal_player_info(con, steam_id):
     query = """
     SELECT json_build_object(
         'name', p.name,
@@ -75,7 +51,45 @@ async def get_player_info(con: Connection, steam_id: int):
     if result is None:
         raise PlayerNotFound(steam_id)
 
-    result["ratings"] = list(map(choose_rating_values, result["ratings"]))
+    result["ratings"] = list(map(_choose_rating_values, result["ratings"]))
+    return result
+
+
+async def get_player_info_mod_date(
+    con: Connection, steam_id: int, gametype_id: Optional[int] = None
+):
+
+    query = """
+    SELECT MAX(last_played_timestamp)
+    FROM gametype_ratings
+    WHERE steam_id = $1
+    """
+
+    params = [steam_id]
+
+    if gametype_id is not None:
+        query += " AND gametype_id = $2"
+        params.append(gametype_id)
+
+    return convert_timestamp_to_tuple(await con.fetchval(query, *params))
+
+
+async def get_minimal_player_info(con: Connection, steam_id: int):
+    await con.set_type_codec(
+        "json", encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
+    )
+
+    return await _fetch_minimal_player_info(con, steam_id)
+
+
+async def get_player_info(con: Connection, steam_id: int):
+
+    await con.set_type_codec(
+        "json", encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
+    )
+
+    # player name, rating and games played
+    result = await _fetch_minimal_player_info(con, steam_id)
 
     # weapon stats (frags + acc)
     query = """

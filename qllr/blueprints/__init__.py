@@ -61,6 +61,7 @@ cm.CONVERTOR_TYPES["steam_ids"] = SteamIdsConvertor()
 cm.CONVERTOR_TYPES["match_id"] = MatchIdConvertor()
 cm.CONVERTOR_TYPES["balance_options"] = BalanceOptionsConvertor()
 
+from . import admin  # noqa: E402,F401
 from . import balance_api  # noqa: E402,F401
 from . import deprecated  # noqa: E402,F401
 from . import export_rating  # noqa: E402,F401

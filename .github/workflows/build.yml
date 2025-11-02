@@ -10,7 +10,6 @@ jobs:
   test:
     strategy:
       matrix:
-        include:
         python-version: ["3.7"]
         os: ["ubuntu-22.04"]
 

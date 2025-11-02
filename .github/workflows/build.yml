@@ -10,7 +10,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python-version: ["3.12", "3.11", "3.10", "3.9", "3.8", "3.7"]
+        python-version: ["3.7"]
         os: ["ubuntu-22.04"]
 
     runs-on: ${{ matrix.os }}
@@ -43,4 +43,8 @@ jobs:
           cd ephemeralpg && make && sudo make install
       - name: Test
         run: ./scripts/test
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v4
+        with:
+          slug: em92/quakelive-local-ratings
+          token: ${{ secrets.CODECOV_TOKEN }}
+          url: https://codecov.eugenemolotov.ru

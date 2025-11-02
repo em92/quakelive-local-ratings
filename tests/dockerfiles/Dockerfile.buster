@@ -1,5 +1,9 @@
 FROM debian:buster
 
+RUN rm -f /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian buster main" >> /etc/apt/sources.list
+
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     python3-asgiref \
     python3-click \
